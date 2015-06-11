@@ -28,7 +28,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
 
-
+#import numpy as np
 
 def index(request):
     """A view for browsing the existing webfinches.
