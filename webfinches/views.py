@@ -83,8 +83,6 @@ def review(request):
                 #    srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
                 ## Write the layer to the DB
                 #loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
-                print form
-                print loaded_layer
                 #print loaded_layer.author, loaded_layer.date_added, loaded_layer.geometry_type
                 
                 
@@ -95,7 +93,8 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
-
+        
+        'we should get some error if the geometry does not have a projection of has a wrong geom type'
         formset = LayerReviewFormSet( initial=layer_data )
         
     c = {
@@ -106,51 +105,47 @@ def review(request):
             RequestContext(request, c),
             )
                     
-
-@login_required
-def browse(request):
-    """A view for browsing and editing layers"""
-    user = request.user
-    if request.method == 'POST': # someone is giving us data
-        formset = LayerReviewFormSet(request.POST)
-        if formset.is_valid():
-            for form in formset:
-                if form.cleaned_data['srs'].isnumeric():
-                    srs = int(form.cleaned_data['srs'])
-                else:
-                    srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
-                # Write the layer to the DB
-                loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
-                
-        return HttpResponseRedirect('/webfinches/configure/')
-
-    else:
-        layers = DataLayer.objects.filter(author=user).order_by('-date_edited')
-        browsing_data = [ l.get_browsing_data() for l in layers ]
-        # do I need to convert these to dicts?
-        formset = LayerBrowseFormSet(initial=browsing_data)
-        all_tags = Tag.objects.all()
-    
-    c = {
-            'formset': formset,
-            'tags': all_tags,
-            
-            }
-    return render_to_response(
-            'webfinches/browse.html',
-            RequestContext( request, c ),
-            )
-
-@login_required
-def browse_empty(request):
-    c = {
-            'layers': None,
-    
-            }
-    return render_to_response(
-            'webfinches/browse_empty.html',
-            RequestContext(request, c),
-            )
+#@login_required
+#def browse(request):
+#    """A view for browsing and editing layers"""
+#    user = request.user
+#    if request.method == 'POST': # someone is giving us data
+#        formset = LayerReviewFormSet(request.POST)
+#        if formset.is_valid():
+#            for form in formset:
+#                if form.cleaned_data['srs'].isnumeric():
+#                    srs = int(form.cleaned_data['srs'])
+#                else:
+#                    srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
+#                # Write the layer to the DB
+#                loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
+#                
+#        return HttpResponseRedirect('/webfinches/configure/')
+#
+#    else:
+#        layers = DataLayer.objects.filter(author=user).order_by('-date_edited')
+#        browsing_data = [ l.get_browsing_data() for l in layers ]
+#        # do I need to convert these to dicts?
+#        formset = LayerBrowseFormSet(initial=browsing_data)
+#    
+#    c = {
+#            'formset': formset,            
+#            }
+#    return render_to_response(
+#            'webfinches/browse.html',
+#            RequestContext( request, c ),
+#            )
+#
+#@login_required
+#def browse_empty(request):
+#    c = {
+#            'layers': None,
+#    
+#            }
+#    return render_to_response(
+#            'webfinches/browse_empty.html',
+#            RequestContext(request, c),
+#            )
 
 @login_required
 def configure(request):
@@ -220,8 +215,9 @@ def load_shp(layer, srs):
     
     # Get the GEOS geometries from the SHP file
     geoms = layer.get_geoms(geos=True)
-    for geom in geoms:
-        geom.srid= srs
+    if srs:
+        for geom in geoms:
+            geom.srid= srs
     # If the geometries are polygons, turn them into linestrings.
     if geom_type == 'Polygon' or geom_type == 'MultiPolygon':
         geoms = [geom.boundary for geom in geoms]
@@ -231,7 +227,6 @@ def load_shp(layer, srs):
     for num, geom in enumerate(geoms):
         verts = geom.coords
         'here we are going to plug-in eleannas code that translates geometries into np arrays'
-        pass
     
         # save the object to the DB
         #db_geom = PostGeometries(id_n = num, name = name, srs = srs, atribs = str_dict, geom = geom)
@@ -249,13 +244,16 @@ def load_layer(form, author):
     if form.cleaned_data['srs'].isnumeric():
         srs = int(form.cleaned_data['srs'])
     else:
-        srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
+        srs = None #int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
+        
     # Set a GDAL datsource
     ds = DataSource(shp_path)
     layer = ds[0]
     # Get the layer name
     name = layer.name
     geometry_type = layer.geom_type.name
+    
+    
     
     #db_layer = PostLayerG(layer_name=name, layer_srs=srs, author=author, geometry_type=geometry_type)
     #db_layer.save()
@@ -267,26 +265,26 @@ def load_layer(form, author):
     #    db_layer.features.add(shape)
     #return db_layer
 
-"""
-This function loads site configurations to the DB and relates them to other PostGeom objects as site and other_layers. 
-Every object is an individual configuration with a site, site id, srs for transformation, and PostGeom objects.
-"""
-def load_configuration(author, config_name, site_layer, other_layers=None, radius=1000, config_srs=None):
-    if config_srs == None:
-        config_srs = site_layer.layer_srs
-    
-    # Create the configuration db object
-    db_config = PostConfigurationB(author=author, config_name=config_name, radius=radius, config_srs=config_srs)
-    # Save it to the DB
-    db_config.save()
-    # Add the site foreign key relationship
-    db_config.site.add(site_layer)
-    
-    # For every other layer in other_layers, add the m2m relationship
-    if other_layers:
-        for other_layer in other_layers:
-            db_config.other_layers.add(other_layer)
-    return db_config
+#"""
+#This function loads site configurations to the DB and relates them to other PostGeom objects as site and other_layers. 
+#Every object is an individual configuration with a site, site id, srs for transformation, and PostGeom objects.
+#"""
+#def load_configuration(author, config_name, site_layer, other_layers=None, radius=1000, config_srs=None):
+#    if config_srs == None:
+#        config_srs = site_layer.layer_srs
+#    
+#    # Create the configuration db object
+#    db_config = PostConfigurationB(author=author, config_name=config_name, radius=radius, config_srs=config_srs)
+#    # Save it to the DB
+#    db_config.save()
+#    # Add the site foreign key relationship
+#    db_config.site.add(site_layer)
+#    
+#    # For every other layer in other_layers, add the m2m relationship
+#    if other_layers:
+#        for other_layer in other_layers:
+#            db_config.other_layers.add(other_layer)
+#    return db_config
 
 
 """

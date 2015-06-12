@@ -88,9 +88,10 @@ class DataFile(Dated):
             if os.path.isdir(new_dir):
                 self._get_folder(new_dir, ext)
             else:
-                if ext in new_dir:
+                new_dir = directory
+                if  ext in new_dir:
                     break
-        return new_dir
+            return new_dir
     
     def get_upload_path(self, filename):
         return 'uploads/%s/%s' % (self.upload.user.username, filename)
@@ -116,7 +117,7 @@ class DataFile(Dated):
             new_pieces = os.listdir(path_to_part)
             for piece in new_pieces:
                 if ext in piece:
-                    return os.path.join(path_to_part, piece)
+                    return path_to_part #os.path.join(path_to_part, piece)
             
     def __unicode__(self):
         return "DataFile: %s" % self.file.url
@@ -139,30 +140,32 @@ class DataFile(Dated):
         
         # get shape type
         shape_path = self.path_of_part('.shp')
-        #print shape_path
         ds = DataSource( shape_path )
         layer = ds[0]
-
+        'Here we add a check for geometry types???'
+        
         data['geometry_type'] = layer.geom_type.name
         data['name'] = layer.name
         data['file_location'] = shape_path
+        data['srs'] = None
+        data['units'] = 'Unknown'
         
         #for l in layer:
         #    print l.geom.tuple
 
         if layer.srs:
             srs = layer.srs
+            print srs
             try:
                 srs.identify_epsg()
                 data['srs'] = srs['AUTHORITY', 1]
                 data['units'] = srs.units[1]
             except:
-                data['srs'] = None
-                data['units'] = None
+                pass
         if not data['srs']:
             data['srs'] = self.get_srs(data)
         if not data['srs']:
-            data['srs'] = 'No known Spatial Reference System: We can compute your file but cannot project it on a map'
+            data['srs'] = 'No known Spatial Reference System'
         return data
     
     def get_srs(self, data):
@@ -185,7 +188,7 @@ class DataFile(Dated):
                 data['srs'] = jres['codes'][0]['code']
             else:
                 data['srs'] = None
-        return data['srs']
+            return data['srs']
     
 # I can also add a property with the path!!!!!!!!!!
 class PostGeometries(models.Model):
