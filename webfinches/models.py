@@ -49,21 +49,21 @@ class GeomType(models.Model):
     class Meta:
         abstract=True
 
-class Bboxes(models.Model):
-    """shapefile's bounding box"""
-    bbox = models.TextField()
-    class Meta:
-        abstract=True
-
 class GeomFields(models.Model):
     """adding attribute fields"""
     fields = models.TextField()
     class Meta:
         abstract=True
+   
+class Units(models.Model):
+    """adding attribute fields"""
+    units = models.TextField()
+    class Meta:
+        abstract=True
         
 class FilePath(models.Model):
     """adding attribute fields"""
-    pathy = models.TextField()
+    file_location = models.TextField()
     class Meta:
         abstract=True
 
@@ -71,12 +71,6 @@ class OGRGeom(models.Model):
     """adding attribute fields"""
     ogr_geom = models.GeometryField()
     objects = models.GeoManager()
-    class Meta:
-        abstract=True
-
-class Lookup(Named):
-    """name and slug"""
-    slug = models.SlugField(max_length=100, null=True, blank=True)
     class Meta:
         abstract=True
 
@@ -132,7 +126,7 @@ class DataFile(Dated):
         meant to be used as initial data for LayerReview Forms
         """
         data = {}
-        data['data_file_id'] = self.id
+        data['id'] = self.id
         abs_path = self.abs_path()
         # see if we need to extract it
         extract_dir = self.extract_path()
@@ -151,27 +145,24 @@ class DataFile(Dated):
 
         data['geometry_type'] = layer.geom_type.name
         data['name'] = layer.name
-        data['fields'] = layer.fields
-        data['bbox'] = layer.extent.tuple
-        data['tags'] = ''
-        data['pathy'] = shape_path
+        data['file_location'] = shape_path
+        
+        #for l in layer:
+        #    print l.geom.tuple
 
         if layer.srs:
             srs = layer.srs
             try:
                 srs.identify_epsg()
-                data['srs'] = srs['AUTHORITY'] +':'+srs['AUTHORITY', 1]
+                data['srs'] = srs['AUTHORITY', 1]
+                data['units'] = srs.units[1]
             except:
                 data['srs'] = None
+                data['units'] = None
         if not data['srs']:
             data['srs'] = self.get_srs(data)
         if not data['srs']:
-            # get .prj text
-            prj_path = self.path_of_part('.prj')
-            if prj_path:
-                prj_text = open(prj_path, 'r').read()
-                data['notes'] = prj_text
-            data['srs'] = 'No known Spatial Reference System, look for a matching srs code at http://prj2epsg.org/'
+            data['srs'] = 'No known Spatial Reference System: We can compute your file but cannot project it on a map'
         return data
     
     def get_srs(self, data):
@@ -191,39 +182,10 @@ class DataFile(Dated):
             if jres['codes']:
                 api_srs['message'] = 'An exact match was found'
                 api_srs['srs'] = int(jres['codes'][0]['code'])
-                data['srs'] = 'EPSG:' + jres['codes'][0]['code']
+                data['srs'] = jres['codes'][0]['code']
             else:
                 data['srs'] = None
         return data['srs']
-
-    def get_centroids(self, spatial_ref):
-        '''
-        Gets the centroids of the site layer to do a distance query based on them.
-        Converts different type of geometries int point objects.
-        '''
-        
-        shp_path = self.path_of_part('.shp')
-        site_ds = DataSource(shp_path)
-        site_layer = site_ds[0]
-        geoms = [ ]
-        for feature in site_layer:
-            #Geometries can only be transformed if they have a .prj file
-            if feature.geom.srs:
-                polygon = feature.geom.transform(spatial_ref,True)
-                #Get the centroids to calculate distances.
-                if polygon.geom_type == 'POINT':
-                    centroids = polygon
-                    geoms.append(centroids)
-                elif polygon.geom_type == 'POLYGON':
-                    centroids = polygon.centroid
-                    geoms.append(centroids)
-                #Linestrings and geometry collections can't return centroids,
-                #so we get the bbox and then the centroid.
-                elif polygon.geom_type == 'LINESTRING' or 'MULTIPOINT' or 'MULTILINESTRING' or 'MULTIPOLYGON':
-                    bbox = polygon.envelope.wkt
-                    centroids = OGRGeometry(bbox).centroid
-                    geoms.append(centroids)
-        return geoms
     
 # I can also add a property with the path!!!!!!!!!!
 class PostGeometries(models.Model):
@@ -236,14 +198,6 @@ class PostGeometries(models.Model):
     def __unicode__(self):
         return "PostGeomTest: %s, %s" % (str(self.name), self.geom)
     
-class PostLayer(models.Model):
-    layer_name = models.TextField(null=True, blank=True)
-    layer_srs = models.IntegerField(null=True, blank=True)
-    features = models.ManyToManyField(PostGeometries, null=True, blank=True)
-    objects = models.GeoManager()
-    def __unicode__(self):
-        return "PostLayerTest: %s, %s features, srs=%s" % (str(self.layer_name), len(self.features.all()), self.layer_srs)
-    
 class PostLayerG(models.Model):
     layer_name = models.TextField(null=True, blank=True)
     layer_srs = models.IntegerField(null=True, blank=True)
@@ -255,7 +209,7 @@ class PostLayerG(models.Model):
     
     objects = models.GeoManager()
     def __unicode__(self):
-        return "PostLayerTest: %s, %s features, srs=%s" % (str(self.layer_name), len(self.features.all()), self.layer_srs)
+        return "PostLayerG: %s, %s features, srs=%s" % (str(self.layer_name), len(self.features.all()), self.layer_srs)
   
 class PostConfigurationB(models.Model):
     #config_id = models.IntegerField(null=True)
@@ -274,7 +228,7 @@ class PostConfigurationB(models.Model):
         #other_names = ''.join([layer.layer_name for layer in self.other_layers.all()])
         return "PostConfig: %s, radius: %s, srs: %s" % (str(self.config_name), str(self.radius), str(self.config_srs))
 
-class DataLayer(Named, Authored, Dated, Noted, GeomType,FilePath):
+class DataLayer(Named, Authored, Dated, Noted, GeomType,FilePath, Units):
     srs = models.CharField(max_length=50, null=True, blank=True)
     files = models.ManyToManyField('DataFile', null=True, blank=True )
     tags = models.CharField(max_length=50, null=True, blank=True)
@@ -282,10 +236,6 @@ class DataLayer(Named, Authored, Dated, Noted, GeomType,FilePath):
     def get_browsing_data(self):
         obj = vars(self)
         tags = self.tag_set.all()
-        if tags:
-            obj['tags'] = ' '.join( [t.name for t in tags] )
-        else:
-            obj['tags'] = ''
         return obj
     def __unicode__(self):
         return "DataLayer: %s" % self.name
@@ -295,11 +245,6 @@ class UploadEvent(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     def __unicode__(self):
         return "UploadEvent: %s" % self.date
-
-class Tag(Lookup, Dated, Noted):
-    layers = models.ManyToManyField(DataLayer)
-    def __unicode__(self):
-        return "Tag: %s" % self.slug
 
 class Attribute(Named):
     layer = models.ForeignKey(DataLayer)
@@ -332,33 +277,6 @@ class SiteConfiguration(Named, Authored, Dated, Noted):
     def __unicode__(self):
         return "SiteConfiguration: %s" % self.name
 
-class SiteSet(Dated, Authored, Named): #I need to add the name of the site configuration!
-    """A model for managing a set of generated sites.
-        Someone can generate sites more than once from the same
-        SiteConfiguration.
-        A SiteSet has a set of Sites
-    """
-
-    configuration = models.ForeignKey(SiteConfiguration) #just quickly getting something ready for venice.
-    geoJson = models.TextField() # if it breaks, I need to get rid of this frome the DB
-    
-    def __unicode__(self):
-        return "SiteConfiguration: %s" % self.name
-
-class Site(models.Model):
-    """A model for managing an individual generated Site.
-        A Site belongs to a Site Set and has a set of LocalLayers
-    """
-    site_id = models.IntegerField()
-    site_set = models.ForeignKey('SiteSet')
-
-class LocalLayer(models.Model):
-    """A model for managing an individual generated layer in an individual
-    Site.
-        A LocalLayer belongs to a Site.
-    """
-    site = models.ForeignKey('Site')
-    origin_layer = models.ForeignKey('DataLayer')
 
 def create_from_shapefile(self, path):
     ds = DataSource(path)

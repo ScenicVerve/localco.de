@@ -81,7 +81,8 @@ def review(request):
                 else:
                     srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
                 # Write the layer to the DB
-                loaded_layer = load_layer(form.cleaned_data['pathy'], srs, user)
+                loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
+                print 4444444
                 print loaded_layer
                 print loaded_layer.author, loaded_layer.date_added, loaded_layer.geometry_type
                 
@@ -93,6 +94,7 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
+
         formset = LayerReviewFormSet( initial=layer_data )
         
     c = {
@@ -117,7 +119,7 @@ def browse(request):
                 else:
                     srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
                 # Write the layer to the DB
-                loaded_layer = load_layer(form.cleaned_data['pathy'], srs, user)
+                loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
                 
         return HttpResponseRedirect('/webfinches/configure/')
 
@@ -206,165 +208,6 @@ def configure(request):
             RequestContext(request, c),
             )
 
-@login_required
-def create_sites(request):
-    """
-    A view to generate sites based on SiteConfigurations and Spatial Database
-    Queries
-    """
-    user = request.user
-    if request.method == 'POST': # someone is editing site configuration
-        site_configurations = SiteConfiguration.objects.filter(author=user).order_by('-date_edited')
-        if len(site_configurations)>0:
-            # Get the site ID
-            configuration_id = request.POST.get("create_sites")
-            my_config = PostConfigurationB.objects.filter(id=configuration_id)[0]
-            if my_config.config_srs:
-                srs = my_config.config_srs
-            else: srs = None
-            # Set query distance
-            distance= my_config.radius
-            # Get a list of site geometries
-            sites = my_config.site.all()[0].features.all()
-            other_layerz = my_config.other_layers.all()
-            
-            minimum = request.POST.get("min")
-            if len(minimum) == 0 or int(minimum)<0:
-                minimum = 0
-            maximum = request.POST.get("max")
-            if len(maximum) == 0 or int(maximum)>len(sites):
-                maximum = len(sites)
-            print int(minimum), type(minimum)
-            print int(maximum), type(maximum)
-            
-            
-            all_geoJSON = []
-            for j, my_site in enumerate(sites[int(minimum):int(maximum)]):
-                jsons = []
-                # Add the site to the geoJSON
-                jsons.append(query_to_json([sites[j]], site=True, srs=srs))
-                
-                # See if other sites are within the site
-                other_sites_query = sites.filter(geom__distance_lte=(my_site.geom, D(m=distance)))
-                if len(other_sites_query) > 0:
-                    jsons.append(query_to_json(other_sites_query, other_sites=True, srs=srs))
-                
-                # Do queries with other layers
-                if len(other_layerz) > 0:
-                    for other_layer in other_layerz:
-                        # Here I select which geometries get queried... according to layer name in other layers and site configuration
-                        query = other_layer.features.all().filter(geom__distance_lte=(my_site.geom, D(m=distance)))
-                        #print len(query)
-                        if len(query) > 0:
-                            # Add other layers to the geoJSON
-                            jsons.append(query_to_json(query, srs=srs))
-                print jsons
-                # Add some other tags to the geoJSON, and transform from a python dict to a geoJSON
-                geoJSON = json.dumps({"layers":jsons, "type":"LayerCollection"})
-                #print geoJSON
-                all_geoJSON.append(geoJSON)
-            
-            #Write to ZIP file
-            # Create the file object
-            zipdata = cStringIO.StringIO()
-            # Create the zipfile
-            zip_file = zipfile.ZipFile(zipdata, "a") 
-            # Get individual jsons from sitesets
-            i = int(minimum)-1
-            for jason in all_geoJSON: 
-                i += 1
-                # Write individual txt files into zip file
-                zip_file.writestr(str(i) + '.txt',jason) 
-            
-            zip_file.close()
-            zipdata.flush()
-            
-            # generate the file
-            response = HttpResponse(FileWrapper(zipdata), 'rb')
-            response['Content-Disposition'] = 'attachment; filename=site_set.zip'
-            zipdata.seek(0)
-            #zipdata.close() # Deletes the temp file object
-            
-            return response # Un-comment to get the file download.
-        
-        else:
-            return HttpResponseRedirect('/webfinches/create_sites_empty/')
-    
-    else:
-        # We are browsing data
-        test_configurations = PostConfigurationB.objects.filter(author=user).order_by('-date_edited')
-        #print test_configurations[0].site.all()[0].layer_name
-
-    c = {
-            'test_configurations': test_configurations
-            }
-    return render_to_response(
-            'webfinches/create_sites.html',
-            RequestContext(request, c),
-            )
-    
-@login_required
-def create_sites_empty(request):
-    c = {
-            'layers': None,
-    
-            }
-    return render_to_response(
-            'webfinches/create_sites_empty.html',
-            RequestContext(request, c),
-            )
-
-@login_required
-def get_sites(request):
-    """
-    A view to generate sites based on SiteConfigurations and Spatial Database
-    Queries. The view get the geoJson files, writes them to a file-object and
-    creates a zip file to be dowloaded
-    """
-    # Might be better to just save the zip files as files on the db and then
-    # trigger the dowload?
-    
-    user = request.user
-    # this is where I screw up... I'm getting all the site_sets available!
-    # get only the particular ones!
-    sites_available = SiteSet.objects.filter(author=user).order_by('-date_edited')
-    # this ones give me the date... we can make a list and then compare whatever we
-    # had to see if they are part of the site set.
-    #print sites_available[0].name[-27:] 
-    #print sites_available[24].name[-27:]
-    temp_json = [ ]
-    for site in sites_available:
-        temp_json.append(site.geoJson)
-    #y = temp_zip(temp_json)
-    #temp_zip(temp_json)
-    
-    zipdata = cStringIO.StringIO() # Create the file object
-    zip_file = zipfile.ZipFile(zipdata, "a") # Create the zipfile
-    i = -1
-    for json in temp_json: # Get individual jsons from sitesets
-        i += 1
-        zip_file.writestr(str(i) + '.txt',json) # Write individual txt files into zip file
-    zip_file.close()
-    zipdata.flush()
-    ret_zip = zipdata.getvalue() # Gets the data from the temp file object before deleting it
-    #zipdata.close() # Deletes the temp file object
-    
-    # generate the file
-    response = HttpResponse(FileWrapper(zipdata), 'rb')
-    response['Content-Disposition'] = 'attachment; filename=site_set.zip'
-    zipdata.seek(0)
-    #zipdata.close() # Deletes the temp file object
-    
-    #return response # Un-comment to get the file download.
-    # periodical cleanup jobs. Django already has an admin
-    # command that must be run periodically to remove old sessions.
-    c = {
-            'sites_available': sites_available,
-            }
-    return render_to_response(
-            'webfinches/get_sites.html',
-            RequestContext(request, c),
-            )
 
 """
 This function loads shape files to the DB and serializes their attributes. Every object is an individual geometry
@@ -481,42 +324,6 @@ def query_to_json(query, site=False, other_sites=False, srs= None):
     # create the geoJSON for this layer
     geojson_dict = {"type": "Layer", "name":site_name, "contents":{"type": "Feature Collection", "features":geometries}}
     return geojson_dict
-
-def get_centroids(polygon):
-    '''
-    Gets the centroid of DataLayers to do a distance query based on them.
-    Converts different type of geometries into point objects.
-    '''
-    centroids = [ ]
-    if polygon.geom_type == 'POINT':
-        centroid = polygon
-        centroids.append(centroid)
-    elif polygon.geom_type == 'POLYGON':
-        centroid = polygon.centroid
-        centroids.append(centroid)
-    #Linestrings and geometry collections can't return centroid,
-    #so we get the bbox and then the centroid.
-    elif polygon.geom_type == 'LINESTRING' or 'MULTIPOINT' or 'MULTILINESTRING' or 'MULTIPOLYGON':
-        bbox = polygon.envelope.wkt
-        centroid = OGRGeometry(bbox).centroid
-        centroids.append(centroid)
-    return centroids
-
-def get_centroid(polygon):
-    '''
-    Gets the centroid of DataLayers to do a distance query based on them.
-    Converts different type of geometries into point objects.
-    '''
-    if polygon.geom_type == 'POINT':
-        centroids = polygon
-    elif polygon.geom_type == 'POLYGON':
-        centroids = polygon.centroid
-    #Linestrings and geometry collections can't return centroid,
-    #so we get the bbox and then the centroid.
-    elif polygon.geom_type == 'LINESTRING' or 'MULTIPOINT' or 'MULTILINESTRING' or 'MULTIPOLYGON':
-        bbox = polygon.envelope.wkt
-        centroids = OGRGeometry(bbox).centroid
-    return centroids
     
 def temp_zip(data):
     # Writes a temporary zipfile with any string input and cleans it up afterwards.

@@ -39,11 +39,11 @@ class ZipUploadForm(forms.ModelForm):
 
 class LayerReviewForm(forms.ModelForm):
     """For editing and configuring the layer information for each layer."""
-    data_file_id = forms.IntegerField(widget=forms.HiddenInput())
+    id = forms.IntegerField(widget=forms.HiddenInput())
 
     class Meta:
         model = DataLayer
-        fields = ['name', 'notes', 'geometry_type', 'srs', 'tags', 'data_file_id','pathy']
+        fields = ['name', 'notes', 'geometry_type', 'srs', 'id','file_location', 'units']
 
 class LayerBrowseForm(forms.ModelForm):
     """For browsing and editing layers generally"""
@@ -60,7 +60,7 @@ class SiteConfigurationForm(forms.ModelForm):
         model = DataLayer
         fields = ['name', 'srs','notes','geometry_type', 'tags']
 
-ZipFormSet = formset_factory(ZipUploadForm, extra=3)
+ZipFormSet = formset_factory(ZipUploadForm, extra=1)
 LayerReviewFormSet = formset_factory(LayerReviewForm, extra=0)
 LayerBrowseFormSet = formset_factory(LayerBrowseForm, extra=0)
 SiteConfigurationFormSet = formset_factory(SiteConfigurationForm, extra=0)
