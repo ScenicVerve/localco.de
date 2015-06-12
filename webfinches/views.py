@@ -76,15 +76,16 @@ def review(request):
                 '''
                 PostGIS DB input
                 '''
-                if form.cleaned_data['srs'].isnumeric():
-                    srs = int(form.cleaned_data['srs'])
-                else:
-                    srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
-                # Write the layer to the DB
-                loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
-                print 4444444
+                loaded_layer = load_layer(form, user)
+                #if form.cleaned_data['srs'].isnumeric():
+                #    srs = int(form.cleaned_data['srs'])
+                #else:
+                #    srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
+                ## Write the layer to the DB
+                #loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
+                print form
                 print loaded_layer
-                print loaded_layer.author, loaded_layer.date_added, loaded_layer.geometry_type
+                #print loaded_layer.author, loaded_layer.date_added, loaded_layer.geometry_type
                 
                 
         return HttpResponseRedirect('/webfinches/configure/')
@@ -210,38 +211,32 @@ def configure(request):
 
 
 """
-This function loads shape files to the DB and serializes their attributes. Every object is an individual geometry
-with a dictionary, and a layer that may be converted to a JSON
+This function loads shape files to the DB. Every geometry is an individual numpy array
+with the vertices as tuples
 """
 def load_shp(layer, srs):
-    # Get the layer name
-    name = layer.name
     # Get the geometry type
     geom_type = layer.geom_type.name
-    # Get the GIS fields
-    fields = layer.fields
     
     # Get the GEOS geometries from the SHP file
     geoms = layer.get_geoms(geos=True)
     for geom in geoms:
         geom.srid= srs
-    # If the geometries are polygons, turn them into linestrings... postGIS query problems
+    # If the geometries are polygons, turn them into linestrings.
     if geom_type == 'Polygon' or geom_type == 'MultiPolygon':
         geoms = [geom.boundary for geom in geoms]
 
     shapes = []
     # For every geometry, get their GIS Attributes and save them in a new object.
     for num, geom in enumerate(geoms):
-        geom_dict = {}
-        # extracrt the GIS field values
-        for field in fields:
-            geom_dict[str(field)] = str(layer[num].get(field))
-        # Saves the dictionary as a str.....
-        str_dict = json.dumps(geom_dict)
+        verts = geom.coords
+        'here we are going to plug-in eleannas code that translates geometries into np arrays'
+        pass
+    
         # save the object to the DB
-        db_geom = PostGeometries(id_n = num, name = name, srs = srs, atribs = str_dict, geom = geom)
-        db_geom.save()
-        shapes.append(db_geom)
+        #db_geom = PostGeometries(id_n = num, name = name, srs = srs, atribs = str_dict, geom = geom)
+        #db_geom.save()
+        #shapes.append(db_geom)
     return shapes
 
 
@@ -249,7 +244,12 @@ def load_shp(layer, srs):
 This function loads shape files to the DB and serializes their attributes. Every object is collection of features
 with a dictionary as a property.
 """
-def load_layer(shp_path, srs, author):
+def load_layer(form, author):
+    shp_path = form.cleaned_data['file_location']
+    if form.cleaned_data['srs'].isnumeric():
+        srs = int(form.cleaned_data['srs'])
+    else:
+        srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
     # Set a GDAL datsource
     ds = DataSource(shp_path)
     layer = ds[0]
@@ -257,15 +257,15 @@ def load_layer(shp_path, srs, author):
     name = layer.name
     geometry_type = layer.geom_type.name
     
-    db_layer = PostLayerG(layer_name=name, layer_srs=srs, author=author, geometry_type=geometry_type)
-    db_layer.save()
+    #db_layer = PostLayerG(layer_name=name, layer_srs=srs, author=author, geometry_type=geometry_type)
+    #db_layer.save()
     
     # load the shapes to the db
     shapes = load_shp(layer, srs)
     # For every geometry, get their GIS Attributes and save them in a new object.
-    for shape in shapes:
-        db_layer.features.add(shape)
-    return db_layer
+    #for shape in shapes:
+    #    db_layer.features.add(shape)
+    #return db_layer
 
 """
 This function loads site configurations to the DB and relates them to other PostGeom objects as site and other_layers. 
