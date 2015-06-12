@@ -7,6 +7,7 @@ import tempfile, zipfile
 import cStringIO
 import datetime
 
+
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponseRedirect
@@ -15,6 +16,7 @@ from django.template import RequestContext
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 
+from webfinches.topology.my_graph_helpers import *
 from webfinches.forms import *
 from webfinches.models import *
 from django.contrib.auth.views import login
@@ -27,8 +29,10 @@ from django.contrib.gis.geos import *
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
+import numpy as np
 
-#import numpy as np
+
+from matplotlib import pyplot as plt
 
 def index(request):
     """A view for browsing the existing webfinches.
@@ -70,9 +74,11 @@ def review(request):
     user = request.user
     if request.method == 'POST': # someone is giving us data
         formset = LayerReviewFormSet(request.POST)
+         
         if formset.is_valid():
             # For every layer in the layer form, write a PostGIS object to the DB
             for form in formset:
+                #print formset
                 '''
                 PostGIS DB input
                 '''
@@ -209,6 +215,37 @@ def configure(request):
             RequestContext(request, c),
             )
 
+"""
+flatten all the geometry in the geometry collection
+"""
+def flattenAll(geoCo):
+    lst = []
+    for geo in geoCo:
+        if not "Multi" in geo.geom_type:
+            lst.append(geo)
+        else:
+            lst.extend(flattenAll(geo))
+    return lst
+
+
+def checkGeometryType(gdal_layer):
+    #datasource layer
+    layer = gdal_layer
+    # Get the GEOS geometries from the SHP file
+    geoms = layer.get_geoms(geos=True)
+    geom_type = layer.geom_type.name
+
+    lst = []
+    for geom in geoms:
+        if geom.geom_type == 'Polygon':#return the boundary of the polygon as a linestring
+            lst.append(geom.boundary)
+        elif geom.geom_type == 'LinearRing' or geom.geom_type == 'LineString':#return the linestring as a closed one
+            lst.append(geom.close_rings)
+        elif "Multi" in geom.geom_type:#this is a geometry collection, return the flattened list
+            lst.extend(flattenAll(geom))			
+        else:#not supported geometry type, raise exception
+            raise IOError(geom.geom_type+"is the wrong type of geometry to process")
+    return lst
 
 """
 This function loads shape files to the DB. Every geometry is an individual numpy array
@@ -217,11 +254,12 @@ with the vertices as tuples
 def load_shp(layer, srs):
     # Get the geometry type
     geom_type = layer.geom_type.name
-    
-    # Get the GEOS geometries from the SHP file
-    geoms = layer.get_geoms(geos=True)
-    for geom in geoms:
-        geom.srid= srs
+
+    #print geom_type
+   
+    # Get the GIS fields
+    fields = layer.fields
+
     # If the geometries are polygons, turn them into linestrings.
     if geom_type == 'Polygon' or geom_type == 'MultiPolygon':
         geoms = [geom.boundary for geom in geoms]
