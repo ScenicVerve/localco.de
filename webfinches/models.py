@@ -159,11 +159,13 @@ class DataFile(Dated):
         if layer.srs:
             srs = layer.srs
             try:
+				#use the gdal to extract srs
                 srs.identify_epsg()
                 data['srs'] = srs['AUTHORITY'] +':'+srs['AUTHORITY', 1]
             except:
                 data['srs'] = None
         if not data['srs']:
+			#use prj2epsg API to extract srs
             data['srs'] = self.get_srs(data)
         if not data['srs']:
             # get .prj text
@@ -171,7 +173,7 @@ class DataFile(Dated):
             if prj_path:
                 prj_text = open(prj_path, 'r').read()
                 data['notes'] = prj_text
-            data['srs'] = 'No known Spatial Reference System, look for a matching srs code at http://prj2epsg.org/'
+            data['srs'] = None
         return data
     
     def get_srs(self, data):
