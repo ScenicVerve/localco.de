@@ -28,7 +28,10 @@ from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
 
-
+import numpy as np
+from matplotlib import pyplot as plt
+import webfinches.topology.my_graph_helpers as mgh
+import webfinches.topology.my_graph as mg
 
 def index(request):
     """A view for browsing the existing webfinches.
@@ -81,8 +84,13 @@ def review(request):
                 layer = ds[0]
                 #print getUnit(layer)
                 geoms = checkGeometryType(layer)
+                '''
                 for geo in geoms:
-					print geo.geom_type
+					for n in (np.array(geo.coords)):
+					    if len(n)>2:
+					        print len(n)
+					'''
+                print graphFromLineString(geoms,'testGragh')
                 
                 # Write the layer to the DB
                 #loaded_layer = load_layer(form.cleaned_data['pathy'], srs, user)
@@ -153,6 +161,14 @@ def browse_empty(request):
             'webfinches/browse_empty.html',
             RequestContext(request, c),
             )
+
+@login_required
+def compute(request):
+	
+	
+	
+	
+	pass
 
 @login_required
 def configure(request):
@@ -371,13 +387,44 @@ def get_sites(request):
             RequestContext(request, c),
             )
 
+
+"""
+The function that use topology library to create MyGraph by input lineString
+"""
+def graphFromLineString(lst,name):
+    nodedict = dict()
+    plist = []
+    for l in lst:
+        l = np.array(l.coords)
+        nodes = []
+        for k in l:
+            #print len(k)
+            myN = mg.MyNode(k)
+            if myN not in nodedict:
+                nodes.append(myN)
+                nodedict[myN] = myN
+            else:
+                nodes.append(nodedict[myN])
+            edges = [(nodes[i], nodes[i+1]) for i in range(0, len(nodes)-1)]
+            plist.append(mg.MyFace(edges))
+
+    myG = mg.MyGraph(name=name)
+
+    for p in plist:
+        for e in p.edges:
+            myG.add_edge(mg.MyEdge(e.nodes))
+
+    print("data loaded")
+
+    return myG
+
 """
 flatten all the geometry in the geometry collection
 """
 def flattenAll(geoCo):
     lst = []
     for geo in geoCo:
-        if not "Multi" in geo.geom_type:
+        if not len(geo)>1:
             lst.append(geo)
         else:
             lst.extend(flattenAll(geo))
@@ -396,15 +443,18 @@ def checkGeometryType(gdal_layer):
     geom_type = layer.geom_type.name
 	
     lst = []
+    
+    geoms = flattenAll(geoms)#flatten process
+    
     for geom in geoms:
         if geom.geom_type == 'Polygon':#return the boundary of the polygon as a linestring
 			lst.append(geom.boundary)
         elif geom.geom_type == 'LinearRing' or geom.geom_type == 'LineString':#return the linestring as a closed one
-			lst.append(geom.close_rings)
-        elif "Multi" in geom.geom_type:#this is a geometry collection, return the flattened list
-			lst.extend(flattenAll(geom))			
+			lst.append(geom.close_rings)		
         else:#not supported geometry type, raise exception
             raise IOError(geom.geom_type+"is the wrong type of geometry to process")
+    
+    
     return lst
 
     
@@ -470,7 +520,7 @@ def load_shp(layer, srs):
         # Saves the dictionary as a str.....
         str_dict = json.dumps(geom_dict)
         # save the object to the DB
-        db_geom = PostGeometries(id_n = num, name = name, srs = srs, atribs = str_dict, geom = geom)
+        #db_geom = PostGeometries(id_n = num, name = name, srs = srs, atribs = str_dict, geom = geom)
         #db_geom.save()
         #shapes.append(db_geom)
     return shapes
@@ -488,8 +538,8 @@ def load_layer(shp_path, srs, author):
     name = layer.name
     geometry_type = layer.geom_type.name
     
-    db_layer = PostLayerG(layer_name=name, layer_srs=srs, author=author, geometry_type=geometry_type)
-    db_layer.save()
+    #db_layer = PostLayerG(layer_name=name, layer_srs=srs, author=author, geometry_type=geometry_type)
+    #db_layer.save()
     
     # load the shapes to the db
     shapes = load_shp(layer, srs)
