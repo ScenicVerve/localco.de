@@ -32,7 +32,12 @@ from django.contrib.gis.gdal import *
 import numpy as np
 
 
+
+import numpy as np
 from matplotlib import pyplot as plt
+import webfinches.topology.my_graph_helpers as mgh
+import webfinches.topology.my_graph as mg
+
 
 def index(request):
     """A view for browsing the existing webfinches.
@@ -80,8 +85,9 @@ def review(request):
             for form in formset:
                 #print formset
                 '''
-                PostGIS DB input
+                Check srs data
                 '''
+
                 loaded_layer = load_layer(form, user)
                 #if form.cleaned_data['srs'].isnumeric():
                 #    srs = int(form.cleaned_data['srs'])
@@ -89,8 +95,26 @@ def review(request):
                 #    srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
                 ## Write the layer to the DB
                 #loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
-                print form
-                print loaded_layer
+
+                '''
+                srs = checkedPrj(form.cleaned_data['srs'])
+                ds = DataSource(form.cleaned_data['pathy'])
+                layer = ds[0]
+                #print getUnit(layer)
+                geoms = checkGeometryType(layer)
+                '''
+                for geo in geoms:
+                    for n in (np.array(geo.coords)):
+                        if len(n)>2:
+                            print len(n)
+                '''
+                print graphFromLineString(geoms,'testGragh')
+                
+                # Write the layer to the DB
+                #loaded_layer = load_layer(form.cleaned_data['pathy'], srs, user)
+                #print loaded_layer'''
+
+
                 #print loaded_layer.author, loaded_layer.date_added, loaded_layer.geometry_type
                 
                 
@@ -101,7 +125,8 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
-
+        
+        'we should get some error if the geometry does not have a projection of has a wrong geom type'
         formset = LayerReviewFormSet( initial=layer_data )
         
     c = {
@@ -113,50 +138,55 @@ def review(request):
             )
                     
 
-@login_required
-def browse(request):
-    """A view for browsing and editing layers"""
-    user = request.user
-    if request.method == 'POST': # someone is giving us data
-        formset = LayerReviewFormSet(request.POST)
-        if formset.is_valid():
-            for form in formset:
-                if form.cleaned_data['srs'].isnumeric():
-                    srs = int(form.cleaned_data['srs'])
-                else:
-                    srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
-                # Write the layer to the DB
-                loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
-                
-        return HttpResponseRedirect('/webfinches/configure/')
+#@login_required
+#def browse(request):
+#    """A view for browsing and editing layers"""
+#    user = request.user
+#    if request.method == 'POST': # someone is giving us data
+#        formset = LayerReviewFormSet(request.POST)
+#        if formset.is_valid():
+#            for form in formset:
+#                if form.cleaned_data['srs'].isnumeric():
+#                    srs = int(form.cleaned_data['srs'])
+#                else:
+#                    srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
+#                # Write the layer to the DB
+#                loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
+#                
+#        return HttpResponseRedirect('/webfinches/configure/')
+#
+#    else:
+#        layers = DataLayer.objects.filter(author=user).order_by('-date_edited')
+#        browsing_data = [ l.get_browsing_data() for l in layers ]
+#        # do I need to convert these to dicts?
+#        formset = LayerBrowseFormSet(initial=browsing_data)
+#    
+#    c = {
+#            'formset': formset,            
+#            }
+#    return render_to_response(
+#            'webfinches/browse.html',
+#            RequestContext( request, c ),
+#            )
+#
+#@login_required
+#def browse_empty(request):
+#    c = {
+#            'layers': None,
+#    
+#            }
+#    return render_to_response(
+#            'webfinches/browse_empty.html',
+#            RequestContext(request, c),
+#            )
 
-    else:
-        layers = DataLayer.objects.filter(author=user).order_by('-date_edited')
-        browsing_data = [ l.get_browsing_data() for l in layers ]
-        # do I need to convert these to dicts?
-        formset = LayerBrowseFormSet(initial=browsing_data)
-        all_tags = Tag.objects.all()
-    
-    c = {
-            'formset': formset,
-            'tags': all_tags,
-            
-            }
-    return render_to_response(
-            'webfinches/browse.html',
-            RequestContext( request, c ),
-            )
-
 @login_required
-def browse_empty(request):
-    c = {
-            'layers': None,
-    
-            }
-    return render_to_response(
-            'webfinches/browse_empty.html',
-            RequestContext(request, c),
-            )
+def compute(request):
+	
+	
+	
+	
+	pass
 
 @login_required
 def configure(request):
@@ -247,19 +277,115 @@ def checkGeometryType(gdal_layer):
             raise IOError(geom.geom_type+"is the wrong type of geometry to process")
     return lst
 
+
+"""
+The function that use topology library to create MyGraph by input lineString
+"""
+def graphFromLineString(lst,name):
+    nodedict = dict()
+    plist = []
+    for l in lst:
+        l = np.array(l.coords)
+        nodes = []
+        for k in l:
+            #print len(k)
+            myN = mg.MyNode(k)
+            if myN not in nodedict:
+                nodes.append(myN)
+                nodedict[myN] = myN
+            else:
+                nodes.append(nodedict[myN])
+            edges = [(nodes[i], nodes[i+1]) for i in range(0, len(nodes)-1)]
+            plist.append(mg.MyFace(edges))
+
+    myG = mg.MyGraph(name=name)
+
+    for p in plist:
+        for e in p.edges:
+            myG.add_edge(mg.MyEdge(e.nodes))
+
+    print("data loaded")
+
+    return myG
+
+"""
+flatten all the geometry in the geometry collection
+"""
+def flattenAll(geoCo):
+    lst = []
+    for geo in geoCo:
+        if not len(geo)>1:
+            lst.append(geo)
+        else:
+            lst.extend(flattenAll(geo))
+    return lst
+
+"""
+The function that will check (and flatten) the input shape file
+if it contains certain geometry to process, it will flatten the geometry collection and return as linestrings
+otherwise, it raise a exception
+"""
+def checkGeometryType(gdal_layer):
+    #datasource layer
+    layer = gdal_layer
+    # Get the GEOS geometries from the SHP file
+    geoms = layer.get_geoms(geos=True)
+    geom_type = layer.geom_type.name
+
+    lst = []
+    
+    geoms = flattenAll(geoms)#flatten process
+    
+    for geom in geoms:
+        if geom.geom_type == 'Polygon':#return the boundary of the polygon as a linestring
+            lst.append(geom.boundary)
+        elif geom.geom_type == 'LinearRing' or geom.geom_type == 'LineString':#return the linestring as a closed one
+            lst.append(geom.close_rings)		
+        else:#not supported geometry type, raise exception
+            raise IOError(geom.geom_type+"is the wrong type of geometry to process")
+    
+    
+    return lst
+
+    
+    
+"""
+The function that check the projection information according to the file uploaded to the database
+"""
+def checkedPrj(srs0):
+    if srs0.isnumeric():
+        srs = int(srs0)
+    elif srs0 != None:
+        srs = int(srs0[srs0.find(':')+1:])
+    else:
+        #no srs information is found, raise exception
+        print 'no srs information is found'
+        srs = None
+    return srs
+
+
+"""
+return the unit of the input gdal data source layer
+"""
+def getUnit(gdal_layer):
+	uni = {}
+	uni['UNIT'] = gdal_layer.srs['UNIT']
+	uni['PRJUnit'] = gdal_layer.srs['PROJCS'][3]
+	return gdal_layer.srs
+
+
 """
 This function loads shape files to the DB. Every geometry is an individual numpy array
 with the vertices as tuples
 """
 def load_shp(layer, srs):
-    # Get the geometry type
-    geom_type = layer.geom_type.name
+    #print layer.srs
+    # Get the layer name
+    name = layer.name
 
-    #print geom_type
-   
-    # Get the GIS fields
-    fields = layer.fields
-
+    if srs:
+        for geom in geoms:
+            geom.srid= srs
     # If the geometries are polygons, turn them into linestrings.
     if geom_type == 'Polygon' or geom_type == 'MultiPolygon':
         geoms = [geom.boundary for geom in geoms]
@@ -269,14 +395,12 @@ def load_shp(layer, srs):
     for num, geom in enumerate(geoms):
         verts = geom.coords
         'here we are going to plug-in eleannas code that translates geometries into np arrays'
-        pass
     
         # save the object to the DB
         #db_geom = PostGeometries(id_n = num, name = name, srs = srs, atribs = str_dict, geom = geom)
         #db_geom.save()
         #shapes.append(db_geom)
     return shapes
-
 
 """
 This function loads shape files to the DB and serializes their attributes. Every object is collection of features
@@ -287,8 +411,10 @@ def load_layer(form, author):
     if form.cleaned_data['srs'].isnumeric():
         srs = int(form.cleaned_data['srs'])
     else:
-        srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
+        srs = None #int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
+        
     # Set a GDAL datsource
+    print shp_path
     ds = DataSource(shp_path)
     layer = ds[0]
     # Get the layer name
@@ -305,26 +431,26 @@ def load_layer(form, author):
     #    db_layer.features.add(shape)
     #return db_layer
 
-"""
-This function loads site configurations to the DB and relates them to other PostGeom objects as site and other_layers. 
-Every object is an individual configuration with a site, site id, srs for transformation, and PostGeom objects.
-"""
-def load_configuration(author, config_name, site_layer, other_layers=None, radius=1000, config_srs=None):
-    if config_srs == None:
-        config_srs = site_layer.layer_srs
-    
-    # Create the configuration db object
-    db_config = PostConfigurationB(author=author, config_name=config_name, radius=radius, config_srs=config_srs)
-    # Save it to the DB
-    db_config.save()
-    # Add the site foreign key relationship
-    db_config.site.add(site_layer)
-    
-    # For every other layer in other_layers, add the m2m relationship
-    if other_layers:
-        for other_layer in other_layers:
-            db_config.other_layers.add(other_layer)
-    return db_config
+#"""
+#This function loads site configurations to the DB and relates them to other PostGeom objects as site and other_layers. 
+#Every object is an individual configuration with a site, site id, srs for transformation, and PostGeom objects.
+#"""
+#def load_configuration(author, config_name, site_layer, other_layers=None, radius=1000, config_srs=None):
+#    if config_srs == None:
+#        config_srs = site_layer.layer_srs
+#    
+#    # Create the configuration db object
+#    db_config = PostConfigurationB(author=author, config_name=config_name, radius=radius, config_srs=config_srs)
+#    # Save it to the DB
+#    db_config.save()
+#    # Add the site foreign key relationship
+#    db_config.site.add(site_layer)
+#    
+#    # For every other layer in other_layers, add the m2m relationship
+#    if other_layers:
+#        for other_layer in other_layers:
+#            db_config.other_layers.add(other_layer)
+#    return db_config
 
 
 """
