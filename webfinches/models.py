@@ -157,15 +157,18 @@ class DataFile(Dated):
             srs = layer.srs
             print srs
             try:
+				#use the gdal to extract srs
                 srs.identify_epsg()
                 data['srs'] = srs['AUTHORITY', 1]
                 data['units'] = srs.units[1]
             except:
                 pass
         if not data['srs']:
+			#use prj2epsg API to extract srs
             data['srs'] = self.get_srs(data)
         if not data['srs']:
             data['srs'] = 'No known Spatial Reference System'
+
         return data
     
     def get_srs(self, data):
