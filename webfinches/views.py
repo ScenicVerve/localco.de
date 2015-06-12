@@ -80,7 +80,9 @@ def review(request):
                 ds = DataSource(form.cleaned_data['pathy'])
                 layer = ds[0]
                 #print getUnit(layer)
-                checkGeometryType(layer)
+                geoms = checkGeometryType(layer)
+                for geo in geoms:
+					print geo.geom_type
                 
                 # Write the layer to the DB
                 #loaded_layer = load_layer(form.cleaned_data['pathy'], srs, user)
@@ -368,6 +370,19 @@ def get_sites(request):
             'webfinches/get_sites.html',
             RequestContext(request, c),
             )
+
+"""
+flatten all the geometry in the geometry collection
+"""
+def flattenAll(geoCo):
+    lst = []
+    for geo in geoCo:
+        if not "Multi" in geo.geom_type:
+            lst.append(geo)
+        else:
+            lst.extend(flattenAll(geo))
+    return lst
+
 """
 The function that will check (and flatten) the input shape file
 if it contains certain geometry to process, it will flatten the geometry collection and return as linestrings
@@ -379,31 +394,21 @@ def checkGeometryType(gdal_layer):
     # Get the GEOS geometries from the SHP file
     geoms = layer.get_geoms(geos=True)
     geom_type = layer.geom_type.name
-    LINESTRING (-31871.6681409878656268 -3766356.4168696496635675, -31871.3999048266559839 -3766360.4119868380948901, -31871.0501714749261737 -3766362.0489039504900575, -31871.6522813839837909 -3766362.1967921359464526, -31872.5501714739948511 -3766362.2989039514213800, -31872.6681409878656268 -3766362.1668696505948901, -31875.4322019601240754 -3766359.9309382531791925, -31876.6535020861774683 -3766358.3651118380948901, -31876.9181409878656268 -3766356.6668696496635675, -31877.2528940243646502 -3766355.4169917190447450, -31877.0501714749261737 -3766352.5489039514213800, -31875.1590772671625018 -3766352.4400019748136401, -31874.3001714730635285 -3766352.2989039514213800, -31874.0642343563959002 -3766352.5629725540056825, -31873.4388567004352808 -3766353.1217341516166925, -31872.9561067624017596 -3766354.1735530002042651, -31872.0903135333210230 -3766354.4409022442996502, -31871.6681409878656268 -3766356.4168696496635675)
-
+	
+    lst = []
     for geom in geoms:
-        print geom.boundary
-    
-    #if the geometry is linestring 
-    
-    #if the geometry is linealring(closed)
-    
-    #if the geometry is polygon
-    
-    #if the geometry is collection
-    
-    #if the geometry is point
-    
-    
+        if geom.geom_type == 'Polygon':#return the boundary of the polygon as a linestring
+			lst.append(geom.boundary)
+        elif geom.geom_type == 'LinearRing' or geom.geom_type == 'LineString':#return the linestring as a closed one
+			lst.append(geom.close_rings)
+        elif "Multi" in geom.geom_type:#this is a geometry collection, return the flattened list
+			lst.extend(flattenAll(geom))			
+        else:#not supported geometry type, raise exception
+            raise IOError(geom.geom_type+"is the wrong type of geometry to process")
+    return lst
 
-    # If the geometries are polygons, turn them into linestrings... postGIS query problems
-    if geom_type == 'Polygon' or geom_type == 'MultiPolygon':
-        geoms = [geom.boundary for geom in geoms]
-        #print geoms
-
-
-
-
+    
+    
 """
 The function that check the projection information according to the file uploaded to the database
 """
@@ -418,12 +423,23 @@ def checkedPrj(srs0):
 		srs = None
     return srs
 
-#return the unit of the input gdal data source layer
+
+"""
+return the unit of the input gdal data source layer
+"""
 def getUnit(gdal_layer):
 	uni = {}
 	uni['UNIT'] = gdal_layer.srs['UNIT']
 	uni['PRJUnit'] = gdal_layer.srs['PROJCS'][3]
 	return gdal_layer.srs
+
+
+"""
+Reproject the file if needed based on the result of checkprj and getunit function
+"""
+def reProject():
+	
+	pass
 
 
 """
@@ -443,9 +459,6 @@ def load_shp(layer, srs):
     geoms = layer.get_geoms(geos=True)
     for geom in geoms:
         geom.srid= srs
-    # If the geometries are polygons, turn them into linestrings... postGIS query problems
-    if geom_type == 'Polygon' or geom_type == 'MultiPolygon':
-        geoms = [geom.boundary for geom in geoms]
 
     shapes = []
     # For every geometry, get their GIS Attributes and save them in a new object.
