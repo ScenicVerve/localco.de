@@ -91,30 +91,28 @@ def review(request):
                 ## Write the layer to the DB
                 #loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
 
-'''
                 srs = checkedPrj(form.cleaned_data['srs'])
-                ds = DataSource(form.cleaned_data['pathy'])
+                ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
                 #print getUnit(layer)
                 geoms = checkGeometryType(layer)
-                '''
-                for geo in geoms:
-					for n in (np.array(geo.coords)):
-					    if len(n)>2:
-					        print len(n)
-					'''
-                print graphFromLineString(geoms,'testGragh')
+                
+                run_topology(geoms)
+                plt.show()
+                #myG = graphFromLineString(geoms,'testGragh') #create the graph from MyGragh class in topology
+                #print myG
+                #print "start clean up"
+                #myG = myG.clean_up_geometry(1, False)
+                #print myG
                 
                 # Write the layer to the DB
                 #loaded_layer = load_layer(form.cleaned_data['pathy'], srs, user)
-                #print loaded_layer'''
-
+                #print loaded_layer
 
                 #print loaded_layer.author, loaded_layer.date_added, loaded_layer.geometry_type
                 
-                
         return HttpResponseRedirect('/webfinches/configure/')
-
+        
     else: # we are asking them to review data
         # get the last upload of this user
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
@@ -241,11 +239,60 @@ def configure(request):
             )
 
 
+"""
+rewrite topology, using linestring list as input
+"""
+def run_topology(lst, name=None):
+
+    original = import_and_setup(lst)
+
+    block = original.copy()
+
+    # define existing roads based on block geometery
+    block.define_roads()
+
+    # define interior parcels in the block based on existing roads
+    block.define_interior_parcels()
+
+    # plot roads, using the original, unedited version as master to color
+    # original roads
+    block.plot_roads(master=original)
+
+    # finds roads to connect all interior parcels
+    new_roads = mgh.build_all_roads(block, barriers=False)
+
+    # plot new roads. original roads (black) defined by original graph.
+    block.plot_roads(master=original, parcel_labels=False, new_plot=True)
+
+    # red: interior parcels, bold black: original roads, blue: new roads,
+    # green: barriers
+
+    return new_roads
+
+
+"""
+rewrite topology's import_and_setup function using linestring as input
+"""
+def import_and_setup(lst,component = 0,threshold=1,rezero=np.array([0, 0]), connected=False, name=""):
+    # check that rezero is an array of len(2)
+    # check that threshold is a float
+    myG = graphFromLineString(lst, name, rezero)
+
+    myG = myG.clean_up_geometry(threshold, connected)
+    myG = graphFromLineString(lst,name) #create the graph from MyGragh class in topology
+    print "start clean up"
+    myG = myG.clean_up_geometry(threshold, connected)
+    print myG
+    if connected is True:
+        return myG
+    else:
+        return myG.connected_components()[component]
+
 
 """
 The function that use topology library to create MyGraph by input lineString
 """
-def graphFromLineString(lst,name):
+def graphFromLineString(lst,name = None,rezero=np.array([0, 0])):
     nodedict = dict()
     plist = []
     for l in lst:
@@ -253,6 +300,7 @@ def graphFromLineString(lst,name):
         nodes = []
         for k in l:
             #print len(k)
+            k = k-rezero
             myN = mg.MyNode(k)
             if myN not in nodedict:
                 nodes.append(myN)
@@ -353,8 +401,8 @@ with the vertices as tuples
 def load_shp(layer, srs):
     #print layer.srs
     # Get the layer name
-    name = layer.name
-
+    geom_type = layer.geom_type
+    geoms = layer.get_geoms(geos=True)
     if srs:
         for geom in geoms:
             geom.srid= srs
