@@ -252,8 +252,13 @@ def checkGeometryType(gdal_layer):
             lst.extend(flattenAll(geom))			
         else:#not supported geometry type, raise exception
             raise IOError(geom.geom_type+"is the wrong type of geometry to process")
-    return lst
-
+    
+    if len(lst)>0 and len(lst)<=1200:
+        return lst
+    elif len(lst)>1200:
+        raise IOError(str(len(lst))+" polygons are too much to process, you should limit to no more than 1200")
+    else:
+        raise IOError("You don't have a polygon to process")
 """
 rewrite topology, using linestring list as input
 """
@@ -368,47 +373,6 @@ def graphFromLineString(lst,name = None,rezero=np.array([0, 0])):
     print("data loaded")
 
     return myG
-
-"""
-flatten all the geometry in the geometry collection
-"""
-def flattenAll(geoCo):
-    lst = []
-    for geo in geoCo:
-        if not len(geo)>1:
-            lst.append(geo)
-        else:
-            lst.extend(flattenAll(geo))
-    return lst
-
-"""
-The function that will check (and flatten) the input shape file
-if it contains certain geometry to process, it will flatten the geometry collection and return as linestrings
-otherwise, it raise a exception
-"""
-def checkGeometryType(gdal_layer):
-    #datasource layer
-    layer = gdal_layer
-    # Get the GEOS geometries from the SHP file
-    geoms = layer.get_geoms(geos=True)
-    geom_type = layer.geom_type.name
-
-    lst = []
-    
-    geoms = flattenAll(geoms)#flatten process
-    
-    for geom in geoms:
-        if geom.geom_type == 'Polygon':#return the boundary of the polygon as a linestring
-            lst.append(geom.boundary)
-        elif geom.geom_type == 'LinearRing' or geom.geom_type == 'LineString':#return the linestring as a closed one
-            lst.append(geom.close_rings)		
-        else:#not supported geometry type, raise exception
-            raise IOError(geom.geom_type+"is the wrong type of geometry to process")
-    
-    
-    return lst
-
-    
     
 """
 The function that check the projection information according to the file uploaded to the database
