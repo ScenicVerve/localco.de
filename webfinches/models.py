@@ -204,6 +204,14 @@ class PostGeometries(models.Model):
     def __unicode__(self):
         return "PostGeomTest: %s, %s" % (str(self.name), self.geom)
     
+class TopologyJSON(Named, Authored):
+    topo_json = models.TextField(null=True, blank=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+    date_edited = models.DateTimeField(auto_now=True)
+    
+    def __unicode__(self):
+        return "TopologyJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
+    
 class PostLayerG(models.Model):
     layer_name = models.TextField(null=True, blank=True)
     layer_srs = models.IntegerField(null=True, blank=True)

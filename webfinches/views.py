@@ -90,7 +90,9 @@ def review(request):
                 layer = ds[0]
                 #print getUnit(layer)
                 geoms = checkGeometryType(layer)              
-                print run_topology(geoms)
+                topo_json = run_topology(geoms)
+                db_json = TopologyJSON(topo_json = topo_json, author = user)
+                db_json.save()
                 plt.show()
 
         return HttpResponseRedirect('/webfinches/configure/')
