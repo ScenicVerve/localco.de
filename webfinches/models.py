@@ -157,20 +157,20 @@ class DataFile(Dated):
             srs = layer.srs
             print srs
             try:
-				#use the gdal to extract srs
+                # use the gdal to extract srs
                 srs.identify_epsg()
                 data['srs'] = srs['AUTHORITY', 1]
                 data['units'] = srs.units[1]
             except:
                 pass
         if not data['srs']:
-			#use prj2epsg API to extract srs
+            # use prj2epsg API to extract srs
             data['srs'] = self.get_srs(data)
         if not data['srs']:
             data['srs'] = 'No known Spatial Reference System'
 
         return data
-    
+
     def get_srs(self, data):
         """takes the prj data and sends it to the prj2epsg API.
         The API returns the srs code if found.
@@ -193,17 +193,6 @@ class DataFile(Dated):
                 data['srs'] = None
             return data['srs']
     
-# I can also add a property with the path!!!!!!!!!!
-class PostGeometries(models.Model):
-    id_n = models.IntegerField(null=True)
-    name = models.TextField(null=True)
-    srs = models.IntegerField(null=True)
-    atribs = models.TextField(null=True)
-    geom = models.GeometryField(blank=True, null=True, geography=False)
-    objects = models.GeoManager()
-    def __unicode__(self):
-        return "PostGeomTest: %s, %s" % (str(self.name), self.geom)
-    
 class TopologyJSON(Named, Authored):
     topo_json = models.TextField(null=True, blank=True)
     date_added = models.DateTimeField(auto_now_add=True)
@@ -212,36 +201,6 @@ class TopologyJSON(Named, Authored):
     def __unicode__(self):
         return "TopologyJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
     
-class PostLayerG(models.Model):
-    layer_name = models.TextField(null=True, blank=True)
-    layer_srs = models.IntegerField(null=True, blank=True)
-    features = models.ManyToManyField(PostGeometries, null=True, blank=True)
-    author = models.TextField(null=True, blank=True)
-    date_added = models.DateTimeField(auto_now_add=True)
-    date_edited = models.DateTimeField(auto_now=True)
-    geometry_type = models.TextField(null=True, blank=True)
-    
-    objects = models.GeoManager()
-    def __unicode__(self):
-        return "PostLayerG: %s, %s features, srs=%s" % (str(self.layer_name), len(self.features.all()), self.layer_srs)
-  
-class PostConfigurationB(models.Model):
-    #config_id = models.IntegerField(null=True)
-    author = models.TextField(null=True, blank=True)
-    date_added = models.DateTimeField(auto_now_add=True)
-    date_edited = models.DateTimeField(auto_now=True)
-    
-    config_name = models.TextField(blank=True, null=True)
-    config_srs = models.IntegerField(null=True, blank=True)
-    site = models.ManyToManyField(PostLayerG, related_name='site', null=True, blank=True)
-    other_layers = models.ManyToManyField(PostLayerG, related_name='other_layers', null=True, blank=True)
-    radius = models.IntegerField( default=1000 )
-    
-    def __unicode__(self):
-        #site_name = self.site.all()[0].layer_name
-        #other_names = ''.join([layer.layer_name for layer in self.other_layers.all()])
-        return "PostConfig: %s, radius: %s, srs: %s" % (str(self.config_name), str(self.radius), str(self.config_srs))
-
 class DataLayer(Named, Authored, Dated, Noted, GeomType,FilePath, Units):
     srs = models.CharField(max_length=50, null=True, blank=True)
     files = models.ManyToManyField('DataFile', null=True, blank=True )
@@ -291,7 +250,30 @@ class SiteConfiguration(Named, Authored, Dated, Noted):
     def __unicode__(self):
         return "SiteConfiguration: %s" % self.name
 
+# I can also add a property with the path!!!!!!!!!!
+class PostGeometries(models.Model):
+    id_n = models.IntegerField(null=True)
+    name = models.TextField(null=True)
+    srs = models.IntegerField(null=True)
+    atribs = models.TextField(null=True)
+    geom = models.GeometryField(blank=True, null=True, geography=False)
+    objects = models.GeoManager()
+    def __unicode__(self):
+        return "PostGeomTest: %s, %s" % (str(self.name), self.geom)
 
+class PostLayerG(models.Model):
+    layer_name = models.TextField(null=True, blank=True)
+    layer_srs = models.IntegerField(null=True, blank=True)
+    features = models.ManyToManyField(PostGeometries, null=True, blank=True)
+    author = models.TextField(null=True, blank=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+    date_edited = models.DateTimeField(auto_now=True)
+    geometry_type = models.TextField(null=True, blank=True)
+    
+    objects = models.GeoManager()
+    def __unicode__(self):
+        return "PostLayerG: %s, %s features, srs=%s" % (str(self.layer_name), len(self.features.all()), self.layer_srs)
+ 
 def create_from_shapefile(self, path):
     ds = DataSource(path)
     layer = ds[0]

@@ -6,6 +6,8 @@ import json
 import tempfile, zipfile
 import cStringIO
 import datetime
+import numpy as np
+from matplotlib import pyplot as plt
 
 
 from django.http import HttpResponse
@@ -16,9 +18,6 @@ from django.template import RequestContext
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 
-from webfinches.topology.my_graph_helpers import *
-from webfinches.forms import *
-from webfinches.models import *
 from django.contrib.auth.views import login
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
@@ -29,14 +28,12 @@ from django.contrib.gis.geos import *
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
-import numpy as np
 
+from webfinches.forms import *
+from webfinches.models import *
 
-
-import numpy as np
-from matplotlib import pyplot as plt
-import webfinches.topology.my_graph_helpers as mgh
-import webfinches.topology.my_graph as mg
+import topology.my_graph as mg
+import topology.my_graph_helpers as mgh
 
 
 def index(request):
@@ -83,12 +80,11 @@ def review(request):
         if formset.is_valid():
             # For every layer in the layer form, write a PostGIS object to the DB
             for form in formset:
-                #print formset
-
+                
                 srs = checkedPrj(form.cleaned_data['srs'])
                 ds = DataSource(form.cleaned_data['file_location'])
+                
                 layer = ds[0]
-                #print getUnit(layer)
                 geoms = checkGeometryType(layer)              
                 topo_json = run_topology(geoms)
                 db_json = TopologyJSON(topo_json = topo_json, author = user)
@@ -113,57 +109,10 @@ def review(request):
             'webfinches/review.html',
             RequestContext(request, c),
             )
-                    
-
-#@login_required
-#def browse(request):
-#    """A view for browsing and editing layers"""
-#    user = request.user
-#    if request.method == 'POST': # someone is giving us data
-#        formset = LayerReviewFormSet(request.POST)
-#        if formset.is_valid():
-#            for form in formset:
-#                if form.cleaned_data['srs'].isnumeric():
-#                    srs = int(form.cleaned_data['srs'])
-#                else:
-#                    srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
-#                # Write the layer to the DB
-#                loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
-#                
-#        return HttpResponseRedirect('/webfinches/configure/')
-#
-#    else:
-#        layers = DataLayer.objects.filter(author=user).order_by('-date_edited')
-#        browsing_data = [ l.get_browsing_data() for l in layers ]
-#        # do I need to convert these to dicts?
-#        formset = LayerBrowseFormSet(initial=browsing_data)
-#    
-#    c = {
-#            'formset': formset,            
-#            }
-#    return render_to_response(
-#            'webfinches/browse.html',
-#            RequestContext( request, c ),
-#            )
-#
-#@login_required
-#def browse_empty(request):
-#    c = {
-#            'layers': None,
-#    
-#            }
-#    return render_to_response(
-#            'webfinches/browse_empty.html',
-#            RequestContext(request, c),
-#            )
 
 @login_required
 def compute(request):
-	
-	
-	
-	
-	pass
+    pass
 
 @login_required
 def configure(request):
@@ -234,8 +183,7 @@ def flattenAll(geoCo):
             lst.extend(flattenAll(geo))
     return lst
 
-
-def checkGeometryType(gdal_layer):
+def checkGeometryType(gdal_layer, srs=None):
     #datasource layer
     layer = gdal_layer
     # Get the GEOS geometries from the SHP file
@@ -244,6 +192,10 @@ def checkGeometryType(gdal_layer):
 
     lst = []
     for geom in geoms:
+        if srs:
+            for geom in geoms:
+                geom.srid = srs
+
         if geom.geom_type == 'Polygon':#return the boundary of the polygon as a linestring
             lst.append(geom.boundary)
         elif geom.geom_type == 'LinearRing' or geom.geom_type == 'LineString':#return the linestring as a closed one
@@ -255,25 +207,24 @@ def checkGeometryType(gdal_layer):
     
     if len(lst)>0 and len(lst)<=1200:
         return lst
+    
     elif len(lst)>1200:
-        raise IOError(str(len(lst))+" polygons are too much to process, you should limit to no more than 1200")
+        raise IOError(str(len(lst))+" too many polygons to process, maximum number of Polygons is 1,200")
     else:
-        raise IOError("You don't have a polygon to process")
+        raise IOError("Your file is invalid")
+    
 """
 rewrite topology, using linestring list as input
 """
 def run_topology(lst, name=None):
 
     blocklist = new_import(lst,name)
-
     g = blocklist[0]
 
     ep_geojson = g.myedges_geoJSON()
     myjs = json.loads(ep_geojson)
     
     map_roads = run_once(blocklist)
-
-    #plt.show()
     return myjs
 
 """
@@ -321,8 +272,6 @@ def new_import(lst, name=None):
 
     return blocklist
     
-	
-
 
 """
 rewrite topology's import_and_setup function using linestring as input
@@ -397,141 +346,3 @@ def getUnit(gdal_layer):
 	uni['UNIT'] = gdal_layer.srs['UNIT']
 	uni['PRJUnit'] = gdal_layer.srs['PROJCS'][3]
 	return gdal_layer.srs
-
-
-"""
-This function loads shape files to the DB. Every geometry is an individual numpy array
-with the vertices as tuples
-"""
-def load_shp(layer, srs):
-    #print layer.srs
-    # Get the layer name
-    geom_type = layer.geom_type
-    geoms = layer.get_geoms(geos=True)
-    if srs:
-        for geom in geoms:
-            geom.srid= srs
-    # If the geometries are polygons, turn them into linestrings.
-    if geom_type == 'Polygon' or geom_type == 'MultiPolygon':
-        geoms = [geom.boundary for geom in geoms]
-
-    shapes = []
-    # For every geometry, get their GIS Attributes and save them in a new object.
-    for num, geom in enumerate(geoms):
-        verts = geom.coords
-        'here we are going to plug-in eleannas code that translates geometries into np arrays'
-    
-        # save the object to the DB
-        #db_geom = PostGeometries(id_n = num, name = name, srs = srs, atribs = str_dict, geom = geom)
-        #db_geom.save()
-        #shapes.append(db_geom)
-    return shapes
-
-"""
-This function loads shape files to the DB and serializes their attributes. Every object is collection of features
-with a dictionary as a property.
-"""
-def load_layer(form, author):
-    shp_path = form.cleaned_data['file_location']
-    if form.cleaned_data['srs'].isnumeric():
-        srs = int(form.cleaned_data['srs'])
-    else:
-        srs = None #int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
-        
-    # Set a GDAL datsource
-    print shp_path
-    ds = DataSource(shp_path)
-    layer = ds[0]
-    # Get the layer name
-    name = layer.name
-    geometry_type = layer.geom_type.name
-    
-    #db_layer = PostLayerG(layer_name=name, layer_srs=srs, author=author, geometry_type=geometry_type)
-    #db_layer.save()
-    
-    # load the shapes to the db
-    shapes = load_shp(layer, srs)
-    # For every geometry, get their GIS Attributes and save them in a new object.
-    #for shape in shapes:
-    #    db_layer.features.add(shape)
-    #return db_layer
-
-#"""
-#This function loads site configurations to the DB and relates them to other PostGeom objects as site and other_layers. 
-#Every object is an individual configuration with a site, site id, srs for transformation, and PostGeom objects.
-#"""
-#def load_configuration(author, config_name, site_layer, other_layers=None, radius=1000, config_srs=None):
-#    if config_srs == None:
-#        config_srs = site_layer.layer_srs
-#    
-#    # Create the configuration db object
-#    db_config = PostConfigurationB(author=author, config_name=config_name, radius=radius, config_srs=config_srs)
-#    # Save it to the DB
-#    db_config.save()
-#    # Add the site foreign key relationship
-#    db_config.site.add(site_layer)
-#    
-#    # For every other layer in other_layers, add the m2m relationship
-#    if other_layers:
-#        for other_layer in other_layers:
-#            db_config.other_layers.add(other_layer)
-#    return db_config
-
-
-"""
-This function takes a postgis query, and turns it into a Finches geoJSON
-"""
-def query_to_json(query, site=False, other_sites=False, srs= None):
-    # this will have to change to the configuration srs
-    geometries = []
-    # for every shape in the query
-    for shape in query:
-        geometry = shape.geom
-        # maybe we will reproject all of them into the site's coordinate system
-        if srs:
-            geometry = shape.geom.transform(srs, True)
-        # get a geoJSON object
-        geometry = json.loads(geometry.json)
-        # create a blank dictionary
-        geom_dict = { }
-        # add the geometry to the dict
-        geom_dict['geometry'] = geometry
-        # add a feature tag to the dict
-        geom_dict['type'] = 'Feature'
-        # get the GIS attribute dictionary into a single dict entry
-        geom_dict['properties'] = eval(shape.atribs)
-        # add the dictionary to a list of geometries
-        geometries.append(geom_dict)
-    # get the name of the layer
-    site_name = query[0].name
-    # if this is the site layer, name it like that
-    if site:
-        site_name = 'site'
-    # if these are other sites, name them like that
-    if other_sites:
-        site_name = 'other_sites'
-    # create the geoJSON for this layer
-    geojson_dict = {"type": "Layer", "name":site_name, "contents":{"type": "Feature Collection", "features":geometries}}
-    return geojson_dict
-    
-def temp_zip(data):
-    # Writes a temporary zipfile with any string input and cleans it up afterwards.
-    
-    zipdata = cStringIO.StringIO() # Create the file object
-    zip_file = zipfile.ZipFile(zipdata, "a") # Create the zipfile
-    i = -1
-    for json in data: # Get individual jsons from sitesets
-        i += 1
-        zip_file.writestr(str(i) + '.txt',json) # Write individual txt files into zip file
-    zip_file.close()
-    zipdata.flush()
-    ret_zip = zipdata.getvalue() # Gets the data from the temp file object before deleting it
-    #zipdata.close() # Deletes the temp file object
-    
-    # generate the file
-    response = HttpResponse(FileWrapper(zipdata), 'rb')
-    response['Content-Disposition'] = 'attachment; filename=site_set.zip'
-    zipdata.seek(0)
-    return response
-    
-
