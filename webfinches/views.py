@@ -84,18 +84,9 @@ def review(request):
             # For every layer in the layer form, write a PostGIS object to the DB
             for form in formset:
                 #print formset
-                '''
-                Check srs data
-                '''
+
 
                 loaded_layer = load_layer(form, user)
-                #if form.cleaned_data['srs'].isnumeric():
-                #    srs = int(form.cleaned_data['srs'])
-                #else:
-                #    srs = int(form.cleaned_data['srs'][form.cleaned_data['srs'].find(':')+1:])
-                ## Write the layer to the DB
-                #loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
-
 
                 srs = checkedPrj(form.cleaned_data['srs'])
                 ds = DataSource(form.cleaned_data['file_location'])
@@ -104,14 +95,6 @@ def review(request):
                 geoms = checkGeometryType(layer)              
                 run_topology(geoms)
 
-
-                
-                # Write the layer to the DB
-                #loaded_layer = load_layer(form.cleaned_data['pathy'], srs, user)
-                #print loaded_layer
-
-                #print loaded_layer.author, loaded_layer.date_added, loaded_layer.geometry_type
-                
         return HttpResponseRedirect('/webfinches/configure/')
         
     else: # we are asking them to review data
