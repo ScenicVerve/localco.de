@@ -98,7 +98,7 @@ def review(request):
                 geoms = checkGeometryType(layer)
                 
                 run_topology(geoms)
-                plt.show()
+
                 #myG = graphFromLineString(geoms,'testGragh') #create the graph from MyGragh class in topology
                 #print myG
                 #print "start clean up"
@@ -244,30 +244,63 @@ rewrite topology, using linestring list as input
 """
 def run_topology(lst, name=None):
 
+    blocklist = new_import(lst,name)
+
+    g = blocklist[0]
+
+    ep_geojson = g.myedges_geoJSON()
+    print ep_geojson
+
+    map_roads = run_once(blocklist)
+
+    plt.show()
+
+"""
+rewrite run_once function from topology, using linestring list as input
+"""
+def run_once(blocklist):
+    map_roads = 0
+    plt.figure()
+
+    for original in blocklist:
+        if len(original.interior_parcels) > 0:
+            block = original.copy()
+
+            # define interior parcels in the block based on existing roads
+            block.define_interior_parcels()
+
+            # finds roads to connect all interior parcels for a given block
+            block_roads = mgh.build_all_roads(block, wholepath=True)
+            map_roads = map_roads + block_roads
+        else:
+            block = original.copy()
+
+        block.plot_roads(master=original, new_plot=False)
+
+    return map_roads
+
+"""
+rewrite new_import function from topology
+"""
+def new_import(lst, name=None):
+
     original = import_and_setup(lst)
 
-    block = original.copy()
+    blocklist = original.connected_components()
 
-    # define existing roads based on block geometery
-    block.define_roads()
+    print("This map has {} block(s). \n".format(len(blocklist)))
 
-    # define interior parcels in the block based on existing roads
-    block.define_interior_parcels()
+    plt.figure()
+    # plot the full original map
+    for b in blocklist:
+        # defines original geometery as a side effect,
+        b.plot_roads(master=b, new_plot=False, update=True)
 
-    # plot roads, using the original, unedited version as master to color
-    # original roads
-    block.plot_roads(master=original)
+    blocklist.sort(key=lambda b: len(b.interior_parcels), reverse=True)
 
-    # finds roads to connect all interior parcels
-    new_roads = mgh.build_all_roads(block, barriers=False)
-
-    # plot new roads. original roads (black) defined by original graph.
-    block.plot_roads(master=original, parcel_labels=False, new_plot=True)
-
-    # red: interior parcels, bold black: original roads, blue: new roads,
-    # green: barriers
-
-    return new_roads
+    return blocklist
+    
+	
 
 
 """
