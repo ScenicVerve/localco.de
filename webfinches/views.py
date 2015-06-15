@@ -96,25 +96,23 @@ def review(request):
                 ## Write the layer to the DB
                 #loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
 
-                '''
-                srs = checkedPrj(form.cleaned_data['srs'])
-                ds = DataSource(form.cleaned_data['pathy'])
+                
+                #srs = checkedPrj(form.cleaned_data['srs'])
+                ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
                 #print getUnit(layer)
                 geoms = checkGeometryType(layer)
-                '''
-                for geo in geoms:
-                    for n in (np.array(geo.coords)):
-                        if len(n)>2:
-                            print len(n)
+                
+                #for geo in geoms:
+                #    for n in (np.array(geo.coords)):
+                #        if len(n)>2:
+                #            print len(n)
                 '''
                 print graphFromLineString(geoms,'testGragh')
                 
                 # Write the layer to the DB
                 #loaded_layer = load_layer(form.cleaned_data['pathy'], srs, user)
                 #print loaded_layer'''
-
-
                 #print loaded_layer.author, loaded_layer.date_added, loaded_layer.geometry_type
                 
                 
@@ -281,7 +279,7 @@ def checkGeometryType(gdal_layer):
 """
 The function that use topology library to create MyGraph by input lineString
 """
-def graphFromLineString(lst,name):
+def graphFromLineString(lst,name=None):
     nodedict = dict()
     plist = []
     for l in lst:
@@ -379,9 +377,9 @@ This function loads shape files to the DB. Every geometry is an individual numpy
 with the vertices as tuples
 """
 def load_shp(layer, srs):
-    #print layer.srs
     # Get the layer name
-    name = layer.name
+    geom_type = layer.geom_type.name
+    geoms = layer.get_geoms(geos = True)
 
     if srs:
         for geom in geoms:
@@ -392,10 +390,11 @@ def load_shp(layer, srs):
 
     shapes = []
     # For every geometry, get their GIS Attributes and save them in a new object.
-    for num, geom in enumerate(geoms):
-        verts = geom.coords
-        'here we are going to plug-in eleannas code that translates geometries into np arrays'
-    
+    #for num, geom in enumerate(geoms):
+    #verts = geom.coords
+    'here we are going to plug-in eleannas code that translates geometries into np arrays'
+    geoms = checkGeometryType(layer)
+    graphFromLineString(geoms)
         # save the object to the DB
         #db_geom = PostGeometries(id_n = num, name = name, srs = srs, atribs = str_dict, geom = geom)
         #db_geom.save()
