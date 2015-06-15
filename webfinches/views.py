@@ -7,6 +7,7 @@ import tempfile, zipfile
 import cStringIO
 import datetime
 
+
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponseRedirect
@@ -15,6 +16,7 @@ from django.template import RequestContext
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 
+from webfinches.topology.my_graph_helpers import *
 from webfinches.forms import *
 from webfinches.models import *
 from django.contrib.auth.views import login
@@ -27,6 +29,7 @@ from django.contrib.gis.geos import *
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
+import numpy as np
 
 
 
@@ -76,9 +79,11 @@ def review(request):
     user = request.user
     if request.method == 'POST': # someone is giving us data
         formset = LayerReviewFormSet(request.POST)
+         
         if formset.is_valid():
             # For every layer in the layer form, write a PostGIS object to the DB
             for form in formset:
+                #print formset
                 '''
                 Check srs data
                 '''
@@ -91,19 +96,15 @@ def review(request):
                 ## Write the layer to the DB
                 #loaded_layer = load_layer(form.cleaned_data['file_location'], srs, user)
 
+
                 srs = checkedPrj(form.cleaned_data['srs'])
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
                 #print getUnit(layer)
-                geoms = checkGeometryType(layer)
-                
+                geoms = checkGeometryType(layer)              
                 run_topology(geoms)
 
-                #myG = graphFromLineString(geoms,'testGragh') #create the graph from MyGragh class in topology
-                #print myG
-                #print "start clean up"
-                #myG = myG.clean_up_geometry(1, False)
-                #print myG
+
                 
                 # Write the layer to the DB
                 #loaded_layer = load_layer(form.cleaned_data['pathy'], srs, user)
@@ -238,6 +239,37 @@ def configure(request):
             RequestContext(request, c),
             )
 
+"""
+flatten all the geometry in the geometry collection
+"""
+def flattenAll(geoCo):
+    lst = []
+    for geo in geoCo:
+        if not "Multi" in geo.geom_type:
+            lst.append(geo)
+        else:
+            lst.extend(flattenAll(geo))
+    return lst
+
+
+def checkGeometryType(gdal_layer):
+    #datasource layer
+    layer = gdal_layer
+    # Get the GEOS geometries from the SHP file
+    geoms = layer.get_geoms(geos=True)
+    geom_type = layer.geom_type.name
+
+    lst = []
+    for geom in geoms:
+        if geom.geom_type == 'Polygon':#return the boundary of the polygon as a linestring
+            lst.append(geom.boundary)
+        elif geom.geom_type == 'LinearRing' or geom.geom_type == 'LineString':#return the linestring as a closed one
+            lst.append(geom.close_rings)
+        elif "Multi" in geom.geom_type:#this is a geometry collection, return the flattened list
+            lst.extend(flattenAll(geom))			
+        else:#not supported geometry type, raise exception
+            raise IOError(geom.geom_type+"is the wrong type of geometry to process")
+    return lst
 
 """
 rewrite topology, using linestring list as input
@@ -376,16 +408,16 @@ def checkGeometryType(gdal_layer):
     # Get the GEOS geometries from the SHP file
     geoms = layer.get_geoms(geos=True)
     geom_type = layer.geom_type.name
-	
+
     lst = []
     
     geoms = flattenAll(geoms)#flatten process
     
     for geom in geoms:
         if geom.geom_type == 'Polygon':#return the boundary of the polygon as a linestring
-			lst.append(geom.boundary)
+            lst.append(geom.boundary)
         elif geom.geom_type == 'LinearRing' or geom.geom_type == 'LineString':#return the linestring as a closed one
-			lst.append(geom.close_rings)		
+            lst.append(geom.close_rings)		
         else:#not supported geometry type, raise exception
             raise IOError(geom.geom_type+"is the wrong type of geometry to process")
     
@@ -401,11 +433,11 @@ def checkedPrj(srs0):
     if srs0.isnumeric():
         srs = int(srs0)
     elif srs0 != None:
-		srs = int(srs0[srs0.find(':')+1:])
+        srs = int(srs0[srs0.find(':')+1:])
     else:
-		#no srs information is found, raise exception
-		print 'no srs information is found'
-		srs = None
+        #no srs information is found, raise exception
+        print 'no srs information is found'
+        srs = None
     return srs
 
 
@@ -417,14 +449,6 @@ def getUnit(gdal_layer):
 	uni['UNIT'] = gdal_layer.srs['UNIT']
 	uni['PRJUnit'] = gdal_layer.srs['PROJCS'][3]
 	return gdal_layer.srs
-
-
-"""
-Reproject the file if needed based on the result of checkprj and getunit function
-"""
-def reProject():
-	
-	pass
 
 
 """
