@@ -85,7 +85,7 @@ def review(request):
             for form in formset:
                 #print formset
 
-                srs = checkedPrj(form.cleaned_data['srs'])
+                #srs = checkedPrj(form.cleaned_data['srs'])
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
                 #print getUnit(layer)
