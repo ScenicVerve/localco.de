@@ -85,15 +85,13 @@ def review(request):
             for form in formset:
                 #print formset
 
-
-                loaded_layer = load_layer(form, user)
-
                 srs = checkedPrj(form.cleaned_data['srs'])
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
                 #print getUnit(layer)
                 geoms = checkGeometryType(layer)              
-                run_topology(geoms)
+                print run_topology(geoms)
+                plt.show()
 
         return HttpResponseRedirect('/webfinches/configure/')
         
@@ -264,11 +262,12 @@ def run_topology(lst, name=None):
     g = blocklist[0]
 
     ep_geojson = g.myedges_geoJSON()
-    print ep_geojson
-
+    myjs = json.loads(ep_geojson)
+    
     map_roads = run_once(blocklist)
 
-    plt.show()
+    #plt.show()
+    return myjs
 
 """
 rewrite run_once function from topology, using linestring list as input
