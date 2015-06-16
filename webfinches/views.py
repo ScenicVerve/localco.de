@@ -89,7 +89,7 @@ def review(request):
                 topo_json = run_topology(geoms)
                 db_json = TopologyJSON(topo_json = topo_json, author = user)
                 db_json.save()
-                plt.show()
+                #plt.show()
 
         return HttpResponseRedirect('/webfinches/configure/')
         
