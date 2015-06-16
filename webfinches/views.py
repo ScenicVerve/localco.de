@@ -76,7 +76,7 @@ def review(request):
     user = request.user
     if request.method == 'POST': # someone is giving us data
         formset = LayerReviewFormSet(request.POST)
-         
+        
         if formset.is_valid():
             # For every layer in the layer form, write a PostGIS object to the DB
             for form in formset:
