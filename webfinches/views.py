@@ -88,7 +88,7 @@ def review(request):
                 layer = ds[0]
                 geoms = checkGeometryType(layer)              
                 topo_json = run_topology(geoms)
-                db_json = TopologyJSON(topo_json = topo_json, author = user)
+                db_json = TopologyJSON(name=layer.name, topo_json = topo_json, author = user)
                 db_json.save()
                 plt.show()
 
@@ -100,7 +100,7 @@ def review(request):
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
         
-        'we should get some error if the geometry does not have a projection of has a wrong geom type'
+        'we should get some error if the geometry does not have a projection or has a wrong geom type'
         formset = LayerReviewFormSet( initial=layer_data )
         
     c = {
@@ -120,9 +120,9 @@ def compute(request):
 
     else:
         # We are browsing data
-        test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
-        #test_layers = TopologyJSON.objects.filter(author=user).order_by('-date_edited')
-        
+        #test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
+        test_layers = TopologyJSON.objects.filter(author=user).order_by('-date_edited')
+        print test_layers.all()
     c = {
             'test_layers': test_layers,
     
