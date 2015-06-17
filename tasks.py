@@ -1,5 +1,6 @@
 from celery import Celery
 from webfinches.models import *
+from webfinches.models import User
 
 from webfinches.views import *
 #, run_once
@@ -20,9 +21,11 @@ def run_topology(lst, name=None):
 
     ep_geojson = g.myedges_geoJSON()
     myjs = json.loads(ep_geojson)
-    print myjs
+    #print myjs
+    db_json = TopologyJSON(topo_json = myjs, author = user)
+    db_json.save()
     #map_roads = run_once(blocklist)
-    return myjs
+    return None
 
 
 '''

@@ -31,8 +31,7 @@ from django.contrib.gis.gdal import *
 
 from webfinches.forms import *
 from webfinches.models import *
-from tasks import run_topology
-
+from tasks import *
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
 
@@ -88,7 +87,7 @@ def review(request):
                 layer = ds[0]
                 geoms = checkGeometryType(layer)
                 #topo_json = add.delay(1 , 2)
-                topo_json = run_topology.delay(geoms)
+                run_topology.delay(geoms)
                 #db_json = TopologyJSON(topo_json = topo_json, author = user)
                 #db_json.save()
                 #plt.show()
