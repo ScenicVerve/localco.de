@@ -31,6 +31,7 @@ from django.contrib.gis.gdal import *
 
 from webfinches.forms import *
 from webfinches.models import *
+from tasks import run_topology
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
@@ -86,10 +87,13 @@ def review(request):
                 ds = DataSource(form.cleaned_data['file_location'])
                 
                 layer = ds[0]
-                geoms = checkGeometryType(layer)              
-                topo_json = run_topology(geoms)
-                db_json = TopologyJSON(name=layer.name, topo_json = topo_json, author = user)
-                db_json.save()
+
+                geoms = checkGeometryType(layer)
+                #topo_json = add.delay(1 , 2)
+                topo_json = run_topology.delay(geoms)
+                #db_json = TopologyJSON(topo_json = topo_json, author = user)
+                #db_json.save()
+
                 #plt.show()
 
         return HttpResponseRedirect('/webfinches/compute/')
@@ -177,6 +181,7 @@ def checkGeometryType(gdal_layer, srs=None):
 """
 rewrite topology, using linestring list as input
 """
+'''
 def run_topology(lst, name=None):
 
     blocklist = new_import(lst,name)
@@ -185,8 +190,11 @@ def run_topology(lst, name=None):
     ep_geojson = g.myedges_geoJSON()
     myjs = json.loads(ep_geojson)
     
-    map_roads = run_once(blocklist)
-    return myjs
+    #map_roads = run_once(blocklist)
+    db_json = TopologyJSON(topo_json = topo_json, author = user)
+    db_json.save()
+    return None
+'''    
 
 """
 rewrite run_once function from topology, using linestring list as input
