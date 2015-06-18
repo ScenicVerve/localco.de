@@ -84,10 +84,11 @@ def review(request):
                 srs = checkedPrj(form.cleaned_data['srs'])
 
                 ds = DataSource(form.cleaned_data['file_location'])
-                
                 layer = ds[0]
                 geoms = checkGeometryType(layer)
-                topo_json = run_topology(geoms)
+                scale_factor = scaleFactor(geoms)
+                
+                topo_json = run_topology(geoms,scale_factor = 0.1)
                 db_json = TopologyJSON(name=layer.name, topo_json = topo_json, author = user)
                 db_json.save()
                 plt.show()
@@ -180,9 +181,9 @@ def checkGeometryType(gdal_layer, srs=None):
 """
 rewrite topology, using linestring list as input
 """
-def run_topology(lst, name=None):
+def run_topology(lst, name=None, scale_factor=1):
 
-    blocklist = new_import(lst,name)
+    blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     lst = []
     for g in blocklist:
         js = {}
@@ -194,7 +195,8 @@ def run_topology(lst, name=None):
         js['interior'] = json.loads(inGragh.myedges_geoJSON())
         
         #THE ROADS GENERATED  
-        js['road'] = run_once(g)
+        js['road'] = run_once(g)#calculate the roads to connect interior parcels, can extract steps
+        
         lst.append(js)
     lst_json = json.dumps({"type": "BlockCollection",
                            "blocks": lst})
@@ -216,7 +218,7 @@ def run_once(original):
         # define interior parcels in the block based on existing roads
         block.define_interior_parcels()
 
-        # finds roads to connect all interior parcels for a given block
+        # finds roads to connect all interior parcels for a given block(with steps)
         block_roads = mgh.build_all_roads(block, wholepath=True)
     else:
         block = original.copy()
@@ -234,9 +236,9 @@ rewrite new_import function from topology
 imports the file, plots the original map, and returns
 a list of blocks from the original map.
 """
-def new_import(lst, name=None):
+def new_import(lst, name=None,scale = 1):
 
-    original = import_and_setup(lst)
+    original = import_and_setup(lst,scale = scale)#create and clean the graph. 
     blocklist = original.connected_components()
 
     print("This map has {} block(s). \n".format(len(blocklist)))
@@ -255,14 +257,14 @@ def new_import(lst, name=None):
 """
 rewrite topology's import_and_setup function using linestring as input
 """
-def import_and_setup(lst,component = 0,threshold=1,rezero=np.array([0, 0]), connected=False, name=""):
+def import_and_setup(lst,component = None,threshold=1,rezero=np.array([0, 0]), connected=False, name="",scale = 1):
     # check that rezero is an array of len(2)
     # check that threshold is a float
-    myG = graphFromLineString(lst, name, rezero)
+    myG = graphFromLineString(lst, name, rezero,scale = scale)#create the graph. can't directly show step
     print "start clean up"
-    myG = myG.clean_up_geometry(threshold, connected)
+    myG = myG.clean_up_geometry(threshold, connected)#clean the graph. can't directly show step
     print myG
-    if connected is True:
+    if component is None:
         return myG
     else:
         return myG.connected_components()[component]
@@ -271,7 +273,7 @@ def import_and_setup(lst,component = 0,threshold=1,rezero=np.array([0, 0]), conn
 """
 The function that use topology library to create MyGraph by input lineString
 """
-def graphFromLineString(lst,name = None,rezero=np.array([0, 0])):
+def graphFromLineString(lst,name = None,rezero=np.array([0, 0]),scale = 1):
     nodedict = dict()
     plist = []
     for l in lst:
@@ -293,7 +295,8 @@ def graphFromLineString(lst,name = None,rezero=np.array([0, 0])):
     for p in plist:
         for e in p.edges:
             myG.add_edge(mg.MyEdge(e.nodes))
-
+    if scale != 1:
+        myG = rescale_mygraph(myG,rezero,scale)
     print("data loaded")
 
     return myG
@@ -314,11 +317,58 @@ def checkedPrj(srs0):
 
 
 """
-Rescale function, judge and re scale the input geometries
+scaleFactor function, judge and get scale factor of the input geometries
 """
-def rescale(geoms):
-    return geoms
+def scaleFactor(geoms):
+    if checkedPrj:#contain srs information
+        return 1.0
+    elif checkDistunguish:#fulfil 2 decimal places criteria
+        area = aveArea(geoms)
+        if area<10:
+            return 20.0/area
+        elif area >100:
+            return 80.0/area
+        else:
+            return 1.0
+    else:
+        area = aveArea(geoms)
+        return 50.0/area
 
+"""
+rescale graph from original topology
+"""
+def rescale_mygraph(myG, rezero=np.array([0, 0]), rescale=np.array([1, 1])):
+
+    """returns a new graph (with no interior properties defined), rescaled under
+    a linear function newloc = (oldloc-rezero)*rescale  where all of those are
+    (x,y) numpy arrays.  Default of rezero = (0,0) and rescale = (1,1) means
+    the locations of nodes in the new and old graph are the same.
+    """
+
+    scaleG = mg.MyGraph()
+    for e in myG.myedges():
+        n0 = e.nodes[0]
+        n1 = e.nodes[1]
+        nn0 = mg.MyNode((n0.loc-rezero)*rescale)
+        nn1 = mg.MyNode((n1.loc-rezero)*rescale)
+        scaleG.add_edge(mg.MyEdge((nn0, nn1)))
+
+    return scaleG
+
+
+"""
+check if the geos are distinguishable(defined by threshold)
+"""
+def checkDistunguish(geoms, threshold=0.001):
+    c = abs( geoms[0].coords[0][0] - geoms[0].coords[1][0])
+    return c>threshold
+    
+"""
+calculate the average area of all parcels
+"""
+def aveArea(geoms):
+    lst = [Polygon(LinearRing(g.coords)).area for g in geoms]
+    return sum(lst) / float(len(lst))
 
 """
 return the unit of the input gdal data source layer

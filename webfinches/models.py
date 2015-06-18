@@ -152,10 +152,8 @@ class DataFile(Dated):
         
         #for l in layer:
         #    print l.geom.tuple
-
         if layer.srs:
             srs = layer.srs
-            print srs
             try:
                 # use the gdal to extract srs
                 srs.identify_epsg()
@@ -177,6 +175,7 @@ class DataFile(Dated):
         """
         api_srs = {}
         prj_path = self.path_of_part('.prj')
+        print prj_path
         if prj_path:
             prj_text = open(prj_path, 'r').read()
             query = urlencode({
