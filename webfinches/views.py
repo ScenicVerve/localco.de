@@ -86,7 +86,7 @@ def review(request):
                 ds = DataSource(form.cleaned_data['file_location'])
                 
                 layer = ds[0]
-                geoms = checkGeometryType(layer)              
+                geoms = checkGeometryType(layer)
                 topo_json = run_topology(geoms)
                 db_json = TopologyJSON(name=layer.name, topo_json = topo_json, author = user)
                 db_json.save()
@@ -122,7 +122,7 @@ def compute(request):
         # We are browsing data
         #test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
         test_layers = TopologyJSON.objects.filter(author=user).order_by('-date_edited')
-        print test_layers.all()
+        #print test_layers.all()
     c = {
             'test_layers': test_layers,
     
@@ -138,8 +138,8 @@ flatten all the geometry in the geometry collection
 def flattenAll(geoCo):
     lst = []
     for geo in geoCo:
-        if not "Multi" in geo.geom_type:
-            lst.append(geo)
+        if not len(geo.boundary)>1:
+            lst.append(geo.boundary)
         else:
             lst.extend(flattenAll(geo))
     return lst
@@ -161,15 +161,18 @@ def checkGeometryType(gdal_layer, srs=None):
             lst.append(geom.boundary)
         elif geom.geom_type == 'LinearRing' or geom.geom_type == 'LineString':#return the linestring as a closed one
             lst.append(geom.close_rings)
-        elif "Multi" in geom.geom_type:#this is a geometry collection, return the flattened list
+        elif len(geom)>1:#this is a geometry collection, return the flattened list
             lst.extend(flattenAll(geom))			
         else:#not supported geometry type, raise exception
             raise IOError(geom.geom_type+"is the wrong type of geometry to process")
     
-    if len(lst)>0 and len(lst)<=1200:
+    
+    
+    
+    if len(lst)>0 and len(lst)<=6000:
         return lst
     
-    elif len(lst)>1200:
+    elif len(lst)>6000:
         raise IOError(str(len(lst))+" too many polygons to process, maximum number of Polygons is 1,200")
     else:
         raise IOError("Your file is invalid")
@@ -180,45 +183,60 @@ rewrite topology, using linestring list as input
 def run_topology(lst, name=None):
 
     blocklist = new_import(lst,name)
-    g = blocklist[0]
-
-    ep_geojson = g.myedges_geoJSON()
-    myjs = json.loads(ep_geojson)
+    lst = []
+    for g in blocklist:
+        js = {}
+        #ALL THE PARCELS
+        js['all'] = json.loads(g.myedges_geoJSON())
+        
+        #THE INTERIOR PARCELS
+        inGragh = mgh.graphFromMyFaces(g.interior_parcels)
+        js['interior'] = json.loads(inGragh.myedges_geoJSON())
+        
+        #THE ROADS GENERATED  
+        js['road'] = run_once(g)
+        lst.append(js)
+    lst_json = json.dumps({"type": "BlockCollection",
+                           "blocks": lst})
     
-    map_roads = run_once(blocklist)
-    return myjs
+    return lst_json
 
 """
 rewrite run_once function from topology, using linestring list as input
+
+Given a list of blocks, builds roads to connect all interior parcels and
+plots all blocks in the same figure.
 """
-def run_once(blocklist):
-    map_roads = 0
+def run_once(original):
     plt.figure()
 
-    for original in blocklist:
-        if len(original.interior_parcels) > 0:
-            block = original.copy()
+    if len(original.interior_parcels) > 0:
+        block = original.copy()
 
-            # define interior parcels in the block based on existing roads
-            block.define_interior_parcels()
+        # define interior parcels in the block based on existing roads
+        block.define_interior_parcels()
 
-            # finds roads to connect all interior parcels for a given block
-            block_roads = mgh.build_all_roads(block, wholepath=True)
-            map_roads = map_roads + block_roads
-        else:
-            block = original.copy()
+        # finds roads to connect all interior parcels for a given block
+        block_roads = mgh.build_all_roads(block, wholepath=True)
+    else:
+        block = original.copy()
+    
+    roads = json.dumps({"type": "FeatureCollection",
+                           "features": [e.geoJSON() for e in block.myedges() if e.road]})
+        
+    block.plot_roads(master=original, new_plot=False)
+    return roads
 
-        block.plot_roads(master=original, new_plot=False)
-
-    return map_roads
 
 """
 rewrite new_import function from topology
+
+imports the file, plots the original map, and returns
+a list of blocks from the original map.
 """
 def new_import(lst, name=None):
 
     original = import_and_setup(lst)
-
     blocklist = original.connected_components()
 
     print("This map has {} block(s). \n".format(len(blocklist)))
@@ -241,9 +259,6 @@ def import_and_setup(lst,component = 0,threshold=1,rezero=np.array([0, 0]), conn
     # check that rezero is an array of len(2)
     # check that threshold is a float
     myG = graphFromLineString(lst, name, rezero)
-
-    myG = myG.clean_up_geometry(threshold, connected)
-    myG = graphFromLineString(lst,name) #create the graph from MyGragh class in topology
     print "start clean up"
     myG = myG.clean_up_geometry(threshold, connected)
     print myG
@@ -262,8 +277,7 @@ def graphFromLineString(lst,name = None,rezero=np.array([0, 0])):
     for l in lst:
         l = np.array(l.coords)
         nodes = []
-        for k in l:
-            #print len(k)
+        for k in l:#k is coordinates
             k = k-rezero
             myN = mg.MyNode(k)
             if myN not in nodedict:
@@ -297,6 +311,13 @@ def checkedPrj(srs0):
         print 'no srs information is found'
         srs = None
     return srs
+
+
+"""
+Rescale function, judge and re scale the input geometries
+"""
+def rescale(geoms):
+    return geoms
 
 
 """

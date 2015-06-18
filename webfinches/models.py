@@ -195,6 +195,7 @@ class DataFile(Dated):
     
 class TopologyJSON(Named, Authored):
     topo_json = models.TextField(null=True, blank=True)
+    
     date_added = models.DateTimeField(auto_now_add=True)
     date_edited = models.DateTimeField(auto_now=True)
     
