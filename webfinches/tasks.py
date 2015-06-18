@@ -23,13 +23,3 @@ def run_topology(lst, name=None):
     print myjs
     #map_roads = run_once(blocklist)
     return myjs
-
-
-'''
-@app.task
-def add(x,y):
-    s = x + y
-    return s
-
-#add.delay(1,2)
-'''

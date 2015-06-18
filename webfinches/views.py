@@ -31,7 +31,7 @@ from django.contrib.gis.gdal import *
 
 from webfinches.forms import *
 from webfinches.models import *
-from tasks import run_topology
+from webfinches.tasks import run_topology
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
@@ -177,24 +177,6 @@ def checkGeometryType(gdal_layer, srs=None):
         raise IOError(str(len(lst))+" too many polygons to process, maximum number of Polygons is 1,200")
     else:
         raise IOError("Your file is invalid")
-    
-"""
-rewrite topology, using linestring list as input
-"""
-'''
-def run_topology(lst, name=None):
-
-    blocklist = new_import(lst,name)
-    g = blocklist[0]
-
-    ep_geojson = g.myedges_geoJSON()
-    myjs = json.loads(ep_geojson)
-    
-    #map_roads = run_once(blocklist)
-    db_json = TopologyJSON(topo_json = topo_json, author = user)
-    db_json.save()
-    return None
-'''    
 
 """
 rewrite run_once function from topology, using linestring list as input
