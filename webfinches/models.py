@@ -175,9 +175,9 @@ class DataFile(Dated):
         """
         api_srs = {}
         prj_path = self.path_of_part('.prj')
-        print prj_path
+        prj_path = prj_path+"/"+str(data['name'])
         if prj_path:
-            prj_text = open(prj_path, 'r').read()
+            prj_text = open(prj_path+'.prj', 'r').read()
             query = urlencode({
                 'exact' : False,
                 'error' : True,
