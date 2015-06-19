@@ -35,3 +35,7 @@ echo PW='postgrespass' > pw.py
 ```bash
 python manage.py runserver
 ```
+
+## Troubleshooting
+
+If you see an error like `django.contrib.gis.geos.error.GEOSException: Could not parse version info string "3.4.2-CAPI-1.8.2 r3921"`, you'll need to manually patch `venv/lib/python2.7/site-packages/django/contrib/gis/geos/libgeos.py` per http://stackoverflow.com/questions/18643998/geodjango-geosexception-error
