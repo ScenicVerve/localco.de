@@ -26,6 +26,10 @@ git clone https://github.com/open-reblock/topology
 
 Set `my_path` in `settings.py` to the parent directory of your working copy. Create `mysettings.py`.
 
+```bash
+echo PW='postgrespass' > pw.py
+```
+
 ## Starting
 
 ```bash
