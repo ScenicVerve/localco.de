@@ -31,7 +31,7 @@ from django.contrib.gis.gdal import *
 
 from webfinches.forms import *
 from webfinches.models import *
-from webfinches.tasks import run_topology
+from tasks import *#run_topology
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
