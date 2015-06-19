@@ -12,16 +12,16 @@ The app currently uses a [PostGIS](https://postgis.net/) database and requires t
 ## Installation (Ubuntu 14.04)
 
 ```bash
-sudo apt-get install python-dev python-virtualenv python-pip postgresql-9.3-postgis-2.1 postgresql-server-dev-9.3
+sudo apt-get install python-dev python-virtualenv python-pip postgresql-9.3-postgis-2.1 postgresql-server-dev-9.3 python-numpy python-matplotlib python-scipy
 git clone https://github.com/open-reblock/localco.de localcode
 cd localcode
-virtualenv venv
+virtualenv --system-site-packages venv
 . venv/bin/activate
 pip install -r requirements.txt
 git clone https://github.com/bengolder/textbits
 git clone https://github.com/open-reblock/topology
 
-pip python-numpy # for "Configure Sites" to work
+pip install networkx pyshp plotly
 ```
 
 ## Configuration
