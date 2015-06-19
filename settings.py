@@ -4,7 +4,6 @@ djcelery.setup_loader()
 
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-
 #my_path = '/Users/carlos/projects/open-reblock' # Change this to the local path
 my_path = '/Users/eleannapanagoulia/Documents/open-reblock' # Change this to the local path
 #my_path = '/home/pwz/open-reblock' # Change this to the local path

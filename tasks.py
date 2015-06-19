@@ -52,3 +52,4 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
 	print lst_json
         db_json = TopoSaveJSON(name=name, topo_json = lst_json, author = user,index = i, kind = "output")
         db_json.save()
+
