@@ -1,4 +1,4 @@
-{% extends 'webfinches/review.html' %}
+{% extends 'reblock/review.html' %}
 {% load static %}
 
 {% block css %}
@@ -11,12 +11,12 @@
 {% endblock %}
 
 {% block layernavs %}
-            <li><a href="/webfinches"><div class="sitenav">Browse Data</div></a></li>
+            <li><a href="/reblock"><div class="sitenav">Browse Data</div></a></li>
 {% endblock %}
 
 {% block content %}
 
-<form id="sitecreator" action="/webfinches/get_sites/" method="POST" enctype="multipart/form-data">
+<form id="sitecreator" action="/reblock/get_sites/" method="POST" enctype="multipart/form-data">
     
     {% csrf_token %}
     {{ formset.management_form }}
@@ -24,7 +24,7 @@
     {% if sites_available %}
     <div class="layerset col">
       {% for site_set in sites_available %}
-        {% include "webfinches/site_set_blocks.html" %}
+        {% include "reblock/site_set_blocks.html" %}
         
 
         

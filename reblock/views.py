@@ -29,9 +29,9 @@ from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
 
-from webfinches.forms import *
-from webfinches.models import *
-from webfinches.tasks import run_topology
+from reblock.forms import *
+from reblock.models import *
+from reblock.tasks import *#run_topology
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
@@ -41,8 +41,8 @@ def index(request):
     """A view for browsing the existing webfinches.
     """
     return render_to_response(
-            'webfinches/index.html',
-            {'webfinches':DataLayer.objects.all()},
+            'reblock/index.html',
+            {'reblock':DataLayer.objects.all()},
             )
 
 @login_required
@@ -57,7 +57,7 @@ def upload(request):
         for form in formset:
             if form.is_valid() and form.has_changed():
                 data_file = form.save(upload)
-        return HttpResponseRedirect('/webfinches/review/')
+        return HttpResponseRedirect('/reblock/review/')
     else:
         formset = ZipFormSet()
 
@@ -65,7 +65,7 @@ def upload(request):
             'formset':formset,
             }
     return render_to_response(
-            'webfinches/upload.html',
+            'reblock/upload.html',
             RequestContext(request, c),
             )
 
@@ -96,7 +96,7 @@ def review(request):
 
                 #plt.show()
 
-        return HttpResponseRedirect('/webfinches/compute/')
+        return HttpResponseRedirect('/reblock/compute/')
         
     else: # we are asking them to review data
         # get the last upload of this user
@@ -111,7 +111,7 @@ def review(request):
             'formset':formset,
             }
     return render_to_response(
-            'webfinches/review.html',
+            'reblock/review.html',
             RequestContext(request, c),
             )
 
@@ -132,7 +132,7 @@ def compute(request):
     
             }
     return render_to_response(
-            'webfinches/compute.html',
+            'reblock/compute.html',
             RequestContext(request, c),
             )
 

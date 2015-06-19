@@ -1,7 +1,7 @@
 from celery import Celery
-from webfinches.models import *
+from reblock.models import *
 
-from webfinches.views import *
+from reblock.views import *
 #, run_once
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh

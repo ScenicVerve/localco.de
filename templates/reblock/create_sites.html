@@ -1,4 +1,4 @@
-{% extends 'webfinches/review.html' %}
+{% extends 'reblock/review.html' %}
 {% load static %}
 
 {% block css %}
@@ -11,12 +11,12 @@
 {% endblock %}
 
 {% block layernavs %}
-            <li><a href="/webfinches"><div class="sitenav">Browse Data</div></a></li>
+            <li><a href="/reblock"><div class="sitenav">Browse Data</div></a></li>
 {% endblock %}
 
 {% block content %}
 
-<form id="sitecreator" action="/webfinches/create_sites/" method="POST" enctype="multipart/form-data">
+<form id="sitecreator" action="/reblock/create_sites/" method="POST" enctype="multipart/form-data">
     
     {% csrf_token %}
     {{ formset.management_form }}
@@ -24,13 +24,27 @@
     {% if site_configurations %}
     <div class="layerset col">
       {% for site_configuration in site_configurations %}
-        {% include "webfinches/configuration_blocks.html" %}
+        {% include "reblock/configuration_blocks.html" %}
+        
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if test_configurations %}
+    <div class="layerset col">
+      {% for site_configuration in test_configurations %}
+        {% include "reblock/configuration_blocks_post.html" %}
         
       {% endfor %}
     </div>
 {% endif %}
 
-    <p>You can't create any sites! You don't have any sites yet! Create some first.</p>
+    <div><input type="submit" value="Create Sites" /></div>
+    <div>Optional Minimum and Maximum Sites</div>
+    <div>(Defaults to 0 and/or last Site number)</div>
+    <div><input type="number" name="min" />Minimum Site</div>
+    <div><input type="number" name="max" />Maximum Site</div>
+
 </form>
 
 {% endblock %}

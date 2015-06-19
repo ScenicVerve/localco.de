@@ -1,4 +1,4 @@
-{% extends "webfinches/upload.html" %}
+{% extends "reblock/upload.html" %}
 
 {% block jslibs %}
 {% endblock %}
@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-              <form id="layerreviewer" action="/webfinches/review/" method="POST" enctype="multipart/form-data">
+              <form id="layerreviewer" action="/reblock/site_configuration/" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ formset.management_form }}
                 <input type="submit" value="Upload New Configuration" />
@@ -17,5 +17,6 @@
                     {{ form.as_p }}
                   </div>
                   {% endfor %}
+                </table>
               </form>
 {% endblock %}
