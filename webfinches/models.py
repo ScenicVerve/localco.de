@@ -152,10 +152,8 @@ class DataFile(Dated):
         
         #for l in layer:
         #    print l.geom.tuple
-
         if layer.srs:
             srs = layer.srs
-            print srs
             try:
                 # use the gdal to extract srs
                 srs.identify_epsg()
@@ -177,8 +175,9 @@ class DataFile(Dated):
         """
         api_srs = {}
         prj_path = self.path_of_part('.prj')
+        prj_path = prj_path+"/"+str(data['name'])
         if prj_path:
-            prj_text = open(prj_path, 'r').read()
+            prj_text = open(prj_path+'.prj', 'r').read()
             query = urlencode({
                 'exact' : False,
                 'error' : True,
@@ -193,8 +192,10 @@ class DataFile(Dated):
                 data['srs'] = None
             return data['srs']
     
-class TopologyJSON(Named, Authored):
+class TopoSaveJSON(Named, Authored):
     topo_json = models.TextField(null=True, blank=True)
+    kind = models.TextField(null=True, blank=True)
+    index = models.IntegerField(null=True, blank=True)
     date_added = models.DateTimeField(auto_now_add=True)
     date_edited = models.DateTimeField(auto_now=True)
     
