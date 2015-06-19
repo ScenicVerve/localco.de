@@ -31,7 +31,12 @@ from django.contrib.gis.gdal import *
 
 from webfinches.forms import *
 from webfinches.models import *
+<<<<<<< HEAD
 from tasks import *
+=======
+from webfinches.tasks import run_topology
+
+>>>>>>> 827064d3ea05ef86ee5e1f52197454e76bdeaaaf
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
 
@@ -76,23 +81,26 @@ def review(request):
     user = request.user
     if request.method == 'POST': # someone is giving us data
         formset = LayerReviewFormSet(request.POST)
-         
+        
         if formset.is_valid():
             # For every layer in the layer form, write a PostGIS object to the DB
             for form in formset:
-                
+
                 srs = checkedPrj(form.cleaned_data['srs'])
+
                 ds = DataSource(form.cleaned_data['file_location'])
                 
                 layer = ds[0]
+
                 geoms = checkGeometryType(layer)
                 #topo_json = add.delay(1 , 2)
                 topo_json = run_topology.delay(geoms, user)
                 #db_json = TopologyJSON(topo_json = topo_json, author = user)
                 #db_json.save()
+
                 #plt.show()
 
-        return HttpResponseRedirect('/webfinches/configure/')
+        return HttpResponseRedirect('/webfinches/compute/')
         
     else: # we are asking them to review data
         # get the last upload of this user
@@ -100,7 +108,7 @@ def review(request):
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
         
-        'we should get some error if the geometry does not have a projection of has a wrong geom type'
+        'we should get some error if the geometry does not have a projection or has a wrong geom type'
         formset = LayerReviewFormSet( initial=layer_data )
         
     c = {
@@ -113,62 +121,22 @@ def review(request):
 
 @login_required
 def compute(request):
-    pass
-
-@login_required
-def configure(request):
-    """
-    A view that contains ajax scripts for sorting and dealing with layers,
-    in order to build SiteConfigurations
-    """
+    
     user = request.user
     if request.method == 'POST': # someone is editing site configuration
-        #Here we are getting some user variables
-        layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
-        # Get site_layer from checkboxes
-        site_id = request.POST.get("site_layer")
-        site_layer = PostLayerG.objects.get(id=site_id)
-        # We get the SiteConfiguration name entered by the user
-        config_name = request.POST.get("name") 
-        # Get radius for query
-        try:
-            radius = int(request.POST.get("radius"))
-        except ValueError:
-            # We give them a predefined Radius if no radius or an invalid radius is selected
-            radius = 1000 
-        # We get the SRS code. If the user doesn't provide an srs code, use the site's srs code
-        if len(request.POST.get("srs")) == 0: 
-            config_srs = site_layer.layer_srs
-        elif request.POST.get("srs").isnumeric():
-            config_srs = int(request.POST.get("srs"))
-        else:
-            config_srs = int(request.POST.get("srs")[request.POST.get("srs").find(':')+1:])
-                    
-        # Get other_layers from checkboxes
-        other_ids = request.POST.getlist("other_layers")
-        if len(other_ids) > 0:
-            other_layers = [PostLayerG.objects.get(id=other_layers_id) for other_layers_id in other_ids]
-            # Create a PostSiteConfig with the layers
-            configuration = load_configuration(author=user, config_name=config_name, site_layer=site_layer, other_layers=other_layers, config_srs=config_srs, radius=radius)
-            print configuration, configuration.site.all()[0].features.all()
-            
-        else:
-            configuration = load_configuration(author=user, config_name=config_name, site_layer=site_layer, config_srs=config_srs, radius=radius)
-            print configuration, configuration.site.all()[0].features.all()
-            
-        
-        return HttpResponseRedirect('/webfinches/create_sites/')
+        pass
 
     else:
         # We are browsing data
-        test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
-        
+        #test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
+        test_layers = TopologyJSON.objects.filter(author=user).order_by('-date_edited')
+        print test_layers.all()
     c = {
             'test_layers': test_layers,
     
             }
     return render_to_response(
-            'webfinches/configure.html',
+            'webfinches/compute.html',
             RequestContext(request, c),
             )
 
@@ -213,24 +181,6 @@ def checkGeometryType(gdal_layer, srs=None):
         raise IOError(str(len(lst))+" too many polygons to process, maximum number of Polygons is 1,200")
     else:
         raise IOError("Your file is invalid")
-    
-"""
-rewrite topology, using linestring list as input
-"""
-'''
-def run_topology(lst, name=None):
-
-    blocklist = new_import(lst,name)
-    g = blocklist[0]
-
-    ep_geojson = g.myedges_geoJSON()
-    myjs = json.loads(ep_geojson)
-    
-    #map_roads = run_once(blocklist)
-    db_json = TopologyJSON(topo_json = topo_json, author = user)
-    db_json.save()
-    return None
-'''    
 
 """
 rewrite run_once function from topology, using linestring list as input

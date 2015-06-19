@@ -25,6 +25,7 @@ def run_topology(lst, user, name=None):
     db_json = TopologyJSON(topo_json = myjs, author = user)
     db_json.save()
     #map_roads = run_once(blocklist)
+<<<<<<< HEAD:tasks.py
     return None
 
 
@@ -36,3 +37,6 @@ def add(x,y):
 
 #add.delay(1,2)
 '''
+=======
+    return myjs
+>>>>>>> 827064d3ea05ef86ee5e1f52197454e76bdeaaaf:webfinches/tasks.py
