@@ -192,9 +192,9 @@ class DataFile(Dated):
                 data['srs'] = None
             return data['srs']
     
-class TopologyJSON(Named, Authored):
+class TopoJSON(Named, Authored):
     topo_json = models.TextField(null=True, blank=True)
-    
+    blockNum = models.IntegerField(null=True, blank=True)
     date_added = models.DateTimeField(auto_now_add=True)
     date_edited = models.DateTimeField(auto_now=True)
     

@@ -88,9 +88,8 @@ def review(request):
                 geoms = checkGeometryType(layer)
                 scale_factor = scaleFactor(geoms)
                 
-                topo_json = run_topology(geoms,scale_factor = 0.1)
-                db_json = TopologyJSON(name=layer.name, topo_json = topo_json, author = user)
-                db_json.save()
+                topo_json = run_topology(geoms, name = layer.name, user = user, scale_factor = 0.1)
+                
                 plt.show()
 
         return HttpResponseRedirect('/webfinches/compute/')
@@ -122,7 +121,7 @@ def compute(request):
     else:
         # We are browsing data
         #test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
-        test_layers = TopologyJSON.objects.filter(author=user).order_by('-date_edited')
+        test_layers = TopoJSON.objects.filter(author=user).order_by('-date_edited')
         #print test_layers.all()
     c = {
             'test_layers': test_layers,
@@ -179,13 +178,13 @@ def checkGeometryType(gdal_layer, srs=None):
         raise IOError("Your file is invalid")
     
 """
-rewrite topology, using linestring list as input
+rewrite topology, using linestring list as input, save data to the database
 """
-def run_topology(lst, name=None, scale_factor=1):
+def run_topology(lst, name=None, user = None, scale_factor=1):
 
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
-    lst = []
-    for g in blocklist:
+    
+    for i,g in enumerate(blocklist):
         js = {}
         #ALL THE PARCELS
         js['all'] = json.loads(g.myedges_geoJSON())
@@ -198,10 +197,9 @@ def run_topology(lst, name=None, scale_factor=1):
         js['road'] = run_once(g)#calculate the roads to connect interior parcels, can extract steps
         
         lst.append(js)
-    lst_json = json.dumps({"type": "BlockCollection",
-                           "blocks": lst})
-    
-    return lst_json
+        lst_json = json.dumps(js)
+        db_json = TopoJSON(name=name, topo_json = lst_json, author = user,blockNum = i)
+        db_json.save()
 
 """
 rewrite run_once function from topology, using linestring list as input
