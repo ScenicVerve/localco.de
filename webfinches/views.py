@@ -81,13 +81,11 @@ def review(request):
         if formset.is_valid():
             # For every layer in the layer form, write a PostGIS object to the DB
             for form in formset:
-
                 srs = checkedPrj(form.cleaned_data['srs'])
 
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
-"""
-
+                """
                 geoms = checkGeometryType(layer)
                 #topo_json = add.delay(1 , 2)
                 topo_json = run_topology.delay(geoms)
@@ -95,7 +93,7 @@ def review(request):
                 #db_json.save()
 
                 #plt.show()
-"""
+                """
                 geoms = checkGeometryType(layer)
                 scale_factor = scaleFactor(geoms)
                 
