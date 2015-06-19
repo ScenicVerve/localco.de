@@ -250,30 +250,6 @@ class SiteConfiguration(Named, Authored, Dated, Noted):
     
     def __unicode__(self):
         return "SiteConfiguration: %s" % self.name
-
-# I can also add a property with the path!!!!!!!!!!
-class PostGeometries(models.Model):
-    id_n = models.IntegerField(null=True)
-    name = models.TextField(null=True)
-    srs = models.IntegerField(null=True)
-    atribs = models.TextField(null=True)
-    geom = models.GeometryField(blank=True, null=True, geography=False)
-    objects = models.GeoManager()
-    def __unicode__(self):
-        return "PostGeomTest: %s, %s" % (str(self.name), self.geom)
-
-class PostLayerG(models.Model):
-    layer_name = models.TextField(null=True, blank=True)
-    layer_srs = models.IntegerField(null=True, blank=True)
-    features = models.ManyToManyField(PostGeometries, null=True, blank=True)
-    author = models.TextField(null=True, blank=True)
-    date_added = models.DateTimeField(auto_now_add=True)
-    date_edited = models.DateTimeField(auto_now=True)
-    geometry_type = models.TextField(null=True, blank=True)
-    
-    objects = models.GeoManager()
-    def __unicode__(self):
-        return "PostLayerG: %s, %s features, srs=%s" % (str(self.layer_name), len(self.features.all()), self.layer_srs)
  
 def create_from_shapefile(self, path):
     ds = DataSource(path)
