@@ -86,7 +86,7 @@ def review(request):
 
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
-"""
+                """
 
                 geoms = checkGeometryType(layer)
                 #topo_json = add.delay(1 , 2)
@@ -95,7 +95,7 @@ def review(request):
                 #db_json.save()
 
                 #plt.show()
-"""
+                """
                 geoms = checkGeometryType(layer)
                 scale_factor = scaleFactor(geoms)
                 
