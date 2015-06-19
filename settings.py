@@ -167,7 +167,6 @@ else: # If i'm running it on the server
         'topology',
         'django.contrib.contenttypes',
         'django.contrib.gis',
-        'south',
         #'celery',
         'djcelery',
         'reblock',
