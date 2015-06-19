@@ -87,7 +87,7 @@ def review(request):
                 layer = ds[0]
                 geoms = checkGeometryType(layer)
                 #topo_json = add.delay(1 , 2)
-                run_topology.delay(geoms)
+                topo_json = run_topology.delay(geoms, user)
                 #db_json = TopologyJSON(topo_json = topo_json, author = user)
                 #db_json.save()
                 #plt.show()
