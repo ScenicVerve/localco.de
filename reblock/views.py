@@ -33,12 +33,9 @@ from django.contrib.gis.gdal import *
 #from webfinches.forms import *
 #from webfinches.models import *
 
-#from tasks import *
-
-
+from tasks import *
 from reblock.forms import *
 from reblock.models import *
-from reblock.tasks import *#run_topology
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
