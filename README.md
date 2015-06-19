@@ -19,3 +19,13 @@ virtualenv venv
 . venv/bin/activate
 pip install -r requirements.txt
 ```
+
+## Configuration
+
+Set `my_path` in `settings.py` to the parent directory of your working copy.
+
+## Starting
+
+```bash
+python manage.py runserver
+```
