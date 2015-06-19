@@ -98,11 +98,11 @@ def review(request):
                 #plt.show()
                 """
                 geoms = checkGeometryType(layer)
-                scale_factor = scaleFactor(geoms)
+                scale_f = scaleFactor(geoms)
                 
-                run_topology(geoms, name = layer.name, user = user, scale_factor = scale_factor)
+                run_topology.delay(geoms, name = layer.name, user = user)
                 
-                plt.show()
+                #plt.show()
 
 
         return HttpResponseRedirect('/webfinches/compute/')
@@ -194,6 +194,7 @@ def checkGeometryType(gdal_layer, srs=None):
 """
 rewrite topology, using linestring list as input, save data to the database
 """
+'''
 def run_topology(lst, name=None, user = None, scale_factor=1):
 
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
@@ -216,7 +217,7 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
         lst_json = json.dumps(js)
         db_json = TopoSaveJSON(name=name, topo_json = lst_json, author = user,index = i, kind = "output")
         db_json.save()
-
+'''
 
 """
 rewrite run_once function from topology, using linestring list as input
