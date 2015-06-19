@@ -8,3 +8,14 @@ Apps that need to be installed for this to work:
 * [topology](https://github.com/open-reblock/topology)
 
 The app currently uses a [PostGIS](https://postgis.net/) database and requires the [geoDjango](https://ocs.djangoproject.com/en/1.8/ref/contrib/gis/install/) libraries. 
+
+## Installation (Ubuntu 14.04)
+
+```bash
+sudo apt-get install python-dev python-virtualenv python-pip postgresql-9.3-postgis-2.1 postgresql-server-dev-9.3
+git clone https://github.com/open-reblock/localco.de localcode
+cd localcode
+virtualenv venv
+. venv/bin/activate
+pip install -r requirements.txt
+```
