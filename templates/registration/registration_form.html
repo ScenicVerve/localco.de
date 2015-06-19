@@ -3,7 +3,7 @@ form
     The registration form. This will be an instance of some subclass of django.forms.
     Form; consult Django's forms documentation for information on how to display this in a template. -->
 
-{% extends 'webfinches/index.html' %}
+{% extends 'reblock/index.html' %}
 {% load static %}
 
 {% block jslibs %}
@@ -20,7 +20,7 @@ form
 
 		<p>Your username and password didn't match. Please try again.</p>
 			{% endif %}
-		<form method="post" action="/webfinches/register/complete/">
+		<form method="post" action="/reblock/register/complete/">
 		
 		{% csrf_token %}
 			<p><h1>Required Fields:</h1></p>

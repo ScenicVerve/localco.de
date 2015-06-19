@@ -1,4 +1,4 @@
-{% extends 'webfinches/review.html' %}
+{% extends 'reblock/review.html' %}
 {% load static %}
 
 {% block css %}
@@ -19,7 +19,7 @@
 
     
     
-<form id="layerconfigure" action="/webfinches/configure/" method="POST" enctype="multipart/form-data">
+<form id="layerconfigure" action="/reblock/configure/" method="POST" enctype="multipart/form-data">
     
     {% csrf_token %}
     {{ formset.management_form }}
@@ -30,7 +30,7 @@
     {% if test_layers %}
     <div class="layerset col">
       {% for layer in test_layers %}
-        {% include "webfinches/layer_blocks_new.html" %}
+        {% include "reblock/layer_blocks_new.html" %}
       {% endfor %}
     </div>
     {% endif %}

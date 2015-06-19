@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from webfinches.models import *
+from reblock.models import *
 
 
 

@@ -29,10 +29,16 @@ from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
 
-from webfinches.forms import *
-from webfinches.models import *
 
-from tasks import *
+#from webfinches.forms import *
+#from webfinches.models import *
+
+#from tasks import *
+
+
+from reblock.forms import *
+from reblock.models import *
+from reblock.tasks import *#run_topology
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
@@ -42,8 +48,8 @@ def index(request):
     """A view for browsing the existing webfinches.
     """
     return render_to_response(
-            'webfinches/index.html',
-            {'webfinches':DataLayer.objects.all()},
+            'reblock/index.html',
+            {'reblock':DataLayer.objects.all()},
             )
 
 @login_required
@@ -58,7 +64,7 @@ def upload(request):
         for form in formset:
             if form.is_valid() and form.has_changed():
                 data_file = form.save(upload)
-        return HttpResponseRedirect('/webfinches/review/')
+        return HttpResponseRedirect('/reblock/review/')
     else:
         formset = ZipFormSet()
 
@@ -66,7 +72,7 @@ def upload(request):
             'formset':formset,
             }
     return render_to_response(
-            'webfinches/upload.html',
+            'reblock/upload.html',
             RequestContext(request, c),
             )
 
@@ -98,14 +104,15 @@ def review(request):
                 #plt.show()
                 """
                 geoms = checkGeometryType(layer)
-                scale_f = scaleFactor(geoms)
-                
-                run_topology.delay(geoms, name = layer.name, user = user)
-                
+                scale_factor = scaleFactor(geoms)
+		run_topology.delay(geoms, name = layer.name, user = user)
+		
+                #run_topology(geoms, name = layer.name, user = user, scale_factor = scale_factor)
+
                 #plt.show()
 
 
-        return HttpResponseRedirect('/webfinches/compute/')
+        return HttpResponseRedirect('/reblock/compute/')
         
     else: # we are asking them to review data
         # get the last upload of this user
@@ -120,7 +127,7 @@ def review(request):
             'formset':formset,
             }
     return render_to_response(
-            'webfinches/review.html',
+            'reblock/review.html',
             RequestContext(request, c),
             )
 
@@ -133,7 +140,7 @@ def compute(request):
 
     else:
         # We are browsing data
-        #test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
+        test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
         test_layers = TopoSaveJSON.objects.filter(author=user).order_by('-date_edited').filter(kind='output')
         print test_layers.all()
     c = {
@@ -141,7 +148,7 @@ def compute(request):
     
             }
     return render_to_response(
-            'webfinches/compute.html',
+            'reblock/compute.html',
             RequestContext(request, c),
             )
 
@@ -198,11 +205,13 @@ rewrite topology, using linestring list as input, save data to the database
 def run_topology(lst, name=None, user = None, scale_factor=1):
 
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
+    print blocklist
     
     for i,g in enumerate(blocklist):
         js = {}
         #ALL THE PARCELS
         js['all'] = json.loads(g.myedges_geoJSON())
+	print js
         
         #THE INTERIOR PARCELS
         inGragh = mgh.graphFromMyFaces(g.interior_parcels)
@@ -215,6 +224,7 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
         
         #save the output into the database
         lst_json = json.dumps(js)
+	print lst_json
         db_json = TopoSaveJSON(name=name, topo_json = lst_json, author = user,index = i, kind = "output")
         db_json.save()
 '''

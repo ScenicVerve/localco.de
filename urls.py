@@ -1,6 +1,6 @@
 from localcode.views import *
 from django.conf.urls.defaults import patterns, include, url
-import webfinches #, islands
+import reblock #, islands
 from django.contrib import admin
 from django.contrib.auth.views import login, logout
 admin.autodiscover()
@@ -14,15 +14,15 @@ urlpatterns = patterns('',
     #(r'^tools/$', 'localcode.views.tools'),
 
     # webfinches
-    (r'^webfinches/$', 'webfinches.views.index'),
+    (r'^reblock/$', 'reblock.views.index'),
     #(r'^webfinches/login/create_account/$', 'webfinches.views.create_account'),
-    (r'^webfinches/upload/$', 'webfinches.views.upload'),
-    (r'^webfinches/review/$', 'webfinches.views.review'),
-    (r'^webfinches/browse/$', 'webfinches.views.browse'),
-    (r'^webfinches/browse_empty/$', 'webfinches.views.browse_empty'), #browse warning
-    (r'^webfinches/configure/$', 'webfinches.views.configure'),
-    (r'^webfinches/get_sites/$', 'webfinches.views.get_sites'),
-    (r'^webfinches/compute/$', 'webfinches.views.compute'),
+    (r'^reblock/upload/$', 'reblock.views.upload'),
+    (r'^reblock/review/$', 'reblock.views.review'),
+    (r'^reblock/browse/$', 'reblock.views.browse'),
+    (r'^reblock/browse_empty/$', 'reblock.views.browse_empty'), #browse warning
+    (r'^reblock/configure/$', 'reblock.views.configure'),
+    (r'^reblock/get_sites/$', 'reblock.views.get_sites'),
+    (r'^reblock/compute/$', 'reblock.views.compute'),
     #(r'^webfinches/user/$', 'webfinches.views.user'),
 
     # Login / logout.

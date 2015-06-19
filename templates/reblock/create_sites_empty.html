@@ -1,4 +1,4 @@
-{% extends 'webfinches/review.html' %}
+{% extends 'reblock/review.html' %}
 {% load static %}
 
 {% block css %}
@@ -7,33 +7,30 @@
 {% endblock %}
 
 {% block subtitle %}
-    Get Sites
+    Create Sites
 {% endblock %}
 
 {% block layernavs %}
-            <li><a href="/webfinches"><div class="sitenav">Browse Data</div></a></li>
+            <li><a href="/reblock"><div class="sitenav">Browse Data</div></a></li>
 {% endblock %}
 
 {% block content %}
 
-<form id="sitecreator" action="/webfinches/get_sites/" method="POST" enctype="multipart/form-data">
+<form id="sitecreator" action="/reblock/create_sites/" method="POST" enctype="multipart/form-data">
     
     {% csrf_token %}
     {{ formset.management_form }}
 
-    {% if sites_available %}
+    {% if site_configurations %}
     <div class="layerset col">
-      {% for site_set in sites_available %}
-        {% include "webfinches/site_set_blocks.html" %}
-        
-
+      {% for site_configuration in site_configurations %}
+        {% include "reblock/configuration_blocks.html" %}
         
       {% endfor %}
-
     </div>
 {% endif %}
 
-
+    <p>You can't create any sites! You don't have any sites yet! Create some first.</p>
 </form>
 
 {% endblock %}
