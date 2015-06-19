@@ -9,7 +9,6 @@ path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 #my_path = '/Users/eleannapanagoulia/Documents/open-reblock' # Change this to the local path
 my_path = '/home/pwz/open-reblock' # Change this to the local path
 
-
 if path == my_path: # If i'm running it locally
     from mysettings import *
 
@@ -163,7 +162,7 @@ else: # If i'm running it on the server
         'django.contrib.admindocs',
         'django.contrib.webdesign',
         'django.contrib.humanize',
-        'webfinches',
+        #'webfinches',
         'textbits',
         'topology',
         'django.contrib.contenttypes',
@@ -171,10 +170,11 @@ else: # If i'm running it on the server
         'south',
         #'celery',
         #'djcelery',
+        'reblock',
         
     )
     
-    AUTH_PROFILE_MODULE = 'webfinches.UserProfile'
+    AUTH_PROFILE_MODULE = 'reblock.UserProfile'
     ACCOUNT_ACTIVATION_DAYS = 2 # Any value. 
     EMAIL_HOST='localhost' #'smtp.gmail.com'
     EMAIL_PORT=587

@@ -1,14 +1,14 @@
-{% extends "webfinches/upload.html" %}
+{% extends "reblock/review.html" %}
 
 {% block jslibs %}
 {% endblock %}
 
 {% block subtitle %}
-  Review Data Layers
+  Browse Data Layers
 {% endblock %}
 
 {% block content %}
-              <form id="layerreviewer" action="/webfinches/site_configuration/" method="POST" enctype="multipart/form-data">
+                <form id="layerbrowser", action="/reblock/browse/" method="POST" enctype="multipast/form-data">
                 {% csrf_token %}
                 {{ formset.management_form }}
                 <input type="submit" value="Upload New Configuration" />
@@ -17,6 +17,5 @@
                     {{ form.as_p }}
                   </div>
                   {% endfor %}
-                </table>
-              </form>
+                </form>
 {% endblock %}

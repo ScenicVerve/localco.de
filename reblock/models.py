@@ -250,7 +250,7 @@ class SiteConfiguration(Named, Authored, Dated, Noted):
     
     def __unicode__(self):
         return "SiteConfiguration: %s" % self.name
-
+'''
 # I can also add a property with the path!!!!!!!!!!
 class PostGeometries(models.Model):
     id_n = models.IntegerField(null=True)
@@ -274,7 +274,7 @@ class PostLayerG(models.Model):
     objects = models.GeoManager()
     def __unicode__(self):
         return "PostLayerG: %s, %s features, srs=%s" % (str(self.layer_name), len(self.features.all()), self.layer_srs)
- 
+'''
 def create_from_shapefile(self, path):
     ds = DataSource(path)
     layer = ds[0]
