@@ -88,7 +88,7 @@ def review(request):
                 geoms = checkGeometryType(layer)
                 scale_factor = scaleFactor(geoms)
                 
-                topo_json = run_topology(geoms, name = layer.name, user = user, scale_factor = 0.1)
+                run_topology(geoms, name = layer.name, user = user, scale_factor = scale_factor)
                 
                 plt.show()
 
@@ -121,7 +121,7 @@ def compute(request):
     else:
         # We are browsing data
         #test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
-        test_layers = TopoJSON.objects.filter(author=user).order_by('-date_edited')
+        test_layers = TopoSaveJSON.objects.filter(author=user).order_by('-date_edited')
         #print test_layers.all()
     c = {
             'test_layers': test_layers,
@@ -193,12 +193,14 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
         inGragh = mgh.graphFromMyFaces(g.interior_parcels)
         js['interior'] = json.loads(inGragh.myedges_geoJSON())
         
-        #THE ROADS GENERATED  
-        js['road'] = run_once(g)#calculate the roads to connect interior parcels, can extract steps
+        #THE ROADS GENERATED and save generating process into the database
+        js['road'] = run_once(g,name = name,user = user)#calculate the roads to connect interior parcels, can extract steps
         
         lst.append(js)
+        
+        #save the output into the database
         lst_json = json.dumps(js)
-        db_json = TopoJSON(name=name, topo_json = lst_json, author = user,blockNum = i)
+        db_json = TopoSaveJSON(name=name, topo_json = lst_json, author = user,index = i, kind = "output")
         db_json.save()
 
 """
@@ -207,7 +209,7 @@ rewrite run_once function from topology, using linestring list as input
 Given a list of blocks, builds roads to connect all interior parcels and
 plots all blocks in the same figure.
 """
-def run_once(original):
+def run_once(original,name=None, user = None):
     plt.figure()
 
     if len(original.interior_parcels) > 0:
@@ -217,7 +219,7 @@ def run_once(original):
         block.define_interior_parcels()
 
         # finds roads to connect all interior parcels for a given block(with steps)
-        block_roads = mgh.build_all_roads(block, wholepath=True)
+        block_roads = build_all_roads(block, wholepath=True,name = name, user = user)
     else:
         block = original.copy()
     
@@ -258,15 +260,122 @@ rewrite topology's import_and_setup function using linestring as input
 def import_and_setup(lst,component = None,threshold=1,rezero=np.array([0, 0]), connected=False, name="",scale = 1):
     # check that rezero is an array of len(2)
     # check that threshold is a float
+    print "start creating graph based on input geometry"
     myG = graphFromLineString(lst, name, rezero,scale = scale)#create the graph. can't directly show step
     print "start clean up"
     myG = myG.clean_up_geometry(threshold, connected)#clean the graph. can't directly show step
+    print "Finish cleaning up"
     print myG
     if component is None:
         return myG
     else:
         return myG.connected_components()[component]
 
+"""
+rewrite function in mgh
+"""
+def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
+                    wholepath=False, original_roads=None, plot_original=False,
+                    bisect=False, plot_result=False, barriers=False,
+                    quiet=False, vquiet=False, strict_greedy=False,
+                    outsidein=False,name=None, user = None):
+
+    """builds roads using the probablistic greedy alg, until all
+    interior parcels are connected, and returns the total length of
+    road built. """
+
+    if vquiet is True:
+        quiet = True
+
+    if plot_original:
+        myG.plot_roads(original_roads, update=False,
+                       parcel_labels=False, new_road_color="blue")
+
+    shortest_only = False
+    if strict_greedy is True:
+        shortest_only = True
+
+    added_road_length = 0
+    # plotnum = 0
+    if plot_intermediate is True and master is None:
+        master = myG.copy()
+
+    myG.define_interior_parcels()
+
+    target_mypath = None
+    if vquiet is False:
+        print("Begin w {} Interior Parcels".format(len(myG.interior_parcels)))
+
+    md = 100
+
+    while myG.interior_parcels:############extract?###########
+        #save remaining interior parcel to the database
+        gJson = mgh.graphFromMyFaces(myG.interior_parcels).myedges_geoJSON()
+        db_json = TopoSaveJSON(name=name, topo_json = gJson, author = user,index = len(myG.interior_parcels),kind = 'process')
+        db_json.save()
+        
+        result, depth = mgh.form_equivalence_classes(myG)
+
+        # flist from result!
+        flist = []
+
+        if md == 3:
+            flist = myG.interior_parcels
+        elif md > 3:
+            if outsidein is False:
+                result, depth = mgh.form_equivalence_classes(myG)
+                while len(flist) < 1:
+                    md = max(result.keys())
+                    flist = flist + result.pop(md)
+            elif outsidein is True:
+                result, depth = form_equivalence_classes(myG)
+                md = max(result.keys())
+                if len(result[md]) == 0:
+                    md = md - 2
+                flist = list(set(result[3]) - set(result.get(5, [])))
+
+        if quiet is False:
+            print("Cur max depth is {}; {}".format(md, len(flist)) +
+                  " parcels at current depth. \n" +
+                  "{0:.1f} new roads so far".format(added_road_length))
+
+        # potential segments from parcels in flist
+
+        all_paths = mgh.find_short_paths_all_parcels(myG, flist, target_mypath,
+                                                 barriers, quiet=quiet,
+                                                 shortest_only=shortest_only)
+
+        # choose and build one
+        target_ptup, target_mypath = mgh.choose_path(myG, all_paths, alpha,
+                                                 strict_greedy=strict_greedy)
+
+        if wholepath is False:
+            added_road_length += target_mypath[0].length
+            myG.add_road_segment(target_mypath[0])
+
+        if wholepath is True:
+            for e in target_mypath:
+                added_road_length += e.length
+                myG.add_road_segment(e)
+
+        myG.define_interior_parcels()
+        if plot_intermediate:
+            myG.plot_roads(master, update=False)
+            # plt.savefig("Int_Step"+str(plotnum)+".pdf", format='pdf')
+            # plotnum += 1
+
+        remain = len(myG.interior_parcels)
+        if quiet is False:
+            print("\n{} interior parcels left".format(remain))
+        if vquiet is False:
+            if remain > 300 or remain in [50, 100, 150, 200, 225, 250, 275]:
+                pass
+                # print "{} interior parcels left".format(remain)
+
+    # update the properties of nodes & edges to reflect new geometry.
+
+    myG.added_roads = added_road_length
+    return added_road_length
 
 """
 The function that use topology library to create MyGraph by input lineString
