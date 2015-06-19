@@ -37,6 +37,8 @@ sudo -u postgres createuser -O localcode open_reblock
 sudo /etc/init.d/postgresql restart
 
 sudo -u postgres psql -d open_reblock -c "create extension postgis"
+
+python manage.py syncdb
 ```
 
 ## Starting
