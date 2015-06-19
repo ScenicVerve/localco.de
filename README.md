@@ -18,11 +18,13 @@ cd localcode
 virtualenv venv
 . venv/bin/activate
 pip install -r requirements.txt
+git clone https://github.com/bengolder/textbits
+git clone https://github.com/open-reblock/topology
 ```
 
 ## Configuration
 
-Set `my_path` in `settings.py` to the parent directory of your working copy.
+Set `my_path` in `settings.py` to the parent directory of your working copy. Create `mysettings.py`.
 
 ## Starting
 
