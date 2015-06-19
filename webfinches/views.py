@@ -121,8 +121,8 @@ def compute(request):
     else:
         # We are browsing data
         #test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
-        test_layers = TopoSaveJSON.objects.filter(author=user).order_by('-date_edited')
-        #print test_layers.all()
+        test_layers = TopoSaveJSON.objects.filter(author=user).order_by('-date_edited').filter(kind='output')
+        print test_layers.all()
     c = {
             'test_layers': test_layers,
     
