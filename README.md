@@ -21,7 +21,7 @@ pip install -r requirements.txt
 git clone https://github.com/bengolder/textbits
 git clone https://github.com/open-reblock/topology
 
-sudo apt-get install python-numpy # for "Configure Sites" to work
+pip python-numpy # for "Configure Sites" to work
 ```
 
 ## Configuration
