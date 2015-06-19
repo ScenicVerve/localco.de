@@ -30,9 +30,12 @@ from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
 
 
+#from webfinches.forms import *
+#from webfinches.models import *
+
+from tasks import *
 from reblock.forms import *
 from reblock.models import *
-from reblock.tasks import *#run_topology
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
@@ -87,13 +90,9 @@ def review(request):
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
                 """
-<<<<<<< HEAD:webfinches/views.py
-=======
-
->>>>>>> 286e8f22b4d1cca91f38192c07015bb4a2c45925:reblock/views.py
                 geoms = checkGeometryType(layer)
                 #topo_json = add.delay(1 , 2)
-                topo_json = run_topology.delay(geoms)
+                topo_json = run_topology.delay(geoms, user)
                 #db_json = TopologyJSON(topo_json = topo_json, author = user)
                 #db_json.save()
 
@@ -101,10 +100,9 @@ def review(request):
                 """
                 geoms = checkGeometryType(layer)
                 scale_factor = scaleFactor(geoms)
-                
                 run_topology(geoms, name = layer.name, user = user, scale_factor = scale_factor)
-                
-                plt.show()
+
+                #plt.show()
 
 
         return HttpResponseRedirect('/reblock/compute/')
@@ -135,7 +133,7 @@ def compute(request):
 
     else:
         # We are browsing data
-        #test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
+        test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
         test_layers = TopoSaveJSON.objects.filter(author=user).order_by('-date_edited').filter(kind='output')
         print test_layers.all()
     c = {
@@ -196,14 +194,17 @@ def checkGeometryType(gdal_layer, srs=None):
 """
 rewrite topology, using linestring list as input, save data to the database
 """
+'''
 def run_topology(lst, name=None, user = None, scale_factor=1):
 
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
+    print blocklist
     
     for i,g in enumerate(blocklist):
         js = {}
         #ALL THE PARCELS
         js['all'] = json.loads(g.myedges_geoJSON())
+	print js
         
         #THE INTERIOR PARCELS
         inGragh = mgh.graphFromMyFaces(g.interior_parcels)
@@ -216,9 +217,10 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
         
         #save the output into the database
         lst_json = json.dumps(js)
+	print lst_json
         db_json = TopoSaveJSON(name=name, topo_json = lst_json, author = user,index = i, kind = "output")
         db_json.save()
-
+'''
 
 """
 rewrite run_once function from topology, using linestring list as input
