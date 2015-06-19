@@ -1,4 +1,4 @@
-{% extends 'webfinches/review.html' %}
+{% extends 'reblock/review.html' %}
 {% load static %}
 
 {% block css %}
@@ -7,38 +7,30 @@
 {% endblock %}
 
 {% block subtitle %}
-    Build Site Configurations
+    Create Sites
 {% endblock %}
 
 {% block layernavs %}
-<!--            <li><a href="/webfinches"><div class="sitenav">Browse Data</div></a></li>-->
+            <li><a href="/reblock"><div class="sitenav">Browse Data</div></a></li>
 {% endblock %}
 
 {% block content %}
 
-
-    
-    
-<form id="layerconfigure" action="/webfinches/configure/" method="POST" enctype="multipart/form-data">
+<form id="sitecreator" action="/reblock/create_sites/" method="POST" enctype="multipart/form-data">
     
     {% csrf_token %}
     {{ formset.management_form }}
 
-
-
-    
-    {% if test_layers %}
+    {% if site_configurations %}
     <div class="layerset col">
-      {% for layer in test_layers %}
-        {% include "webfinches/layer_blocks_new.html" %}
+      {% for site_configuration in site_configurations %}
+        {% include "reblock/configuration_blocks.html" %}
+        
       {% endfor %}
     </div>
-    {% endif %}
+{% endif %}
 
-    <div><input type="submit" value="Upload New Configuration" /></div>
-    <div><h1> Site Configuration Name: <input type="text" name="name"/></h1></div>
-    <div> Set Radius: <input type="text" name="radius"/>(Defaults to 1,000 mts)</div>
-    <div> Set SRS: <input type="text" name="srs"/>(Defaults to Site layer's SRS)</div>
+    <p>You can't create any sites! You ha</p>
 </form>
 
 {% endblock %}

@@ -163,7 +163,7 @@ else: # If i'm running it on the server
         'django.contrib.admindocs',
         'django.contrib.webdesign',
         'django.contrib.humanize',
-        'webfinches',
+        #'webfinches',
         'textbits',
         'topology',
         'django.contrib.contenttypes',
@@ -171,6 +171,7 @@ else: # If i'm running it on the server
         'south',
         #'celery',
         'djcelery',
+        'reblock',
         
     )
     
