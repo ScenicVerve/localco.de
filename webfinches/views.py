@@ -86,7 +86,7 @@ def review(request):
 
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
-<<<<<<< HEAD
+"""
 
                 geoms = checkGeometryType(layer)
                 #topo_json = add.delay(1 , 2)
@@ -95,14 +95,14 @@ def review(request):
                 #db_json.save()
 
                 #plt.show()
-=======
+"""
                 geoms = checkGeometryType(layer)
                 scale_factor = scaleFactor(geoms)
                 
                 run_topology(geoms, name = layer.name, user = user, scale_factor = scale_factor)
                 
                 plt.show()
->>>>>>> peng
+
 
         return HttpResponseRedirect('/webfinches/compute/')
         
@@ -188,8 +188,7 @@ def checkGeometryType(gdal_layer, srs=None):
         raise IOError(str(len(lst))+" too many polygons to process, maximum number of Polygons is 1,200")
     else:
         raise IOError("Your file is invalid")
-<<<<<<< HEAD
-=======
+
     
 """
 rewrite topology, using linestring list as input, save data to the database
@@ -216,7 +215,7 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
         lst_json = json.dumps(js)
         db_json = TopoSaveJSON(name=name, topo_json = lst_json, author = user,index = i, kind = "output")
         db_json.save()
->>>>>>> peng
+
 
 """
 rewrite run_once function from topology, using linestring list as input
