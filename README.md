@@ -28,13 +28,22 @@ Set `my_path` in `settings.py` to the parent directory of your working copy. Cre
 
 ```bash
 echo PW='postgrespass' > pw.py
+sudo -u postgres createuser -P localcode
+sudo -u postgres createuser -O localcode open_reblock
+
+# (edit /etc/postgresql/9.3/main/pg_hba.conf to change all connections to trust)
+sudo /etc/init.d/postgresql restart
+
+sudo -u postgres psql -d open_reblock -c "create extension postgis"
 ```
 
 ## Starting
 
 ```bash
-python manage.py runserver
+python manage.py runserver 0.0.0.0:8000
 ```
+
+(N.b. the `0.0.0.0` is to allow connections from hosts other than `localhost`. This is necessary if running in a VM, for example.)
 
 ## Troubleshooting
 
