@@ -4,8 +4,8 @@ djcelery.setup_loader()
 
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-#my_path = '/Users/carlos/projects/open-reblock' # Change this to the local path
-my_path = '/Users/eleannapanagoulia/Documents/open-reblock' # Change this to the local path
+my_path = '/Users/carlos/projects/open-reblock' # Change this to the local path
+#my_path = '/Users/eleannapanagoulia/Documents/open-reblock' # Change this to the local path
 #my_path = '/home/pwz/open-reblock' # Change this to the local path
 
 
@@ -162,18 +162,16 @@ else: # If i'm running it on the server
         'django.contrib.admindocs',
         'django.contrib.webdesign',
         'django.contrib.humanize',
-        #'webfinches',
         'textbits',
         'topology',
         'django.contrib.contenttypes',
         'django.contrib.gis',
-        #'celery',
         'djcelery',
         'reblock',
         
     )
     
-    AUTH_PROFILE_MODULE = 'webfinches.UserProfile'
+    AUTH_PROFILE_MODULE = 'reblock.UserProfile'
     ACCOUNT_ACTIVATION_DAYS = 2 # Any value. 
     EMAIL_HOST='localhost' #'smtp.gmail.com'
     EMAIL_PORT=587
