@@ -1,6 +1,6 @@
 import os
-#import djcelery
-#djcelery.setup_loader()
+import djcelery
+djcelery.setup_loader()
 
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -168,8 +168,8 @@ else: # If i'm running it on the server
         'topology',
         'django.contrib.contenttypes',
         'django.contrib.gis',
-        #'celery',
-        #'djcelery',
+        'celery',
+        'djcelery',
 
         'reblock',
         

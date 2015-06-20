@@ -35,6 +35,7 @@ from reblock.models import *
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
+from django.utils import simplejson
 
 
 def index(request):
@@ -95,9 +96,10 @@ def review(request):
                 #plt.show()
                 """
                 geoms = checkGeometryType(layer)
+                print centroid(geoms)
                 scale_factor = scaleFactor(geoms)
                 run_topology(geoms, name = layer.name, user = user, scale_factor = scale_factor)
-
+                
                 #plt.show()
 
         '''
@@ -117,7 +119,25 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
+        file_path = layer_data[0]['file_location']
         
+        ds = DataSource( file_path )
+        layer = ds[0]
+        srs = layer_data[0]['srs']
+        
+        ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
+        for feat in layer:
+            geom = feat.geom # getting clone of feature geometry
+            geom.transform(ct) # transforming
+            print geom.json
+
+        '''geoms = layer.get_geoms(geos=True)
+        new_srs = 3857
+        for geom in geoms:
+            if srs:
+                for geom in geoms:
+                    geom.srid = int(srs)
+                    print geom'''
         'we should get some error if the geometry does not have a projection or has a wrong geom type'
         formset = LayerReviewFormSet( initial=layer_data )
         
@@ -140,16 +160,31 @@ def compute(request):
         # We are browsing data
 
         test_layers = IntermediateJSON3.objects.filter(author=user).order_by('-date_edited')
-        print test_layers.all()
+        test_geo = test_layers[0].topo_json
+        print  test_geo
+
+        for e in test_layers.all():
+            #print e.topo_json
+            pass
     c = {
-            'test_layers': test_layers,
+            'test_layers': test_geo,
     
             }
+            
+    
     return render_to_response(
             'reblock/compute.html',
             RequestContext(request, c),
             )
-
+    
+    
+def centroid(geom):
+    lst = [Polygon(LinearRing(g.coords)).centroid for g in geom]
+    lstx = [l.coords[0] for l in lst]
+    lsty = [l.coords[1] for l in lst]
+    return (sum(lstx) / float(len(lstx)),sum(lsty) / float(len(lsty)))
+    
+    
 """
 flatten all the geometry in the geometry collection
 """
@@ -207,21 +242,20 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
     
     for i,g in enumerate(blocklist):
         #ALL THE PARCELS
-        parcels = json.loads(g.myedges_geoJSON())
+        parcels = simplejson.dumps(json.loads(g.myedges_geoJSON()))
         db_json = BlockJSON2(name=name, topo_json = parcels, author = user,block_index = i)
         db_json.save()
 
         #THE INTERIOR PARCELS
         inGragh = mgh.graphFromMyFaces(g.interior_parcels)
-        in_parcels = json.loads(inGragh.myedges_geoJSON())
+        in_parcels = simplejson.dumps(json.loads(inGragh.myedges_geoJSON()))
         db_json = InteriorJSON2(name=name, topo_json = in_parcels, author = user,block_index = i)
         db_json.save()
         
         #THE ROADS GENERATED and save generating process into the database
-        road = run_once(g,name = name,user = user,block_index = i)#calculate the roads to connect interior parcels, can extract steps
+        road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i)))#calculate the roads to connect interior parcels, can extract steps
         db_json = RoadJSON2(name=name, topo_json = road, author = user,block_index = i)
         db_json.save()
-
 
 """
 rewrite run_once function from topology, using linestring list as input
@@ -330,7 +364,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
     while myG.interior_parcels:############extract?###########
         #save remaining interior parcel to the database
-        gJson = mgh.graphFromMyFaces(myG.interior_parcels).myedges_geoJSON()
+        gJson = simplejson.dumps(json.loads(mgh.graphFromMyFaces(myG.interior_parcels).myedges_geoJSON()))
         db_json = IntermediateJSON3(name=name, topo_json = gJson, author = user,step_index = len(myG.interior_parcels),block_index = block_index)
         db_json.save()
         
