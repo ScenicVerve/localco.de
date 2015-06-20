@@ -12,6 +12,7 @@ from django.core import validators
 from django.contrib.gis.db import models
 
 # requires GeoDjango Libraries
+#############
 from django.contrib.gis.gdal import DataSource
 
 # the basepath for file uploads (needed to read shapefiles)
@@ -192,31 +193,33 @@ class DataFile(Dated):
                 data['srs'] = None
             return data['srs']
     
-class SaveJSON2(Named, Authored, Dated):
+class SaveJSON3(Named, Authored, Dated):
     topo_json = models.TextField(null=True, blank=True)
     block_index = models.IntegerField(null=True, blank=True)
+    srs = models.TextField(null=True, blank=True)
     
     class Meta:
         abstract=True
 
-class BlockJSON2(SaveJSON2):
+class BlockJSON3(SaveJSON3):
     def __unicode__(self):
         return "BlockJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
-class RoadJSON2(SaveJSON2):
+class RoadJSON3(SaveJSON3):
     def __unicode__(self):
         return "RoadJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
 
-class InteriorJSON2(SaveJSON2):
+class InteriorJSON3(SaveJSON3):
     def __unicode__(self):
         return "InteriorJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
 
-class IntermediateJSON3(Named, Authored, Dated):
+class IntermediateJSON4(Named, Authored, Dated):
     step_index = models.IntegerField(null=True, blank=True)
     topo_json = models.TextField(null=True, blank=True)
     block_index = models.IntegerField(null=True, blank=True)
+    srs = models.TextField(null=True, blank=True)
 
     def __unicode__(self):
         return "IntermediateJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
