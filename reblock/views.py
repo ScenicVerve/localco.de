@@ -139,7 +139,7 @@ def compute(request):
     else:
         # We are browsing data
 
-        test_layers = TopoSaveJSON.objects.filter(author=user).order_by('-date_edited').filter(kind='output')
+        test_layers = IntermediateJSON3.objects.filter(author=user).order_by('-date_edited')
         print test_layers.all()
     c = {
             'test_layers': test_layers,
@@ -208,19 +208,18 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
     for i,g in enumerate(blocklist):
         #ALL THE PARCELS
         parcels = json.loads(g.myedges_geoJSON())
-        
+        db_json = BlockJSON2(name=name, topo_json = parcels, author = user,block_index = i)
+        db_json.save()
+
         #THE INTERIOR PARCELS
         inGragh = mgh.graphFromMyFaces(g.interior_parcels)
         in_parcels = json.loads(inGragh.myedges_geoJSON())
+        db_json = InteriorJSON2(name=name, topo_json = in_parcels, author = user,block_index = i)
+        db_json.save()
         
         #THE ROADS GENERATED and save generating process into the database
-        road = run_once(g,name = name,user = user)#calculate the roads to connect interior parcels, can extract steps
-        
-        lst.append(js)
-        
-        #save the output into the database
-        lst_json = json.dumps(js)
-        db_json = TopoSaveJSON(name=name, topo_json = lst_json, author = user,index = i, kind = "output")
+        road = run_once(g,name = name,user = user,block_index = i)#calculate the roads to connect interior parcels, can extract steps
+        db_json = RoadJSON2(name=name, topo_json = road, author = user,block_index = i)
         db_json.save()
 
 
@@ -230,7 +229,7 @@ rewrite run_once function from topology, using linestring list as input
 Given a list of blocks, builds roads to connect all interior parcels and
 plots all blocks in the same figure.
 """
-def run_once(original,name=None, user = None):
+def run_once(original,name=None, user = None, block_index = 0):
     plt.figure()
 
     if len(original.interior_parcels) > 0:
@@ -299,7 +298,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
                     wholepath=False, original_roads=None, plot_original=False,
                     bisect=False, plot_result=False, barriers=False,
                     quiet=False, vquiet=False, strict_greedy=False,
-                    outsidein=False,name=None, user = None):
+                    outsidein=False,name=None, user = None,block_index = 0):
 
     """builds roads using the probablistic greedy alg, until all
     interior parcels are connected, and returns the total length of
@@ -332,7 +331,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
     while myG.interior_parcels:############extract?###########
         #save remaining interior parcel to the database
         gJson = mgh.graphFromMyFaces(myG.interior_parcels).myedges_geoJSON()
-        db_json = TopoSaveJSON(name=name, topo_json = gJson, author = user,index = len(myG.interior_parcels),kind = 'process')
+        db_json = IntermediateJSON3(name=name, topo_json = gJson, author = user,step_index = len(myG.interior_parcels),block_index = block_index)
         db_json.save()
         
         result, depth = mgh.form_equivalence_classes(myG)
