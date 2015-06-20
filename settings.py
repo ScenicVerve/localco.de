@@ -10,6 +10,7 @@ path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 my_path = '/home/pwz/open-reblock' # Change this to the local path
 
 
+
 if path == my_path: # If i'm running it locally
     from mysettings import *
 
@@ -163,13 +164,13 @@ else: # If i'm running it on the server
         'django.contrib.admindocs',
         'django.contrib.webdesign',
         'django.contrib.humanize',
-        #'webfinches',
         'textbits',
         'topology',
         'django.contrib.contenttypes',
         'django.contrib.gis',
         #'celery',
         #'djcelery',
+
         'reblock',
         
     )

@@ -29,10 +29,6 @@ from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
 
-
-#from webfinches.forms import *
-#from webfinches.models import *
-
 from tasks import *
 from reblock.forms import *
 from reblock.models import *
@@ -104,6 +100,15 @@ def review(request):
 
                 #plt.show()
 
+        '''
+		srs = checkedPrj(form.cleaned_data['srs'])
+		
+		ds = DataSource(form.cleaned_data['file_location'])
+		layer = ds[0]
+		geoms = checkGeometryType(layer)
+		scale_factor = scaleFactor(geoms)
+		run_topology.delay(geoms, name = layer.name, user = user)
+		'''
 
         return HttpResponseRedirect('/reblock/compute/')
         
@@ -133,7 +138,7 @@ def compute(request):
 
     else:
         # We are browsing data
-        #test_layers = PostLayerG.objects.filter(author=user).order_by('-date_edited')
+
         test_layers = TopoSaveJSON.objects.filter(author=user).order_by('-date_edited').filter(kind='output')
         print test_layers.all()
     c = {

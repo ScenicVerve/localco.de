@@ -3,7 +3,7 @@ form
     The registration form. This will be an instance of some subclass of django.forms.
     Form; consult Django's forms documentation for information on how to display this in a template. -->
 
-{% extends 'webfinches/index.html' %}
+{% extends 'reblock/index.html' %}
 {% load static %}
 
 {% block jslibs %}
