@@ -130,7 +130,7 @@ def review(request):
         
         center_lat = y_ct
         center_lng = x_ct
-        #print layer.centroid
+
 
         formset = LayerReviewFormSet( initial=layer_data )
 	

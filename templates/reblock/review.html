@@ -12,35 +12,35 @@
 
 {% block content %}
 
-
-
 {% block scripts %}
   <head>
 	
 	<meta charset="utf-8" />
 
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
 </head>
 
 
 <body>
 	<div id="map" style="width: 600px; height: 400px"></div>
+
 	<script src="http://leafletjs.com/examples/sample-geojson.js" type="text/javascript"></script>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 
-<script>
-    
-    var lat = ("{{centerlat}}")
-    var lng = ("{{centerlng}}")
-    
-    
-		var map = L.map('map').setView([lat, lng ], 17);
 
-L.tileLayer('https://a.tiles.mapbox.com/v4/panthersuper.7558b934/attribution,zoompan,zoomwheel,geocoder,share.html?access_token=pk.eyJ1IjoicGFudGhlcnN1cGVyIiwiYSI6Il9JRlBXMkkifQ.4VOcpN_xI1jf1XxjnIZHmw', {
+
+<script>
+    var lat = "{{centerlat}}"
+    var lng = "{{centerlng}}"
+    console.log(lat)
+    
+		var map = L.map('map').setView([lat, lng], 14);
+L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
     maxZoom: 20,
+    id: 'panthersuper.7558b934',
+    accessToken: 'pk.eyJ1IjoicGFudGhlcnN1cGVyIiwiYSI6Il9JRlBXMkkifQ.4VOcpN_xI1jf1XxjnIZHmw'
 }).addTo(map);
 
 
@@ -57,12 +57,9 @@ myData = JSON.parse( myJSONList );
 
 
 
-console.log(campus);
-
 <!--layer from geoJson to overlay on top of map-->
 
-
-        L.geoJson(myData, {
+		L.geoJson(myData, {
             weight: 2,
             color: "#999",
             opacity: 1,
@@ -77,6 +74,7 @@ console.log(campus);
 
 
 {% endblock %}
+
 
 
 

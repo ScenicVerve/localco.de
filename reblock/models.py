@@ -12,6 +12,7 @@ from django.core import validators
 from django.contrib.gis.db import models
 
 # requires GeoDjango Libraries
+#############
 from django.contrib.gis.gdal import DataSource
 
 # the basepath for file uploads (needed to read shapefiles)
