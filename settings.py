@@ -68,13 +68,13 @@ else: # If i'm running it on the server
     # Example: "/home/media/media.lawrence.com/media/"
     #MEDIA_ROOT = '/Library/WebServer/Documents/media/localcode/' # LOCAL DEVELOPMENT
     #MEDIA_ROOT = '/home/localcode/webapps/media' # WEBFACTION DEPLOYMENT
-    MEDIA_ROOT = '/var/www/localcode.berkeley.edu/media' # Berkeley Server
+    MEDIA_ROOT = '/var/www/openreblock.berkeley.edu/media' # Berkeley Server
     
     # URL that handles the media served from MEDIA_ROOT. Make sure to use a
     # trailing slash.
     # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
     #MEDIA_URL = 'http://localhost/media/localcode/'
-    MEDIA_URL = 'http://localcode.berkeley.edu/media/' # Berkeley Server
+    MEDIA_URL = 'http://openreblock.berkeley.edu/media/' # Berkeley Server
     
     
     # Absolute path to the directory static files should be collected to.
@@ -83,7 +83,7 @@ else: # If i'm running it on the server
     # Example: "/home/media/media.lawrence.com/static/"
     #STATIC_ROOT = '/Library/WebServer/Documents/static/localcode/' # LOCAL DEVELOPMENT
     #STATIC_ROOT = '/home/localcode/webapps/static' # WEBFACTION DEPLOYMENT
-    STATIC_ROOT = '/var/www/localcode.berkeley.edu/localcode/static' # Berkeley DEVELOPMENT
+    STATIC_ROOT = '/var/www/openreblock.berkeley.edu/localcode/static' # Berkeley DEVELOPMENT
     
     
     # URL prefix for static files.
@@ -170,7 +170,6 @@ else: # If i'm running it on the server
         'django.contrib.gis',
         'celery',
         'djcelery',
-
         'reblock',
         
     )

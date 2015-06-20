@@ -24,6 +24,25 @@ git clone https://github.com/open-reblock/topology
 pip install networkx pyshp plotly
 ```
 
+## Installation (RedHat 6.08)
+
+```bash
+sudo yum install python-virtualenv python-pip python-numpy python-matplotlib python-scipy
+sudo rpm -ivh http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-redhat93-9.3-1.noarch.rpm
+yum install postgresql93 postgresql93-server postgresql93-libs postgresql93-contrib postgresql93-devel
+sudo yum install postgis2_93
+yum install pgrouting_93
+git clone https://github.com/open-reblock/localco.de localcode
+cd localcode
+virtualenv --system-site-packages venv
+. venv/bin/activate
+pip install -r requirements.txt
+git clone https://github.com/bengolder/textbits
+git clone https://github.com/open-reblock/topology
+
+pip install networkx pyshp plotly
+```
+
 ## Configuration
 
 Set `my_path` in `settings.py` to the parent directory of your working copy. Create `mysettings.py`.

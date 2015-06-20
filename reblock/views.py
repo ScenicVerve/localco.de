@@ -86,19 +86,18 @@ def review(request):
 
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
-                """
+                '''
                 geoms = checkGeometryType(layer)
                 #topo_json = add.delay(1 , 2)
                 topo_json = run_topology.delay(geoms, user)
-                #db_json = TopologyJSON(topo_json = topo_json, author = user)
-                #db_json.save()
 
                 #plt.show()
-                """
+                '''
+                #print user
                 geoms = checkGeometryType(layer)
                 print centroid(geoms)
                 scale_factor = scaleFactor(geoms)
-                run_topology(geoms, name = layer.name, user = user, scale_factor = scale_factor)
+                run_topology.delay(geoms, name = layer.name, user = user, scale_factor = scale_factor)
                 
                 #plt.show()
 
@@ -158,7 +157,6 @@ def compute(request):
 
     else:
         # We are browsing data
-
         test_layers = IntermediateJSON3.objects.filter(author=user).order_by('-date_edited')
         test_geo = test_layers[0].topo_json
         print  test_geo
@@ -166,6 +164,7 @@ def compute(request):
         for e in test_layers.all():
             #print e.topo_json
             pass
+
     c = {
             'test_layers': test_geo,
     
@@ -235,7 +234,7 @@ def checkGeometryType(gdal_layer, srs=None):
 rewrite topology, using linestring list as input, save data to the database
 """
 
-def run_topology(lst, name=None, user = None, scale_factor=1):
+'''def run_topology(lst, name=None, user = None, scale_factor=1):
 
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     print blocklist
@@ -256,6 +255,8 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
         road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i)))#calculate the roads to connect interior parcels, can extract steps
         db_json = RoadJSON2(name=name, topo_json = road, author = user,block_index = i)
         db_json.save()
+
+'''
 
 """
 rewrite run_once function from topology, using linestring list as input
