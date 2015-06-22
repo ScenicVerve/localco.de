@@ -1,4 +1,4 @@
-{% extends 'webfinches/index.html' %}
+{% extends 'reblock/index.html' %}
 {% load static %}
 
 {% block jslibs %}
@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block layernavs %}
-            <li><a href="/webfinches"><div class="sitenav">Browse Data</div></a></li>
+            <li><a href="/reblock"><div class="sitenav">Browse Data</div></a></li>
 {% endblock %}
 
 {% block content %}
