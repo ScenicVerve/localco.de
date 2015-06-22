@@ -192,16 +192,37 @@ class DataFile(Dated):
                 data['srs'] = None
             return data['srs']
     
-class TopoSaveJSON(Named, Authored):
+class SaveJSON2(Named, Authored, Dated):
     topo_json = models.TextField(null=True, blank=True)
-    kind = models.TextField(null=True, blank=True)
-    index = models.IntegerField(null=True, blank=True)
-    date_added = models.DateTimeField(auto_now_add=True)
-    date_edited = models.DateTimeField(auto_now=True)
+    block_index = models.IntegerField(null=True, blank=True)
     
+    class Meta:
+        abstract=True
+
+class BlockJSON2(SaveJSON2):
     def __unicode__(self):
-        return "TopologyJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
-    
+        return "BlockJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
+
+class RoadJSON2(SaveJSON2):
+    def __unicode__(self):
+        return "RoadJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
+
+
+class InteriorJSON2(SaveJSON2):
+    def __unicode__(self):
+        return "InteriorJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
+
+
+class IntermediateJSON3(Named, Authored, Dated):
+    step_index = models.IntegerField(null=True, blank=True)
+    topo_json = models.TextField(null=True, blank=True)
+    block_index = models.IntegerField(null=True, blank=True)
+
+    def __unicode__(self):
+        return "IntermediateJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
+
+
+
 class DataLayer(Named, Authored, Dated, Noted, GeomType,FilePath, Units):
     srs = models.CharField(max_length=50, null=True, blank=True)
     files = models.ManyToManyField('DataFile', null=True, blank=True )
