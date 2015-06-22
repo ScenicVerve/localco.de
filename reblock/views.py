@@ -103,11 +103,10 @@ def review(request):
 		#print user
                 geoms = checkGeometryType(layer)
                 scale_factor = scaleFactor(geoms)
-		run_topology.delay(geoms, name = layer.name, user = user)
-		
-                #run_topology(geoms, name = layer.name, user = user, scale_factor = scale_factor)
+		#run_once.delay(original,name=None, user = None)
+                run_topology.delay(geoms, name = layer.name, user = user, scale_factor = scale_factor)
 
-                #plt.show()
+            
 
 
         return HttpResponseRedirect('/reblock/compute/')
@@ -233,6 +232,7 @@ rewrite run_once function from topology, using linestring list as input
 Given a list of blocks, builds roads to connect all interior parcels and
 plots all blocks in the same figure.
 """
+
 def run_once(original,name=None, user = None):
     plt.figure()
 
@@ -298,6 +298,7 @@ def import_and_setup(lst,component = None,threshold=1,rezero=np.array([0, 0]), c
 """
 rewrite function in mgh
 """
+
 def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
                     wholepath=False, original_roads=None, plot_original=False,
                     bisect=False, plot_result=False, barriers=False,
@@ -400,6 +401,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
     myG.added_roads = added_road_length
     return added_road_length
+
 
 """
 The function that use topology library to create MyGraph by input lineString
