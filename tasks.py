@@ -54,8 +54,8 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
 
         print test_layers.all()
 
-    email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
-    email.send()
+    #email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
+    #email.send()
 
 
 
