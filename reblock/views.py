@@ -105,10 +105,10 @@ def review(request):
 		    A = str(c[0][0])
 		    B = str(c[0][1])
 		    ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
-		    #pbt = fromstr('POINT('+ A + B +')', srid = srs)
-		    pbt = fromstr('POINT(305770.81008240674 8022392.900894267)', srid = srs)
-		    pbt.transform(ct)
-		    print 'x: %s; y: %s; srid: %s' % (pbt.x, pbt.y, pbt.srid)
+		    #pnt = fromstr('POINT('+ A + B +')', srid = srs)
+		    pnt = fromstr('POINT(305770.81008240674 8022392.900894267)', srid = 4326)
+		    pnt.transform(ct)
+		    print 'x: %s; y: %s; srid: %s' % (pnt.x, pnt.y, pnt.srid)
 		   
                 scale_factor = scaleFactor(geoms)
 
