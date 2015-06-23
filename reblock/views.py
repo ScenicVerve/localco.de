@@ -28,6 +28,8 @@ from django.contrib.gis.geos import *
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
+from django.contrib.gis.gdal import SpatialReference, CoordTransform
+from django.contrib.gis.geos import fromstr
 
 from tasks import *
 from reblock.forms import *
@@ -85,6 +87,7 @@ def review(request):
 
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
+		print layer.srs
                 """
                 geoms = checkGeometryType(layer)
                 #topo_json = add.delay(1 , 2)
@@ -94,12 +97,11 @@ def review(request):
 
                 #plt.show()
                 """
+		geoms = checkGeometryType(layer)
 		#print user
-                geoms = checkGeometryType(layer)
                 scale_factor = scaleFactor(geoms)
-                run_topology(geoms, name = layer.name, user = user, scale_factor = scale_factor)
+                run_topology.delay(geoms, name = layer.name, user = user, scale_factor = scale_factor)
 
-                #plt.show()
 
         '''
 		srs = checkedPrj(form.cleaned_data['srs'])
@@ -118,10 +120,24 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
+	
+	file_path = layer_data[0]['file_location']
+	ds = DataSource( file_path )
+        layer = ds[0]
+        srs = layer_data[0]['srs']
+        
+	geoms = checkGeometryType(layer)
+        ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
+        for feat in layer:
+            geom = feat.geom # getting clone of feature geometry
+            geom.transform(ct) # transforming
+            #print geom
+	    test = geom.json
+	    print test
         
         'we should get some error if the geometry does not have a projection or has a wrong geom type'
         formset = LayerReviewFormSet( initial=layer_data )
-        
+	
     c = {
             'formset':formset,
             }
@@ -141,7 +157,7 @@ def compute(request):
         # We are browsing data
         test_layers = IntermediateJSON3.objects.filter(author=user).order_by('-date_edited')
 
-        print test_layers.all()
+        #print test_layers.all()
     c = {
             'test_layers': test_layers,
     
@@ -230,7 +246,9 @@ rewrite run_once function from topology, using linestring list as input
 Given a list of blocks, builds roads to connect all interior parcels and
 plots all blocks in the same figure.
 """
+
 def run_once(original,name=None, user = None, block_index = 0):
+
     plt.figure()
 
     if len(original.interior_parcels) > 0:
@@ -295,6 +313,7 @@ def import_and_setup(lst,component = None,threshold=1,rezero=np.array([0, 0]), c
 """
 rewrite function in mgh
 """
+
 def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
                     wholepath=False, original_roads=None, plot_original=False,
                     bisect=False, plot_result=False, barriers=False,
@@ -397,6 +416,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
     myG.added_roads = added_road_length
     return added_road_length
+
 
 """
 The function that use topology library to create MyGraph by input lineString

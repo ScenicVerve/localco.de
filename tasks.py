@@ -1,6 +1,7 @@
 from celery import Celery
 from reblock.models import *
 from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from reblock.views import *
 #, run_once
 import topology.my_graph as mg
@@ -33,30 +34,33 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
     print blocklist
     
     for i,g in enumerate(blocklist):
-        js = {}
         #ALL THE PARCELS
-        js['all'] = json.loads(g.myedges_geoJSON())
-	print js
-        
+        parcels = json.loads(g.myedges_geoJSON())
+        db_json = BlockJSON2(name=name, topo_json = parcels, author = user,block_index = i)
+        db_json.save()
+
         #THE INTERIOR PARCELS
         inGragh = mgh.graphFromMyFaces(g.interior_parcels)
-        js['interior'] = json.loads(inGragh.myedges_geoJSON())
+        in_parcels = json.loads(inGragh.myedges_geoJSON())
+        db_json = InteriorJSON2(name=name, topo_json = in_parcels, author = user,block_index = i)
+        db_json.save()
         
         #THE ROADS GENERATED and save generating process into the database
-        js['road'] = run_once(g,name = name,user = user)#calculate the roads to connect interior parcels, can extract steps
-        
-        lst.append(js)
-        
-        #save the output into the database
-        lst_json = json.dumps(js)
-	print lst_json
-        db_json = TopoSaveJSON(name=name, topo_json = lst_json, author = user,index = i, kind = "output")
+        road = run_once(g,name = name,user = user,block_index = i)#calculate the roads to connect interior parcels, can extract steps
+        db_json = RoadJSON2(name=name, topo_json = road, author = user,block_index = i)
         db_json.save()
-        email = send_mail('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'], fail_silently=False)
-        email.send()
+        
+        test_layers = IntermediateJSON3.objects.filter(author=user).order_by('-date_edited')
+
+        print test_layers.all()
+
+    email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
+    email.send()
 
 
-'''def send_mail('test','test',to = ['eleannapan@gmail.com']):
+
+'''
+def send_mail('test','test',to = ['eleannapan@gmail.com']):
     import smtplib
 
             gmail_user = "user@gmail.com"
@@ -81,6 +85,5 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
                 print 'successfully sent the mail'
             except:
                 print "failed to send mail"
-    
- '''
 
+'''
