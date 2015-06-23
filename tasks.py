@@ -1,6 +1,7 @@
 from celery import Celery
 from reblock.models import *
 from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from reblock.views import *
 #, run_once
 import topology.my_graph as mg
@@ -48,13 +49,18 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
         road = run_once(g,name = name,user = user,block_index = i)#calculate the roads to connect interior parcels, can extract steps
         db_json = RoadJSON2(name=name, topo_json = road, author = user,block_index = i)
         db_json.save()
+        
+        test_layers = IntermediateJSON3.objects.filter(author=user).order_by('-date_edited')
 
-        #email = send_mail('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'], fail_silently=False)
-        #email.send()
+        print test_layers.all()
+
+        email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
+        email.send()
 
 
 
-'''def send_mail('test','test',to = ['eleannapan@gmail.com']):
+'''
+def send_mail('test','test',to = ['eleannapan@gmail.com']):
     import smtplib
 
             gmail_user = "user@gmail.com"
@@ -79,6 +85,5 @@ def run_topology(lst, name=None, user = None, scale_factor=1):
                 print 'successfully sent the mail'
             except:
                 print "failed to send mail"
-    
- '''
 
+'''

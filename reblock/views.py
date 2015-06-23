@@ -28,6 +28,8 @@ from django.contrib.gis.geos import *
 from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
+from django.contrib.gis.gdal import SpatialReference, CoordTransform
+from django.contrib.gis.geos import fromstr
 
 from tasks import *
 from reblock.forms import *
@@ -85,6 +87,7 @@ def review(request):
 
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
+		print layer.srs
                 """
                 geoms = checkGeometryType(layer)
                 #topo_json = add.delay(1 , 2)
@@ -96,6 +99,17 @@ def review(request):
                 """
 		#print user
                 geoms = checkGeometryType(layer)
+		for g in geoms:
+		    c = g.coords
+		    #print c
+		    A = str(c[0][0])
+		    B = str(c[0][1])
+		    ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
+		    #pbt = fromstr('POINT('+ A + B +')', srid = srs)
+		    pbt = fromstr('POINT(305770.81008240674 8022392.900894267)', srid = srs)
+		    pbt.transform(ct)
+		    print 'x: %s; y: %s; srid: %s' % (pbt.x, pbt.y, pbt.srid)
+		   
                 scale_factor = scaleFactor(geoms)
 
                 run_topology.delay(geoms, name = layer.name, user = user, scale_factor = scale_factor)
@@ -141,7 +155,7 @@ def compute(request):
         # We are browsing data
         test_layers = IntermediateJSON3.objects.filter(author=user).order_by('-date_edited')
 
-        print test_layers.all()
+        #print test_layers.all()
     c = {
             'test_layers': test_layers,
     
@@ -230,12 +244,9 @@ rewrite run_once function from topology, using linestring list as input
 Given a list of blocks, builds roads to connect all interior parcels and
 plots all blocks in the same figure.
 """
-<<<<<<< HEAD
 
-def run_once(original,name=None, user = None):
-=======
 def run_once(original,name=None, user = None, block_index = 0):
->>>>>>> bb17042585d68309aaed186f0a91e82b49289524
+
     plt.figure()
 
     if len(original.interior_parcels) > 0:
