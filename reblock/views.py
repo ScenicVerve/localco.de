@@ -87,7 +87,7 @@ def review(request):
 
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
-		print layer.srs
+		print srs
                 """
                 geoms = checkGeometryType(layer)
                 #topo_json = add.delay(1 , 2)
@@ -101,7 +101,8 @@ def review(request):
 		#print user
                 scale_factor = scaleFactor(geoms)
                 run_topology.delay(geoms, name = layer.name, user = user, scale_factor = scale_factor)
-
+		# retrieve object from db
+		
 
         '''
 		srs = checkedPrj(form.cleaned_data['srs'])
@@ -127,7 +128,7 @@ def review(request):
         srs = layer_data[0]['srs']
         
 	geoms = checkGeometryType(layer)
-        ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
+        ct = CoordTransform(SpatialReference(srs), SpatialReference(3857))
         for feat in layer:
             geom = feat.geom # getting clone of feature geometry
             geom.transform(ct) # transforming
@@ -155,9 +156,36 @@ def compute(request):
 
     else:
         # We are browsing data
-        test_layers = IntermediateJSON3.objects.filter(author=user).order_by('-date_edited')
+        test_layers = RoadJSON2.objects.filter(author=user).order_by('-date_edited')
+	
+	# this gives us the db object
+	# then we extract the json attrib
+	myjson = test_layers[0].topo_json
+	
+	new_layer= DataSource(myjson)[0]
+	#print new_layer[0]
+    
+	srs = 3421
+	# we use gdal to load json as a GDAL datalayer
+	new_proj =[]
+	coord_transform = CoordTransform(SpatialReference(srs), SpatialReference(3857))
+	for feat in new_layer:
+	    geom = feat.geom 
+	    
+	    geom.transform(coord_transform)
+	    
+	    new_proj.append(json.loads(geom.json))
+	new_proj = json.dumps(new_proj)
+	    
 
+	# reproject geoms into new srs
+	
+	# we pass reprojected geoms to javascript
+	
+	# we display geometries on leaflet
+	
         #print test_layers.all()
+	
     c = {
             'test_layers': test_layers,
     
