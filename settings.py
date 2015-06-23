@@ -204,3 +204,4 @@ else: # If i'm running it on the server
         }
     }
 
+# strace /usr/sbin/httpd
