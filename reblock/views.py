@@ -97,21 +97,9 @@ def review(request):
 
                 #plt.show()
                 """
+		geoms = checkGeometryType(layer)
 		#print user
-                geoms = checkGeometryType(layer)
-		for g in geoms:
-		    c = g.coords
-		    #print c
-		    A = str(c[0][0])
-		    B = str(c[0][1])
-		    ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
-		    #pnt = fromstr('POINT('+ A + B +')', srid = srs)
-		    pnt = fromstr('POINT(305770.81008240674 8022392.900894267)', srid = 4326)
-		    pnt.transform(ct)
-		    print 'x: %s; y: %s; srid: %s' % (pnt.x, pnt.y, pnt.srid)
-		   
                 scale_factor = scaleFactor(geoms)
-
                 run_topology.delay(geoms, name = layer.name, user = user, scale_factor = scale_factor)
 
 
@@ -132,10 +120,24 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
+	
+	file_path = layer_data[0]['file_location']
+	ds = DataSource( file_path )
+        layer = ds[0]
+        srs = layer_data[0]['srs']
+        
+	geoms = checkGeometryType(layer)
+        ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
+        for feat in layer:
+            geom = feat.geom # getting clone of feature geometry
+            geom.transform(ct) # transforming
+            #print geom
+	    test = geom.json
+	    print test
         
         'we should get some error if the geometry does not have a projection or has a wrong geom type'
         formset = LayerReviewFormSet( initial=layer_data )
-        
+	
     c = {
             'formset':formset,
             }
