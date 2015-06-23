@@ -162,11 +162,13 @@ def compute(request):
 	# then we extract the json attrib
 	myjson = test_layers[0].topo_json
 	
+	# we use gdal to load json as a GDAL datalayer
 	new_layer= DataSource(myjson)[0]
 	#print new_layer[0]
     
 	srs = 3421
-	# we use gdal to load json as a GDAL datalayer
+	
+	# reproject geoms into new srs
 	new_proj =[]
 	coord_transform = CoordTransform(SpatialReference(srs), SpatialReference(3857))
 	for feat in new_layer:
@@ -178,13 +180,11 @@ def compute(request):
 	new_proj = json.dumps(new_proj)
 	    
 
-	# reproject geoms into new srs
+	
 	
 	# we pass reprojected geoms to javascript
 	
 	# we display geometries on leaflet
-	
-        #print test_layers.all()
 	
     c = {
             'test_layers': test_layers,
