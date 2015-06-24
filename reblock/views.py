@@ -198,7 +198,6 @@ def compute(request):
 	    new_proj.append(json.loads(geom.json))
 	new_proj = json.dumps(new_proj)
 	print new_proj
-	    
 
 	
 	
@@ -274,7 +273,7 @@ def checkGeometryType(gdal_layer, srs=None):
 """
 rewrite topology, using linestring list as input, save data to the database
 """
-
+'''
 def run_topology(lst, name=None, user = None, scale_factor=1, srs = None):
 
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
@@ -295,7 +294,7 @@ def run_topology(lst, name=None, user = None, scale_factor=1, srs = None):
         #THE ROADS GENERATED and save generating process into the database
         road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i, srs = srs)))#calculate the roads to connect interior parcels, can extract steps
         db_json = RoadJSON3(name=name, topo_json = road, author = user,block_index = i, srs = srs)
-        db_json.save()
+        db_json.save()'''
 
 
 """
