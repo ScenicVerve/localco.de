@@ -88,11 +88,14 @@ def review(request):
                 srs = checkedPrj(form.cleaned_data['srs'])
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
+		print srs
                 
                 geoms = checkGeometryType(layer)
+
                 #print user
                 scale_factor2 = scaleFactor(geoms)
                 run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, srs = srs)
+
 
 
         return HttpResponseRedirect('/reblock/compute/')
@@ -108,6 +111,7 @@ def review(request):
         layer = ds[0]
         srs = layer_data[0]['srs']
         
+
         geoms = checkGeometryType(layer)
         ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
         #print len(layer)
@@ -157,6 +161,7 @@ def compute(request):
 
     else:
         # We are browsing data
+
         number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
         
         ori_layer = BlockJSON3.objects.filter(author=user).order_by('-date_edited')
@@ -167,9 +172,7 @@ def compute(request):
         
         inter_layers = InteriorJSON3.objects.filter(author=user).order_by('-date_edited')        
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
-        
 
-        
     centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lat
     centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lng
     
@@ -269,7 +272,7 @@ def checkGeometryType(gdal_layer, srs=None):
     else:
         raise IOError("Your file is invalid")
 
-    
+
 
 """
 rewrite run_once function from topology, using linestring list as input

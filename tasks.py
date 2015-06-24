@@ -36,8 +36,10 @@ def run_topology(lst, name=None, user = None, scale_factor=1, srs = None):
         road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i, srs = srs)))#calculate the roads to connect interior parcels, can extract steps
         db_json = RoadJSON3(name=name, topo_json = road, author = user,block_index = i, srs = srs)
         db_json.save()
+
     test = IntermediateJSON4.objects.filter(author=user).order_by('-date_edited')   
     print test[0].topo_json
+
     #email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
     #email.send()
 
