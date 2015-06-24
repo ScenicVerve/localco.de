@@ -1,59 +1,44 @@
 from celery import Celery
 from reblock.models import *
-from django.core.mail import send_mail
-from django.core.mail import EmailMultiAlternatives
+#from django.core.mail import send_mail
+#from django.core.mail import EmailMultiAlternatives
 from reblock.views import *
-#, run_once
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
 
 app = Celery('tasks', broker='amqp://guest@localhost//')
 
+
 """
-rewrite topology, using linestring list as input
+rewrite topology, using linestring list as input, save data to the database
 """
-'''
-@app.task
-def run_topology(lst, name=None):
-
-    blocklist = new_import(lst,name)
-    
-    g = blocklist[0]
-
-    ep_geojson = g.myedges_geoJSON()
-    myjs = json.loads(ep_geojson)
-    print myjs
-    #map_roads = run_once(blocklist)
-    return myjs
-'''
-
 @app.task
 def run_topology(lst, name=None, user = None, scale_factor=1, srs=None):
 
-    blocklist = new_import(lst,name,scale = 1)#make the graph based on input geometry
+    blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     print blocklist
+    num = BloockNUM(name=name, number = len(blocklist), author = user)
+    num.save()
     
     for i,g in enumerate(blocklist):
         #ALL THE PARCELS
-
-        parcels = json.loads(g.myedges_geoJSON())
-        db_json = BlockJSON2(name=name, topo_json = parcels, author = user,block_index = i)
+        parcels = simplejson.dumps(json.loads(g.myedges_geoJSON()))
+        db_json = BlockJSON3(name=name, topo_json = parcels, author = user,block_index = i, srs = srs)
         db_json.save()
 
         #THE INTERIOR PARCELS
         inGragh = mgh.graphFromMyFaces(g.interior_parcels)
-        in_parcels = json.loads(inGragh.myedges_geoJSON())
-        db_json = InteriorJSON2(name=name, topo_json = in_parcels, author = user,block_index = i)
+        in_parcels = simplejson.dumps(json.loads(inGragh.myedges_geoJSON()))
+        db_json = InteriorJSON3(name=name, topo_json = in_parcels, author = user,block_index = i, srs = srs)
         db_json.save()
         
         #THE ROADS GENERATED and save generating process into the database
-        road = run_once(g,name = name,user = user,block_index = i)#calculate the roads to connect interior parcels, can extract steps
-        db_json = RoadJSON2(name=name, topo_json = road, author = user,block_index = i)
+        road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i, srs = srs)))#calculate the roads to connect interior parcels, can extract steps
+        db_json = RoadJSON3(name=name, topo_json = road, author = user,block_index = i, srs = srs)
         db_json.save()
-        
-        test_layers = IntermediateJSON3.objects.filter(author=user).order_by('-date_edited')
 
-        print test_layers.all()
+    test = IntermediateJSON4.objects.filter(author=user).order_by('-date_edited')   
+    print test[0].topo_json
 
     email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
     email.send()

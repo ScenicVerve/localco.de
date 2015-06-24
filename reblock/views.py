@@ -86,35 +86,17 @@ def review(request):
             # For every layer in the layer form, write a PostGIS object to the DB
             for form in formset:
                 srs = checkedPrj(form.cleaned_data['srs'])
-
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
 		print srs
-                """
+                
                 geoms = checkGeometryType(layer)
-                #topo_json = add.delay(1 , 2)
-                topo_json = run_topology.delay(geoms, user)
-                #db_json = TopologyJSON(topo_json = topo_json, author = user)
-                #db_json.save()
 
-                #plt.show()
-                """
-		geoms = checkGeometryType(layer)
-		#print user
-                scale_factor = scaleFactor(geoms)
-                run_topology.delay(geoms, name = layer.name, user = user, scale_factor = scale_factor, srs = srs)
-		# retrieve object from db
-		
+                #print user
+                scale_factor2 = scaleFactor(geoms)
+                run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, srs = srs)
 
-        '''
-		srs = checkedPrj(form.cleaned_data['srs'])
-		
-		ds = DataSource(form.cleaned_data['file_location'])
-		layer = ds[0]
-		geoms = checkGeometryType(layer)
-		scale_factor = scaleFactor(geoms)
-		run_topology.delay(geoms, name = layer.name, user = user)
-		'''
+
 
         return HttpResponseRedirect('/reblock/compute/')
         
@@ -151,8 +133,11 @@ def review(request):
         
         center_lat = y_ct
         center_lng = x_ct
+        
+        center = CenterSave(name=user, lat = str(center_lat),lng = str(center_lng), author = user)
+        center.save()
 
-
+        
         formset = LayerReviewFormSet( initial=layer_data )
 	
     c = {
@@ -167,6 +152,7 @@ def review(request):
             )
 
 @login_required
+@login_required
 def compute(request):
     
     user = request.user
@@ -175,48 +161,66 @@ def compute(request):
 
     else:
         # We are browsing data
-        test_layers = RoadJSON2.objects.filter(author=user).order_by('-date_edited')
-	
-	# this gives us the db object
-	# then we extract the json attrib
-	myjson = test_layers[0].topo_json
-	
-	# we use gdal to load json as a GDAL datalayer
-	new_layer= DataSource(myjson)[0]
-	#print new_layer[0]
-    
-	#srs = 3421
-	
-	# reproject geoms into new srs
-	new_proj =[]
-	coord_transform = CoordTransform(SpatialReference(srs), SpatialReference(4326))
-	for feat in new_layer:
-	    geom = feat.geom 
-	    
-	    geom.transform(coord_transform)
-	    
-	    new_proj.append(json.loads(geom.json))
-	new_proj = json.dumps(new_proj)
-	print new_proj
 
-	
-	
+
+        number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
+        
+        ori_layer = BlockJSON3.objects.filter(author=user).order_by('-date_edited')
+        ori_proj = project_meter2degree(layer = ori_layer,num = number)
+        
+        road_layers = RoadJSON3.objects.filter(author=user).order_by('-date_edited')        
+        road_proj = project_meter2degree(layer = road_layers,num = number)
+        
+        inter_layers = InteriorJSON3.objects.filter(author=user).order_by('-date_edited')        
+        inter_proj = project_meter2degree(layer = inter_layers,num = number)
+
+    centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lat
+    centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lng
+    
 	# we pass reprojected geoms to javascript
 	
 	# we display geometries on leaflet
-	
+
+    
     c = {
-            'test_layers': test_geo,
+            'ori_proj': ori_proj,
+            'road_proj': road_proj,
+            'inter_proj': inter_proj,
+            'centerlat':centerlat,
+            'centerlng':centerlng,
     
             }
-            
-    
     return render_to_response(
             'reblock/compute.html',
             RequestContext(request, c),
             )
+
+
+"""
+function to reproject gdal layer(in meters) to degree, and output geojson file
+num is the amount of block to keep from the layer
+"""
+def project_meter2degree(layer = None, num = 1):
+    layer_json = []
+    for la in layer[:num]:
     
+        myjson = la.topo_json
+        new_layer= DataSource(myjson)[0]
+        srs = layer[0].srs
+        new_proj =[]
+        coord_transform = CoordTransform(SpatialReference(srs), SpatialReference(4326))
+        for feat in new_layer:
+            geom = feat.geom
+                
+            geom.transform(coord_transform)
+                
+            new_proj.append(json.loads(geom.json))
+        layer_json.extend(new_proj)
+    layer_json = json.dumps(layer_json)
     
+    return layer_json
+
+
 def centroid(geom):
     lst = [Polygon(LinearRing(g.coords)).centroid for g in geom]
     lstx = [l.coords[0] for l in lst]
@@ -269,32 +273,6 @@ def checkGeometryType(gdal_layer, srs=None):
     else:
         raise IOError("Your file is invalid")
 
-    
-"""
-rewrite topology, using linestring list as input, save data to the database
-"""
-'''
-def run_topology(lst, name=None, user = None, scale_factor=1, srs = None):
-
-    blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
-    print blocklist
-    
-    for i,g in enumerate(blocklist):
-        #ALL THE PARCELS
-        parcels = simplejson.dumps(json.loads(g.myedges_geoJSON()))
-        db_json = BlockJSON3(name=name, topo_json = parcels, author = user,block_index = i, srs = srs)
-        db_json.save()
-
-        #THE INTERIOR PARCELS
-        inGragh = mgh.graphFromMyFaces(g.interior_parcels)
-        in_parcels = simplejson.dumps(json.loads(inGragh.myedges_geoJSON()))
-        db_json = InteriorJSON3(name=name, topo_json = in_parcels, author = user,block_index = i, srs = srs)
-        db_json.save()
-        
-        #THE ROADS GENERATED and save generating process into the database
-        road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i, srs = srs)))#calculate the roads to connect interior parcels, can extract steps
-        db_json = RoadJSON3(name=name, topo_json = road, author = user,block_index = i, srs = srs)
-        db_json.save()'''
 
 
 """
@@ -339,7 +317,6 @@ def new_import(lst, name=None,scale = 1):
 
     print("This map has {} block(s). \n".format(len(blocklist)))
 
-    plt.figure()
     # plot the full original map
     for b in blocklist:
         # defines original geometery as a side effect,
