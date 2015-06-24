@@ -11,29 +11,94 @@
 {% endblock %}
 
 {% block layernavs %}
-<!--            <li><a href="/webfinches"><div class="sitenav">Browse Data</div></a></li>-->
+<!--            <li><a href="/reblock"><div class="sitenav">Browse Data</div></a></li>-->
 {% endblock %}
 
 {% block content %}
 
+{% block scripts %}
+  <head>
+	
+	<meta charset="utf-8" />
 
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+</head>
+
+
+<body>
+	<div id="map" style="width: 600px; height: 400px"></div>
+
+	<script src="http://leafletjs.com/examples/sample-geojson.js" type="text/javascript"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+
+  <script type="text/javascript" src="{% get_static_prefix %}js/jquery-1.6.2.min.js"></script>
+  <script type="text/javascript" src="{% get_static_prefix %}js/jquery-ui-1.8.16.custom.min.js"></script>
+  <script type="text/javascript" src="{% get_static_prefix %}js/siteBuilder.js"></script>
+
+
+<script>
+		var map = L.map('map').setView([39.74739, -105], 14);
+//305796.07716329454, 8022443.370257203
+L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+    maxZoom: 20,
+    id: 'panthersuper.7558b934',
+    accessToken: 'pk.eyJ1IjoicGFudGhlcnN1cGVyIiwiYSI6Il9JRlBXMkkifQ.4VOcpN_xI1jf1XxjnIZHmw'
+}).addTo(map);
+
+var myJSONList = (("{{test_layers}}").replace(/&(l|g|quo)t;/g, function(a,b){
+                return {
+                    l   : '<',
+                    g   : '>',
+                    quo : '"'
+                }[b];
+            }));
+
+myData = JSON.parse( myJSONList );
+
+
+console.log(campus);
+console.log(myData);
+console.log(myData['features']);
+L.geoJson(myData, {
+            weight: 2,
+            color: "#999",
+            opacity: 1,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.8
+
+		}).addTo(map);
+
+
+<!--layer from geoJson to overlay on top of map-->
+
+		L.geoJson(campus, {
+            weight: 2,
+            color: "#999",
+            opacity: 1,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.8
+
+		}).addTo(map);
+        L.geoJson(freeBus, {
+            weight: 5,
+            color: "#228",
+            opacity: 0.5,
+		}).addTo(map);
+
+
+	</script>
+
+
+
+
+{% endblock %}
     
     
 <form id="layerconfigure" action="/reblock/configure/" method="POST" enctype="multipart/form-data">
-    
-    {% csrf_token %}
-    {{ formset.management_form }}
 
-
-
-    
-    {% if test_layers %}
-    <div class="layerset col">
-      {% for layer in test_layers %}
-        {% include "reblock/layer_blocks_new.html" %}
-      {% endfor %}
-    </div>
-    {% endif %}
 
     <div><input type="submit" value="Upload New Configuration" /></div>
     <div><h1> Site Configuration Name: <input type="text" name="name"/></h1></div>
@@ -43,8 +108,4 @@
 
 {% endblock %}
 
-{% block scripts %}
-  <script type="text/javascript" src="{% get_static_prefix %}js/jquery-1.6.2.min.js"></script>
-  <script type="text/javascript" src="{% get_static_prefix %}js/jquery-ui-1.8.16.custom.min.js"></script>
-  <script type="text/javascript" src="{% get_static_prefix %}js/siteBuilder.js"></script>
-{% endblock %}
+

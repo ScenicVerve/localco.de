@@ -28,13 +28,14 @@ def run_topology(lst, name=None):
 '''
 
 @app.task
-def run_topology(lst, name=None, user = None, scale_factor=1):
+def run_topology(lst, name=None, user = None):
 
-    blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
+    blocklist = new_import(lst,name,scale = 1)#make the graph based on input geometry
     print blocklist
     
     for i,g in enumerate(blocklist):
         #ALL THE PARCELS
+
         parcels = json.loads(g.myedges_geoJSON())
         db_json = BlockJSON2(name=name, topo_json = parcels, author = user,block_index = i)
         db_json.save()

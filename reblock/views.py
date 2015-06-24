@@ -9,7 +9,6 @@ import datetime
 import numpy as np
 from matplotlib import pyplot as plt
 
-
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponseRedirect
@@ -37,7 +36,10 @@ from reblock.models import *
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
+from django.utils import simplejson
 
+center_lat = None
+center_lng = None
 
 def index(request):
     """A view for browsing the existing webfinches.
@@ -121,26 +123,43 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
-	
-	file_path = layer_data[0]['file_location']
-	ds = DataSource( file_path )
+
+        file_path = layer_data[0]['file_location']
+        ds = DataSource( file_path )
         layer = ds[0]
         srs = layer_data[0]['srs']
         
-	geoms = checkGeometryType(layer)
-        ct = CoordTransform(SpatialReference(srs), SpatialReference(3857))
+
+        geoms = checkGeometryType(layer)
+        ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
+        #print len(layer)
+        
+        reviewdic = []
+        x_ct = 0
+        y_ct = 0
         for feat in layer:
+            #print feat
             geom = feat.geom # getting clone of feature geometry
             geom.transform(ct) # transforming
-            #print geom
-	    test = geom.json
-	    print test
+            x_ct += geom.centroid.coords[0]
+            y_ct += geom.centroid.coords[1]
+            #print type(geom.json)
+            reviewdic.append(json.loads(geom.json))
+        reviewjson = json.dumps(reviewdic)
+        x_ct = x_ct/len(layer)
+        y_ct = y_ct/len(layer)
         
-        'we should get some error if the geometry does not have a projection or has a wrong geom type'
+        center_lat = y_ct
+        center_lng = x_ct
+
+
         formset = LayerReviewFormSet( initial=layer_data )
 	
     c = {
+            'test_layers': reviewjson,
             'formset':formset,
+            'centerlat':center_lat,
+            'centerlng':center_lng,
             }
     return render_to_response(
             'reblock/review.html',
@@ -188,14 +207,24 @@ def compute(request):
 	# we display geometries on leaflet
 	
     c = {
-            'test_layers': test_layers,
+            'test_layers': test_geo,
     
             }
+            
+    
     return render_to_response(
             'reblock/compute.html',
             RequestContext(request, c),
             )
-
+    
+    
+def centroid(geom):
+    lst = [Polygon(LinearRing(g.coords)).centroid for g in geom]
+    lstx = [l.coords[0] for l in lst]
+    lsty = [l.coords[1] for l in lst]
+    return (sum(lstx) / float(len(lstx)),sum(lsty) / float(len(lsty)))
+    
+    
 """
 flatten all the geometry in the geometry collection
 """
@@ -246,28 +275,28 @@ def checkGeometryType(gdal_layer, srs=None):
 rewrite topology, using linestring list as input, save data to the database
 """
 
-'''def run_topology(lst, name=None, user = None, scale_factor=1):
+def run_topology(lst, name=None, user = None, scale_factor=1, srs = None):
 
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     print blocklist
     
     for i,g in enumerate(blocklist):
         #ALL THE PARCELS
-        parcels = json.loads(g.myedges_geoJSON())
-        db_json = BlockJSON2(name=name, topo_json = parcels, author = user,block_index = i)
+        parcels = simplejson.dumps(json.loads(g.myedges_geoJSON()))
+        db_json = BlockJSON3(name=name, topo_json = parcels, author = user,block_index = i, srs = srs)
         db_json.save()
 
         #THE INTERIOR PARCELS
         inGragh = mgh.graphFromMyFaces(g.interior_parcels)
-        in_parcels = json.loads(inGragh.myedges_geoJSON())
-        db_json = InteriorJSON2(name=name, topo_json = in_parcels, author = user,block_index = i)
+        in_parcels = simplejson.dumps(json.loads(inGragh.myedges_geoJSON()))
+        db_json = InteriorJSON3(name=name, topo_json = in_parcels, author = user,block_index = i, srs = srs)
         db_json.save()
         
         #THE ROADS GENERATED and save generating process into the database
-        road = run_once(g,name = name,user = user,block_index = i)#calculate the roads to connect interior parcels, can extract steps
-        db_json = RoadJSON2(name=name, topo_json = road, author = user,block_index = i)
+        road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i, srs = srs)))#calculate the roads to connect interior parcels, can extract steps
+        db_json = RoadJSON3(name=name, topo_json = road, author = user,block_index = i, srs = srs)
         db_json.save()
-'''
+
 
 """
 rewrite run_once function from topology, using linestring list as input
@@ -276,7 +305,7 @@ Given a list of blocks, builds roads to connect all interior parcels and
 plots all blocks in the same figure.
 """
 
-def run_once(original,name=None, user = None, block_index = 0):
+def run_once(original,name=None, user = None, block_index = 0, srs = None):
 
     plt.figure()
 
@@ -287,7 +316,7 @@ def run_once(original,name=None, user = None, block_index = 0):
         block.define_interior_parcels()
 
         # finds roads to connect all interior parcels for a given block(with steps)
-        block_roads = build_all_roads(block, wholepath=True,name = name, user = user)
+        block_roads = build_all_roads(block, wholepath=True,name = name, user = user, srs = srs)
     else:
         block = original.copy()
     
@@ -347,7 +376,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
                     wholepath=False, original_roads=None, plot_original=False,
                     bisect=False, plot_result=False, barriers=False,
                     quiet=False, vquiet=False, strict_greedy=False,
-                    outsidein=False,name=None, user = None,block_index = 0):
+                    outsidein=False,name=None, user = None,block_index = 0, srs = None):
 
     """builds roads using the probablistic greedy alg, until all
     interior parcels are connected, and returns the total length of
@@ -379,8 +408,8 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
     while myG.interior_parcels:############extract?###########
         #save remaining interior parcel to the database
-        gJson = mgh.graphFromMyFaces(myG.interior_parcels).myedges_geoJSON()
-        db_json = IntermediateJSON3(name=name, topo_json = gJson, author = user,step_index = len(myG.interior_parcels),block_index = block_index)
+        gJson = simplejson.dumps(json.loads(mgh.graphFromMyFaces(myG.interior_parcels).myedges_geoJSON()))
+        db_json = IntermediateJSON4(name=name, topo_json = gJson, author = user,step_index = len(myG.interior_parcels),block_index = block_index, srs = srs)
         db_json.save()
         
         result, depth = mgh.form_equivalence_classes(myG)
