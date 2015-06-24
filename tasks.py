@@ -28,7 +28,7 @@ def run_topology(lst, name=None):
 '''
 
 @app.task
-def run_topology(lst, name=None, user = None):
+def run_topology(lst, name=None, user = None, scale_factor=1, srs=None):
 
     blocklist = new_import(lst,name,scale = 1)#make the graph based on input geometry
     print blocklist
@@ -55,8 +55,8 @@ def run_topology(lst, name=None, user = None):
 
         print test_layers.all()
 
-    #email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
-    #email.send()
+    email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
+    email.send()
 
 
 

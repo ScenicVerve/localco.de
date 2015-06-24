@@ -102,7 +102,7 @@ def review(request):
 		geoms = checkGeometryType(layer)
 		#print user
                 scale_factor = scaleFactor(geoms)
-                run_topology.delay(geoms, name = layer.name, user = user, scale_factor = scale_factor)
+                run_topology.delay(geoms, name = layer.name, user = user, scale_factor = scale_factor, srs = srs)
 		# retrieve object from db
 		
 
@@ -185,11 +185,11 @@ def compute(request):
 	new_layer= DataSource(myjson)[0]
 	#print new_layer[0]
     
-	srs = 3421
+	#srs = 3421
 	
 	# reproject geoms into new srs
 	new_proj =[]
-	coord_transform = CoordTransform(SpatialReference(srs), SpatialReference(3857))
+	coord_transform = CoordTransform(SpatialReference(srs), SpatialReference(4326))
 	for feat in new_layer:
 	    geom = feat.geom 
 	    
