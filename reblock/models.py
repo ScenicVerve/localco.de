@@ -224,8 +224,13 @@ class IntermediateJSON4(Named, Authored, Dated):
     def __unicode__(self):
         return "IntermediateJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
+class CenterSave(Named, Authored, Dated):
+    lat = models.TextField(null=True, blank=True)
+    lng = models.TextField(null=True, blank=True)
 
-
+class BloockNUM(Named, Authored, Dated):
+    number = models.IntegerField(null=True, blank=True)
+    
 class DataLayer(Named, Authored, Dated, Noted, GeomType,FilePath, Units):
     srs = models.CharField(max_length=50, null=True, blank=True)
     files = models.ManyToManyField('DataFile', null=True, blank=True )
