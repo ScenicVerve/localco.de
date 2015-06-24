@@ -88,11 +88,9 @@ def review(request):
                 srs = checkedPrj(form.cleaned_data['srs'])
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
-		print srs
                 
                 geoms = checkGeometryType(layer)
 
-                #print user
                 scale_factor2 = scaleFactor(geoms)
                 run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, srs = srs)
 
@@ -114,18 +112,15 @@ def review(request):
 
         geoms = checkGeometryType(layer)
         ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
-        #print len(layer)
         
         reviewdic = []
         x_ct = 0
         y_ct = 0
         for feat in layer:
-            #print feat
             geom = feat.geom # getting clone of feature geometry
             geom.transform(ct) # transforming
             x_ct += geom.centroid.coords[0]
             y_ct += geom.centroid.coords[1]
-            #print type(geom.json)
             reviewdic.append(json.loads(geom.json))
         reviewjson = json.dumps(reviewdic)
         x_ct = x_ct/len(layer)
@@ -443,7 +438,6 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
         if vquiet is False:
             if remain > 300 or remain in [50, 100, 150, 200, 225, 250, 275]:
                 pass
-                # print "{} interior parcels left".format(remain)
 
     # update the properties of nodes & edges to reflect new geometry.
 

@@ -38,7 +38,7 @@ def run_topology(lst, name=None, user = None, scale_factor=1, srs = None):
         db_json.save()
 
     test = IntermediateJSON4.objects.filter(author=user).order_by('-date_edited')   
-    print test[0].topo_json
+    print test
 
     #email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
     #email.send()
