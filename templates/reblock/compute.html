@@ -64,7 +64,7 @@ var roadJSONList = (("{{road_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
 
 roadData = JSON.parse( roadJSONList );
 
-/*
+
 var interJSONList = (("{{inter_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
                 return {
                     l   : '<',
@@ -74,7 +74,7 @@ var interJSONList = (("{{inter_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
             }));
 
 interData = JSON.parse( interJSONList );
-*/
+
 
 
 L.geoJson(oriData, {
@@ -87,7 +87,7 @@ L.geoJson(oriData, {
 
 		}).addTo(map);
 
-/*
+
 L.geoJson(interData, {
             weight: 2,
             color: "blue",
@@ -96,7 +96,7 @@ L.geoJson(interData, {
             fillOpacity: 0.8
 
 		}).addTo(map);
-*/
+
 
 L.geoJson(roadData, {
             weight: 2,

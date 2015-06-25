@@ -14,7 +14,6 @@ rewrite topology, using linestring list as input, save data to the database
 """
 @app.task
 def run_topology(lst, name=None, user = None, scale_factor=1, srs = None):
-
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     print blocklist
     num = BloockNUM(name=name, number = len(blocklist), author = user)
@@ -37,8 +36,8 @@ def run_topology(lst, name=None, user = None, scale_factor=1, srs = None):
         db_json = RoadJSON3(name=name, topo_json = road, author = user,block_index = i, srs = srs)
         db_json.save()
 
-    test = IntermediateJSON4.objects.filter(author=user).order_by('-date_edited')   
-    print test
+
+    print "Calculation Done!!!"
 
     #email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
     #email.send()
