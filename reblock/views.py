@@ -37,6 +37,8 @@ from reblock.models import *
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
 from django.utils import simplejson
+from fractions import Fraction
+
 
 center_lat = None
 center_lng = None
@@ -90,7 +92,6 @@ def review(request):
                 layer = ds[0]
                 
                 geoms = checkGeometryType(layer)
-
                 scale_factor2 = scaleFactor(geoms)
                 run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, srs = srs)
 
@@ -110,21 +111,25 @@ def review(request):
         srs = layer_data[0]['srs']
         
 
-        geoms = checkGeometryType(layer)
         ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
         
         reviewdic = []
         x_ct = 0
         y_ct = 0
+        
+        count = 0
         for feat in layer:
+            print "0"+str(feat)
+            print "1"+str(feat.geom)
             geom = feat.geom # getting clone of feature geometry
             geom.transform(ct) # transforming
-            x_ct += geom.centroid.coords[0]
-            y_ct += geom.centroid.coords[1]
             reviewdic.append(json.loads(geom.json))
+            if count == 0 and geom[0][0][0] and isnumber(geom[0][0][0]): 
+                count =1
+                x_ct = geom[0][0][0]
+                y_ct = geom[0][0][1]
+        
         reviewjson = json.dumps(reviewdic)
-        x_ct = x_ct/len(layer)
-        y_ct = y_ct/len(layer)
         
         center_lat = y_ct
         center_lng = x_ct
@@ -158,7 +163,6 @@ def compute(request):
         # We are browsing data
 
         number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
-        
         ori_layer = BlockJSON3.objects.filter(author=user).order_by('-date_edited')
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
@@ -188,6 +192,19 @@ def compute(request):
             'reblock/compute.html',
             RequestContext(request, c),
             )
+
+
+def isnumber(s):
+    s = str(s)
+    try:
+        float(s)
+        return True
+    except ValueError:
+        try: 
+            Fraction(s)
+            return True
+        except ValueError: 
+            return False
 
 
 """
@@ -255,7 +272,8 @@ def checkGeometryType(gdal_layer, srs=None):
             lst.extend(flattenAll(geom))			
         else:#not supported geometry type, raise exception
             raise IOError(geom.geom_type+"is the wrong type of geometry to process")
-    
+
+
     
     
     
