@@ -13,7 +13,9 @@ app = Celery('tasks', broker='amqp://guest@localhost//')
 rewrite topology, using linestring list as input, save data to the database
 """
 @app.task
+
 def run_topology(lst, name=None, user = None, scale_factor=1, srs=None):
+
 
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     print blocklist
@@ -37,8 +39,11 @@ def run_topology(lst, name=None, user = None, scale_factor=1, srs=None):
         db_json = RoadJSON3(name=name, topo_json = road, author = user,block_index = i, srs = srs)
         db_json.save()
 
-    #test = IntermediateJSON4.objects.filter(author=user).order_by('-date_edited')   
-    #print test[0].topo_json
+
+    test = IntermediateJSON4.objects.filter(author=user).order_by('-date_edited')   
+    print test[0].topo_json
+
+    print "Calculation Done!!!"
 
     #email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
     #email.send()

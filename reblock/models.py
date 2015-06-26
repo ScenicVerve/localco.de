@@ -176,22 +176,24 @@ class DataFile(Dated):
         """
         api_srs = {}
         prj_path = self.path_of_part('.prj')
-        prj_path = prj_path+"/"+str(data['name'])
-        if prj_path:
-            prj_text = open(prj_path+'.prj', 'r').read()
-            query = urlencode({
-                'exact' : False,
-                'error' : True,
-                'terms' : prj_text})
-            webres = urlopen('http://prj2epsg.org/search.json', query)
-            jres = json.loads(webres.read())
-            if jres['codes']:
-                api_srs['message'] = 'An exact match was found'
-                api_srs['srs'] = int(jres['codes'][0]['code'])
-                data['srs'] = jres['codes'][0]['code']
-            else:
-                data['srs'] = None
-            return data['srs']
+        try:
+            prj_path = prj_path+"/"+str(data['name'])
+            if prj_path:
+                prj_text = open(prj_path+'.prj', 'r').read()
+                query = urlencode({
+                    'exact' : False,
+                    'error' : True,
+                    'terms' : prj_text})
+                webres = urlopen('http://prj2epsg.org/search.json', query)
+                jres = json.loads(webres.read())
+                if jres['codes']:
+                    api_srs['message'] = 'An exact match was found'
+                    api_srs['srs'] = int(jres['codes'][0]['code'])
+                    data['srs'] = jres['codes'][0]['code']
+                else:
+                    data['srs'] = None
+                return data['srs']
+        except: return None
     
 class SaveJSON3(Named, Authored, Dated):
     topo_json = models.TextField(null=True, blank=True)
@@ -230,7 +232,13 @@ class CenterSave(Named, Authored, Dated):
 
 class BloockNUM(Named, Authored, Dated):
     number = models.IntegerField(null=True, blank=True)
-    
+
+class StateTopology(Named, Authored, Dated):
+    state = models.IntegerField(null=True, blank=True)
+
+
+
+
 class DataLayer(Named, Authored, Dated, Noted, GeomType,FilePath, Units):
     srs = models.CharField(max_length=50, null=True, blank=True)
     files = models.ManyToManyField('DataFile', null=True, blank=True )

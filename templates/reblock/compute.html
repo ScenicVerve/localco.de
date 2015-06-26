@@ -29,14 +29,13 @@
 
 <body>
 	<div id="map" style="width: 600px; height: 400px"></div>
-
-	<script src="http://leafletjs.com/examples/sample-geojson.js" type="text/javascript"></script>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 
 
 <script>
     var lat = "{{centerlat}}"
     var lng = "{{centerlng}}"
+    console.log(lat)
 		var map = L.map('map').setView([lat, lng], 16);
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
@@ -65,6 +64,7 @@ var roadJSONList = (("{{road_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
 
 roadData = JSON.parse( roadJSONList );
 
+
 var interJSONList = (("{{inter_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
                 return {
                     l   : '<',
@@ -87,6 +87,17 @@ L.geoJson(oriData, {
 
 		}).addTo(map);
 
+
+L.geoJson(interData, {
+            weight: 2,
+            color: "blue",
+            opacity: 0.8,
+            fillColor: "#blue",
+            fillOpacity: 0.8
+
+		}).addTo(map);
+
+
 L.geoJson(roadData, {
             weight: 2,
             color: "#FC4E2A",
@@ -96,14 +107,7 @@ L.geoJson(roadData, {
 
 		}).addTo(map);
         
-L.geoJson(interData, {
-            weight: 2,
-            color: "blue",
-            opacity: 0.8,
-            fillColor: "#blue",
-            fillOpacity: 0.8
 
-		}).addTo(map);
         
 <!--layer from geoJson to overlay on top of map-->
 
@@ -115,7 +119,7 @@ L.geoJson(interData, {
 
 {% endblock %}
     
-    
+    <!--
 <form id="layerconfigure" action="/reblock/configure/" method="POST" enctype="multipart/form-data">
 
 
@@ -123,7 +127,7 @@ L.geoJson(interData, {
     <div><h1> Site Configuration Name: <input type="text" name="name"/></h1></div>
     <div> Set Radius: <input type="text" name="radius"/>(Defaults to 1,000 mts)</div>
     <div> Set SRS: <input type="text" name="srs"/>(Defaults to Site layer's SRS)</div>
-</form>
+</form>-->
 
 {% endblock %}
 

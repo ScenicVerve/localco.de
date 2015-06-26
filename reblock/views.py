@@ -37,9 +37,12 @@ from reblock.models import *
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
 from django.utils import simplejson
+from fractions import Fraction
+
 
 center_lat = None
 center_lng = None
+default_srs = 24373
 
 def index(request):
     """A view for browsing the existing webfinches.
@@ -121,11 +124,8 @@ def review(request):
                 srs = checkedPrj(form.cleaned_data['srs'])
                 ds = DataSource(form.cleaned_data['file_location'])
                 layer = ds[0]
-		print srs
                 
                 geoms = checkGeometryType(layer)
-
-                #print user
                 scale_factor2 = scaleFactor(geoms)
                 run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, srs = srs)
 
@@ -143,26 +143,26 @@ def review(request):
         ds = DataSource( file_path )
         layer = ds[0]
         srs = layer_data[0]['srs']
-        
-
-        geoms = checkGeometryType(layer)
+        if not isnumber(srs):
+            srs = default_srs
+        print srs
         ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
-        #print len(layer)
         
         reviewdic = []
         x_ct = 0
         y_ct = 0
+        
+        count = 0
         for feat in layer:
-            #print feat
             geom = feat.geom # getting clone of feature geometry
             geom.transform(ct) # transforming
-            x_ct += geom.centroid.coords[0]
-            y_ct += geom.centroid.coords[1]
-            #print type(geom.json)
             reviewdic.append(json.loads(geom.json))
+            if count == 0 and geom[0][0][0] and isnumber(geom[0][0][0]): 
+                count =1
+                x_ct = geom[0][0][0]
+                y_ct = geom[0][0][1]
+        
         reviewjson = json.dumps(reviewdic)
-        x_ct = x_ct/len(layer)
-        y_ct = y_ct/len(layer)
         
         center_lat = y_ct
         center_lng = x_ct
@@ -197,7 +197,6 @@ def compute(request):
 
 
         number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
-        
         ori_layer = BlockJSON3.objects.filter(author=user).order_by('-date_edited')
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
@@ -207,26 +206,37 @@ def compute(request):
         inter_layers = InteriorJSON3.objects.filter(author=user).order_by('-date_edited')        
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
-    centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lat
-    centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lng
-    
-	# we pass reprojected geoms to javascript
-	
-	# we display geometries on leaflet
+        centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lat
+        centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lng
+        
+        c = {
+                'ori_proj': ori_proj,
+                'road_proj': road_proj,
+                'inter_proj': inter_proj,
+                'centerlat':centerlat,
+                'centerlng':centerlng,
+        
+                }
+        
+        state = StateTopology.objects.filter(author=user).order_by('-date_edited')
+        
+        return render_to_response(
+                'reblock/compute.html',
+                RequestContext(request, c),
+                )
 
-    
-    c = {
-            'ori_proj': ori_proj,
-            'road_proj': road_proj,
-            'inter_proj': inter_proj,
-            'centerlat':centerlat,
-            'centerlng':centerlng,
-    
-            }
-    return render_to_response(
-            'reblock/compute.html',
-            RequestContext(request, c),
-            )
+
+def isnumber(s):
+    s = str(s)
+    try:
+        float(s)
+        return True
+    except ValueError:
+        try: 
+            Fraction(s)
+            return True
+        except ValueError: 
+            return False
 
 
 """
@@ -240,6 +250,8 @@ def project_meter2degree(layer = None, num = 1):
         myjson = la.topo_json
         new_layer= DataSource(myjson)[0]
         srs = layer[0].srs
+        if not isnumber(srs):
+            srs = default_srs
         new_proj =[]
         coord_transform = CoordTransform(SpatialReference(srs), SpatialReference(4326))
         for feat in new_layer:
@@ -294,7 +306,8 @@ def checkGeometryType(gdal_layer, srs=None):
             lst.extend(flattenAll(geom))			
         else:#not supported geometry type, raise exception
             raise IOError(geom.geom_type+"is the wrong type of geometry to process")
-    
+
+
     
     
     
@@ -477,7 +490,6 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
         if vquiet is False:
             if remain > 300 or remain in [50, 100, 150, 200, 225, 250, 275]:
                 pass
-                # print "{} interior parcels left".format(remain)
 
     # update the properties of nodes & edges to reflect new geometry.
 
@@ -520,10 +532,11 @@ def graphFromLineString(lst,name = None,rezero=np.array([0, 0]),scale = 1):
 The function that check the projection information according to the file uploaded to the database
 """
 def checkedPrj(srs0):
-    if srs0.isnumeric():
+    if isnumber(srs0):
         srs = int(srs0)
     elif srs0 != None:
-        srs = int(srs0[srs0.find(':')+1:])
+        try: srs = int(srs0[srs0.find(':')+1:])
+        except: srs = None
     else:
         #no srs information is found, raise exception
         print 'no srs information is found'
