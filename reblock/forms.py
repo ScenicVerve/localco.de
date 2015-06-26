@@ -4,6 +4,7 @@ import zipfile
 from django import forms
 from django.forms import widgets
 from django.forms.formsets import formset_factory
+from django.contrib.auth.models import User
 
 from reblock.models import DataFile, DataLayer, UploadEvent
 
@@ -59,6 +60,15 @@ class SiteConfigurationForm(forms.ModelForm):
     class Meta:
         model = DataLayer
         fields = ['name', 'srs','notes','geometry_type', 'tags']
+        
+        
+class UserForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput())
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password')
+        
 
 ZipFormSet = formset_factory(ZipUploadForm, extra=1)
 LayerReviewFormSet = formset_factory(LayerReviewForm, extra=0)

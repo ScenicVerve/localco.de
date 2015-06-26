@@ -23,6 +23,8 @@ urlpatterns = patterns('',
     (r'^reblock/configure/$', 'reblock.views.configure'),
     (r'^reblock/get_sites/$', 'reblock.views.get_sites'),
     (r'^reblock/compute/$', 'reblock.views.compute'),
+    (r'^reblock/register/$', 'reblock.views.register'),
+    (r'^registration/registration_complete/$', 'reblock.views.registration_complete'),
     #(r'^webfinches/user/$', 'webfinches.views.user'),
 
     # Login / logout.

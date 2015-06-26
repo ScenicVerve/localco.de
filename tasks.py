@@ -1,7 +1,7 @@
 from celery import Celery
 from reblock.models import *
-#from django.core.mail import send_mail
-#from django.core.mail import EmailMultiAlternatives
+from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from reblock.views import *
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
@@ -37,11 +37,11 @@ def run_topology(lst, name=None, user = None, scale_factor=1, srs=None):
         db_json = RoadJSON3(name=name, topo_json = road, author = user,block_index = i, srs = srs)
         db_json.save()
 
-    test = IntermediateJSON4.objects.filter(author=user).order_by('-date_edited')   
-    print test[0].topo_json
+    #test = IntermediateJSON4.objects.filter(author=user).order_by('-date_edited')   
+    #print test[0].topo_json
 
-    email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
-    email.send()
+    #email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
+    #email.send()
 
 
 
