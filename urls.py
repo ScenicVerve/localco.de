@@ -6,6 +6,11 @@ from django.contrib.auth.views import login, logout
 admin.autodiscover()
 
 
+interurls = [url(r'^$', 'reblock.views.intermediate'),
+             url(r'^(?P<index>[0-9]+)/$', 'reblock.views.steps'),
+
+]
+
 urlpatterns = patterns('',
 
     # home
@@ -23,6 +28,13 @@ urlpatterns = patterns('',
     (r'^reblock/configure/$', 'reblock.views.configure'),
     (r'^reblock/get_sites/$', 'reblock.views.get_sites'),
     (r'^reblock/compute/$', 'reblock.views.compute'),
+    
+    #intermediate
+    #(r'^reblock/intermediate/$', 'reblock.views.intermediate'),
+    url(r'^reblock/intermediate/', include(interurls)),
+
+    
+    
     #(r'^webfinches/user/$', 'webfinches.views.user'),
 
     # Login / logout.
@@ -44,5 +56,7 @@ urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
     # admin documentation
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    
+
 
 )

@@ -109,7 +109,7 @@ L.geoJson(roadData, {
         
 
         
-<!--layer from geoJson to overlay on top of map-->
+<!--layer from geoJson to overlay on top of map
 
 
 	</script>
@@ -118,16 +118,19 @@ L.geoJson(roadData, {
 
 
 {% endblock %}
-    
+                  <form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ formset.management_form }}
+                <input type="submit" value="Intermediate Steps" />
+
+              </form>
     <!--
-<form id="layerconfigure" action="/reblock/configure/" method="POST" enctype="multipart/form-data">
-
-
-    <div><input type="submit" value="Upload New Configuration" /></div>
+<form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
+    <div><input type="submit" value="Intermediate Steps" /></div>
     <div><h1> Site Configuration Name: <input type="text" name="name"/></h1></div>
     <div> Set Radius: <input type="text" name="radius"/>(Defaults to 1,000 mts)</div>
-    <div> Set SRS: <input type="text" name="srs"/>(Defaults to Site layer's SRS)</div>
-</form>-->
+    <div> Set SRS: <input type="text" name="srs"/>(Defaults to Site layer's SRS)</div>-->
+</form>
 
 {% endblock %}
 

@@ -139,25 +139,25 @@ def review(request):
         
         formset = LayerReviewFormSet( initial=layer_data )
 	
-    c = {
-            'test_layers': reviewjson,
-            'formset':formset,
-            'centerlat':center_lat,
-            'centerlng':center_lng,
-            }
-    return render_to_response(
-            'reblock/review.html',
-            RequestContext(request, c),
-            )
+        c = {
+                'test_layers': reviewjson,
+                'formset':formset,
+                'centerlat':center_lat,
+                'centerlng':center_lng,
+                }
+        return render_to_response(
+                'reblock/review.html',
+                RequestContext(request, c),
+                )
 
-@login_required
 @login_required
 def compute(request):
     
     user = request.user
+    print request.method
     if request.method == 'POST': # someone is editing site configuration
-        pass
-
+        return HttpResponseRedirect('/reblock/intermediate/')
+        
     else:
         # We are browsing data
 
@@ -188,6 +188,52 @@ def compute(request):
                 RequestContext(request, c),
                 )
 
+def intermediate(request):
+    if request.method == 'POST': # someone is editing site configuration
+        pass
+    else:
+        return render_to_response(
+            'reblock/intermediate.html',
+            )
+
+
+@login_required
+def steps(request, index):
+    user = request.user
+    
+    if request.method == 'POST': # someone is editing site configuration
+        pass
+    else:
+        
+        centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lat
+        centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lng
+        
+        number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
+        
+        ori_layer = BlockJSON3.objects.filter(author=user).order_by('-date_edited')
+        ori_proj = project_meter2degree(layer = ori_layer,num = number)
+
+##################step data######################
+        step_layers = IntermediateJSON5.objects.filter(author=user).order_by('-date_edited').reverse()        
+        inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(index))
+
+        road_layers = IntermediateJSON5.objects.filter(author=user).order_by('-date_edited').reverse()        
+        road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(index))
+
+        c = {
+                'ori_proj': ori_proj,
+                'road_proj': road_proj,
+                'inter_proj': inter_proj,
+                'centerlat':centerlat,
+                'centerlng':centerlng,
+        
+                }
+                
+        return render_to_response(
+            'reblock/steps.html',
+            RequestContext(request, c),
+            )
+
 
 def isnumber(s):
     s = str(s)
@@ -206,9 +252,9 @@ def isnumber(s):
 function to reproject gdal layer(in meters) to degree, and output geojson file
 num is the amount of block to keep from the layer
 """
-def project_meter2degree(layer = None, num = 1):
+def project_meter2degree(layer = None, num = 1, offset = 0):
     layer_json = []
-    for la in layer[:num]:
+    for la in layer[offset:num+offset]:
     
         myjson = la.topo_json
         new_layer= DataSource(myjson)[0]
@@ -228,6 +274,31 @@ def project_meter2degree(layer = None, num = 1):
     
     return layer_json
 
+"""
+function to reproject gdal layer(in meters) to degree, and output geojson file
+num is the amount of block to keep from the layer
+"""
+def projectRd_meter2degree(layer = None, num = 1, offset = 0):
+    layer_json = []
+    for la in layer[offset:num+offset]:
+    
+        myjson = la.road_json
+        new_layer= DataSource(myjson)[0]
+        srs = layer[0].srs
+        if not isnumber(srs):
+            srs = default_srs
+        new_proj =[]
+        coord_transform = CoordTransform(SpatialReference(srs), SpatialReference(4326))
+        for feat in new_layer:
+            geom = feat.geom
+                
+            geom.transform(coord_transform)
+                
+            new_proj.append(json.loads(geom.json))
+        layer_json.extend(new_proj)
+    layer_json = json.dumps(layer_json)
+    
+    return layer_json
 
 def centroid(geom):
     lst = [Polygon(LinearRing(g.coords)).centroid for g in geom]
