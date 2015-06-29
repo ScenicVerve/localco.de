@@ -1,0 +1,134 @@
+{% extends 'reblock/review.html' %}
+{% load static %}
+
+{% block css %}
+        <link rel="stylesheet" href="{% get_static_prefix %}css/home.css" type="text/css"/>
+        <link rel="stylesheet" href="{% get_static_prefix %}css/layers.css" type="text/css"/>
+{% endblock %}
+
+{% block subtitle %}
+    Build Site Configurations
+{% endblock %}
+
+{% block layernavs %}
+<!--            <li><a href="/reblock"><div class="sitenav">Browse Data</div></a></li>-->
+{% endblock %}
+
+{% block content %}
+
+{% block scripts %}
+  <head>
+	
+	<meta charset="utf-8" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+</head>
+
+
+<body>
+	<div id="map" style="width: 600px; height: 400px"></div>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+
+
+<script>
+    var lat = "{{centerlat}}"
+    var lng = "{{centerlng}}"
+    console.log(lat)
+		var map = L.map('map').setView([lat, lng], 16);
+L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+    maxZoom: 20,
+    id: 'panthersuper.7558b934',
+    accessToken: 'pk.eyJ1IjoicGFudGhlcnN1cGVyIiwiYSI6Il9JRlBXMkkifQ.4VOcpN_xI1jf1XxjnIZHmw'
+}).addTo(map);
+
+var oriJSONList = (("{{ori_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
+                return {
+                    l   : '<',
+                    g   : '>',
+                    quo : '"'
+                }[b];
+            }));
+
+oriData = JSON.parse( oriJSONList );
+
+var roadJSONList = (("{{road_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
+                return {
+                    l   : '<',
+                    g   : '>',
+                    quo : '"'
+                }[b];
+            }));
+
+roadData = JSON.parse( roadJSONList );
+
+
+var interJSONList = (("{{inter_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
+                return {
+                    l   : '<',
+                    g   : '>',
+                    quo : '"'
+                }[b];
+            }));
+
+interData = JSON.parse( interJSONList );
+
+
+
+L.geoJson(oriData, {
+            weight: 1.5,
+            color: "#B0DE5C",
+            opacity: 0.8,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.8,
+            dashArray: '4',
+
+		}).addTo(map);
+
+
+L.geoJson(interData, {
+            weight: 2,
+            color: "blue",
+            opacity: 0.8,
+            fillColor: "#blue",
+            fillOpacity: 0.8
+
+		}).addTo(map);
+
+
+L.geoJson(roadData, {
+            weight: 2,
+            color: "#FC4E2A",
+            opacity: 0.8,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.8
+
+		}).addTo(map);
+        
+
+        
+<!--layer from geoJson to overlay on top of map-->
+
+
+	</script>
+
+
+
+
+{% endblock %}
+    
+    <!--
+<form id="layerconfigure" action="/reblock/configure/" method="POST" enctype="multipart/form-data">
+
+
+    <div><input type="submit" value="Upload New Configuration" /></div>
+    <div><h1> Site Configuration Name: <input type="text" name="name"/></h1></div>
+    <div> Set Radius: <input type="text" name="radius"/>(Defaults to 1,000 mts)</div>
+    <div> Set SRS: <input type="text" name="srs"/>(Defaults to Site layer's SRS)</div>
+</form>-->
+
+{% endblock %}
+
+
