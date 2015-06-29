@@ -121,8 +121,8 @@ L.geoJson(roadData, {
                   <form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ formset.management_form }}
-                <input type="submit" value="Intermediate Steps" />
-
+    <input type="submit" value="Check Intermediate Step" />
+    <div> Intermediate Step Index: <input type="text" name="stepindex"/>(default = 0)</div>
               </form>
     <!--
 <form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">

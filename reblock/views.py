@@ -154,9 +154,13 @@ def review(request):
 def compute(request):
     
     user = request.user
-    print request.method
     if request.method == 'POST': # someone is editing site configuration
-        return HttpResponseRedirect('/reblock/intermediate/')
+        try: 
+            link = int(request.POST.get("stepindex"))
+            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
+        except: 
+            link = 0
+            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
         
     else:
         # We are browsing data
@@ -190,7 +194,12 @@ def compute(request):
 
 def intermediate(request):
     if request.method == 'POST': # someone is editing site configuration
-        pass
+        try: 
+            link = int(request.POST.get("stepindex"))
+            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
+        except: 
+            link = 0
+            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
     else:
         return render_to_response(
             'reblock/intermediate.html',
@@ -202,7 +211,13 @@ def steps(request, index):
     user = request.user
     
     if request.method == 'POST': # someone is editing site configuration
-        pass
+        print 2222222222
+        try: 
+            link = int(request.POST.get("stepindex"))
+            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
+        except: 
+            link = 0
+            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
     else:
         
         centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lat
@@ -254,7 +269,7 @@ num is the amount of block to keep from the layer
 """
 def project_meter2degree(layer = None, num = 1, offset = 0):
     layer_json = []
-    for la in layer[offset:num+offset]:
+    for la in layer[offset*num:num+offset*num]:
     
         myjson = la.topo_json
         new_layer= DataSource(myjson)[0]
@@ -280,7 +295,7 @@ num is the amount of block to keep from the layer
 """
 def projectRd_meter2degree(layer = None, num = 1, offset = 0):
     layer_json = []
-    for la in layer[offset:num+offset]:
+    for la in layer[offset*num:num+offset*num]:
     
         myjson = la.road_json
         new_layer= DataSource(myjson)[0]
