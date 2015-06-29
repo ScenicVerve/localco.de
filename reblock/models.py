@@ -217,14 +217,16 @@ class InteriorJSON3(SaveJSON3):
         return "InteriorJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
 
-class IntermediateJSON4(Named, Authored, Dated):
+class IntermediateJSON5(Named, Authored, Dated):
     step_index = models.IntegerField(null=True, blank=True)
     topo_json = models.TextField(null=True, blank=True)
+    road_json = models.TextField(null=True, blank=True)
     block_index = models.IntegerField(null=True, blank=True)
     srs = models.TextField(null=True, blank=True)
 
     def __unicode__(self):
         return "IntermediateJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
+
 
 class CenterSave(Named, Authored, Dated):
     lat = models.TextField(null=True, blank=True)
@@ -232,12 +234,6 @@ class CenterSave(Named, Authored, Dated):
 
 class BloockNUM(Named, Authored, Dated):
     number = models.IntegerField(null=True, blank=True)
-
-class StateTopology(Named, Authored, Dated):
-    state = models.IntegerField(null=True, blank=True)
-
-
-
 
 class DataLayer(Named, Authored, Dated, Noted, GeomType,FilePath, Units):
     srs = models.CharField(max_length=50, null=True, blank=True)

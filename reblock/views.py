@@ -112,7 +112,6 @@ def review(request):
         srs = layer_data[0]['srs']
         if not isnumber(srs):
             srs = default_srs
-        print srs
         ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
         
         reviewdic = []
@@ -183,9 +182,7 @@ def compute(request):
                 'centerlng':centerlng,
         
                 }
-        
-        state = StateTopology.objects.filter(author=user).order_by('-date_edited')
-        
+                
         return render_to_response(
                 'reblock/compute.html',
                 RequestContext(request, c),
@@ -309,7 +306,7 @@ def run_once(original,name=None, user = None, block_index = 0, srs = None):
     else:
         block = original.copy()
     
-    roads = json.dumps({"type": "FeatureCollection",
+    roads = simplejson.dumps({"type": "FeatureCollection",
                            "features": [e.geoJSON() for e in block.myedges() if e.road]})
         
     block.plot_roads(master=original, new_plot=False)
@@ -394,12 +391,13 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
     md = 100
 
-    while myG.interior_parcels:############extract?###########
+    while myG.interior_parcels:############extract###########
         #save remaining interior parcel to the database
         gJson = simplejson.dumps(json.loads(mgh.graphFromMyFaces(myG.interior_parcels).myedges_geoJSON()))
-        db_json = IntermediateJSON4(name=name, topo_json = gJson, author = user,step_index = len(myG.interior_parcels),block_index = block_index, srs = srs)
+        roads = simplejson.dumps({"type": "FeatureCollection","features": [e.geoJSON() for e in myG.myedges() if e.road]})
+        db_json = IntermediateJSON5(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(myG.interior_parcels),block_index = block_index, srs = srs)
         db_json.save()
-        
+
         result, depth = mgh.form_equivalence_classes(myG)
 
         # flist from result!
