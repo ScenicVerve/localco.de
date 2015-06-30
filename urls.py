@@ -32,8 +32,6 @@ urlpatterns = patterns('',
     #intermediate
     #(r'^reblock/intermediate/$', 'reblock.views.intermediate'),
     url(r'^reblock/intermediate/', include(interurls)),
-
-    
     
     #(r'^webfinches/user/$', 'webfinches.views.user'),
 

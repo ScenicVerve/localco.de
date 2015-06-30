@@ -205,6 +205,8 @@ def intermediate(request):
             'reblock/intermediate.html',
             )
 
+    
+
 
 @login_required
 def steps(request, index):

@@ -30,9 +30,11 @@
 <body>
 	<div id="map" style="width: 600px; height: 400px"></div>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 
 
 <script>
+    
     var lat = "{{centerlat}}"
     var lng = "{{centerlng}}"
     console.log(lat)
@@ -112,12 +114,34 @@ L.geoJson(roadData, {
 <!--layer from geoJson to overlay on top of map
 
 
-	</script>
+
+var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interJSONList));
+$('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
+
+
+var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(oriJSONList));
+$('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
+	
+var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadJSONList));
+$('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
+
+
+
+    </script>
+    
+
 
 
 
 
 {% endblock %}
+
+
+<div id="container"></div>
+
+
+
+
                   <form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ formset.management_form }}
