@@ -76,6 +76,39 @@ def upload(request):
             RequestContext(request, c),
             )
 
+
+def register(request):
+    context = RequestContext(request)
+    registered = False
+
+    if request.method == 'POST':
+        user_form = UserForm(data=request.POST)
+
+        if user_form.is_valid():
+            # Save the user's form data to the database.
+            user = user_form.save()
+            user.set_password(user.password)
+            user.save()
+            registered = True
+	    
+	    return HttpResponseRedirect('/registration/registration_complete/')
+	
+	    email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
+	    email.send()
+	    
+
+        else:
+            print user_form.errors
+
+    else:
+        user_form = UserForm()
+
+	return render_to_response(
+		'reblock/register.html',
+		{'user_form': user_form, 'registered': registered},
+		context)
+
+
 @login_required
 def review(request):
     """
@@ -164,6 +197,7 @@ def compute(request):
         
     else:
         # We are browsing data
+
 
         number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
         ori_layer = BlockJSON3.objects.filter(author=user).order_by('-date_edited')

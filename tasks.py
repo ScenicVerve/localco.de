@@ -1,7 +1,7 @@
 from celery import Celery
 from reblock.models import *
-#from django.core.mail import send_mail
-#from django.core.mail import EmailMultiAlternatives
+from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from reblock.views import *
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
@@ -13,7 +13,10 @@ app = Celery('tasks', broker='amqp://guest@localhost//')
 rewrite topology, using linestring list as input, save data to the database
 """
 @app.task
-def run_topology(lst, name=None, user = None, scale_factor=1, srs = None):
+
+def run_topology(lst, name=None, user = None, scale_factor=1, srs=None):
+
+
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     print blocklist
     num = BloockNUM(name=name, number = len(blocklist), author = user)

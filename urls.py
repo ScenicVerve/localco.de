@@ -32,7 +32,8 @@ urlpatterns = patterns('',
     #intermediate
     #(r'^reblock/intermediate/$', 'reblock.views.intermediate'),
     url(r'^reblock/intermediate/', include(interurls)),
-    
+    (r'^reblock/register/$', 'reblock.views.register'),
+    (r'^registration/registration_complete/$', 'reblock.views.registration_complete'),
     #(r'^webfinches/user/$', 'webfinches.views.user'),
 
     # Login / logout.
