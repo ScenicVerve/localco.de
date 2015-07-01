@@ -41,7 +41,7 @@ urlpatterns = patterns('',
     (r'^reblock/compute/', include(interurls2)),
     
     #intermediate
-    url(r'^reblock/intermediate/', include(interurls)),
+    #url(r'^reblock/intermediate/', include(interurls)),
     
     #url(r'^(?P<slug>[-\w\d]+),(?P<id>\d+)/$', view=myviews.article, name='article'),
 

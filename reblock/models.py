@@ -212,12 +212,14 @@ class BlockJSON4(SaveJSON3):
     def __unicode__(self):
         return "BlockJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
-class RoadJSON3(SaveJSON3):
+class RoadJSON4(SaveJSON3):
+    number = models.ForeignKey(BloockNUM)
     def __unicode__(self):
         return "RoadJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
 
-class InteriorJSON3(SaveJSON3):
+class InteriorJSON4(SaveJSON3):
+    number = models.ForeignKey(BloockNUM)
     def __unicode__(self):
         return "InteriorJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 

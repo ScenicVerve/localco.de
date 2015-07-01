@@ -190,13 +190,18 @@ def compute(request):
     
     
     if request.method == 'POST': # someone is editing site configuration
-        try: 
+        try:
             link = int(request.POST.get("stepindex"))
+        except:
+            link = -1
+        try:
+            pr_id = int(request.POST.get("projindex"))
+        except:
             pr_id = 0
-            return HttpResponseRedirect('/reblock/compute/'+str(user)+"-"+str(pr_id)+"/"+str(link))
-        except: 
-            link = 0
-            pr_id = 0
+        
+        if link == -1:
+            return HttpResponseRedirect('/reblock/compute/'+str(user)+"-"+str(pr_id)+"/")
+        else:
             return HttpResponseRedirect('/reblock/compute/'+str(user)+"-"+str(pr_id)+"/"+str(link))
         
     else:
@@ -210,10 +215,10 @@ def compute(request):
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
         
-        road_layers = RoadJSON3.objects.filter(author=user).order_by('-date_edited')        
+        road_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(0)].roadjson4_set.all().order_by('-date_edited') 
         road_proj = project_meter2degree(layer = road_layers,num = number)
         
-        inter_layers = InteriorJSON3.objects.filter(author=user).order_by('-date_edited')        
+        inter_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(0)].interiorjson4_set.all().order_by('-date_edited')    
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
         centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lat
@@ -243,14 +248,14 @@ def final(request, slot_user, project_id):
             pass
         else:
             number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].number
-            ori_layer = BlockJSON4.objects.filter(author=user).order_by('-date_edited')
-            ori_proj = project_meter2degree(layer = ori_layer,num = number,offset = int(project_id))
+            ori_layer = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].blockjson4_set.all().order_by('-date_edited') 
+            ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
-            road_layers = RoadJSON3.objects.filter(author=user).order_by('-date_edited')        
-            road_proj = project_meter2degree(layer = road_layers,num = number,offset = int(project_id))
+            road_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].roadjson4_set.all().order_by('-date_edited') 
+            road_proj = project_meter2degree(layer = road_layers,num = number)
             
-            inter_layers = InteriorJSON3.objects.filter(author=user).order_by('-date_edited')        
-            inter_proj = project_meter2degree(layer = inter_layers,num = number,offset = int(project_id))
+            inter_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].interiorjson4_set.all().order_by('-date_edited')    
+            inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
             centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
             centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
@@ -286,7 +291,7 @@ def steps(request, step_index, slot_user, project_id):
             
             number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].number
             ori_layer = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].blockjson4_set.all().order_by('-date_edited') 
-            ori_proj = project_meter2degree(layer = ori_layer,num = 1)
+            ori_proj = project_meter2degree(layer = ori_layer,num = number)
 
     ##################step data######################
             step_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].intermediatejson6_set.all().order_by('-date_edited').reverse()   
