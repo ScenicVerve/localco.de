@@ -116,20 +116,36 @@ def review(request):
     """
     user = request.user
     if request.method == 'POST': # someone is giving us data
-        formset = LayerReviewFormSet(request.POST)
+        #formset = LayerReviewFormSet(request.POST)
         
-        if formset.is_valid():
-            # For every layer in the layer form, write a PostGIS object to the DB
-            for form in formset:
-                srs = checkedPrj(form.cleaned_data['srs'])
-                ds = DataSource(form.cleaned_data['file_location'])
-                layer = ds[0]
+        upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
+        data_files = DataFile.objects.filter(upload=upload)
+        layer_data = [ f.get_layer_data() for f in data_files ]
+        
+        #########get the information filled by user#########
+        if len(str(request.POST.get("name")))>0 :
+            name = request.POST.get("name")
+        else:
+            name = layer_data[0]['name']
+        if len(str(request.POST.get("location")))>0 :
+            location = request.POST.get("location")
+        else:
+            location = "-"
+        if len(str(request.POST.get("description")))>0 :
+            desc = request.POST.get("description")
+        else:
+            desc = "-"
+        
+        print name
+        # For every layer in the layer form, write a PostGIS object to the DB
+        
+        srs = checkedPrj(layer_data[0]['srs'])
+        ds = DataSource(layer_data[0]['file_location'])
+        layer = ds[0]
                 
-                geoms = checkGeometryType(layer)
-                scale_factor2 = scaleFactor(geoms)
-                run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, srs = srs)
-
-
+        geoms = checkGeometryType(layer)
+        scale_factor2 = scaleFactor(geoms)
+        run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, srs = srs)
 
         return HttpResponseRedirect('/reblock/compute/')
         
@@ -206,8 +222,6 @@ def compute(request):
         
     else:
         # We are browsing data
-
-
         number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
         
         

@@ -75,19 +75,15 @@ myData = JSON.parse( myJSONList );
 
 {% endblock %}
 
-
-
-
-
-
-              <form id="layerreviewer" action="/reblock/review/" method="POST" enctype="multipart/form-data">
+<form id="layerreviewer" action="/reblock/review/" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ formset.management_form }}
-                <input type="submit" value="Upload New Configuration" />
-                  {% for form in formset %}
-                  <div class="layer">
-                    {{ form.as_p }}
-                  </div>
-                  {% endfor %}
-              </form>
+<input type="submit" value="Start Calculation" />
+<div> Project Name: <input type="text" name="name"/></div>
+<div> Project Location: <input type="text" name="location"/></div>     
+<textarea name="description" rows="4" cols="50">Please Write your project description here...</textarea>
+
+
+     
+</form>
 {% endblock %}
