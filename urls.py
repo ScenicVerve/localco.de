@@ -8,7 +8,16 @@ admin.autodiscover()
 
 interurls = [url(r'^$', 'reblock.views.intermediate'),
              url(r'^(?P<index>[0-9]+)/$', 'reblock.views.steps'),
+]
 
+#user sluted url
+
+
+interurls3 = [url(r'^$', 'reblock.views.final'),
+             url(r'^(?P<step_index>[0-9]+)/$', 'reblock.views.steps'),
+]
+interurls2 = [url(r'^$', 'reblock.views.compute'),
+             url(r'^(?P<slot_user>[-\w\d]+)-(?P<project_id>[0-9]+)/', include(interurls3)),
 ]
 
 urlpatterns = patterns('',
@@ -27,15 +36,22 @@ urlpatterns = patterns('',
     (r'^reblock/browse_empty/$', 'reblock.views.browse_empty'), #browse warning
     (r'^reblock/configure/$', 'reblock.views.configure'),
     (r'^reblock/get_sites/$', 'reblock.views.get_sites'),
-    (r'^reblock/compute/$', 'reblock.views.compute'),
+    
+    
+    (r'^reblock/compute/', include(interurls2)),
     
     #intermediate
-    #(r'^reblock/intermediate/$', 'reblock.views.intermediate'),
     url(r'^reblock/intermediate/', include(interurls)),
+    
+    #url(r'^(?P<slug>[-\w\d]+),(?P<id>\d+)/$', view=myviews.article, name='article'),
+
+    #register
     (r'^reblock/register/$', 'reblock.views.register'),
     (r'^registration/registration_complete/$', 'reblock.views.registration_complete'),
     #(r'^webfinches/user/$', 'webfinches.views.user'),
+    
 
+    
     # Login / logout.
     (r'^login/$', login, {'template_name': 'registration/login.html'}),
     (r'^logout/$', 'django.contrib.auth.views.logout' ),

@@ -139,21 +139,15 @@ $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').append
 
 <div id="container"></div>
 
-
-
-
                   <form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ formset.management_form }}
     <input type="submit" value="Check Intermediate Step" />
     <div> Intermediate Step Index: <input type="text" name="stepindex"/>(default = 0)</div>
               </form>
-    <!--
-<form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
-    <div><input type="submit" value="Intermediate Steps" /></div>
-    <div><h1> Site Configuration Name: <input type="text" name="name"/></h1></div>
-    <div> Set Radius: <input type="text" name="radius"/>(Defaults to 1,000 mts)</div>
-    <div> Set SRS: <input type="text" name="srs"/>(Defaults to Site layer's SRS)</div>-->
+   
+   
+   
 </form>
 
 {% endblock %}

@@ -187,21 +187,28 @@ def review(request):
 def compute(request):
     
     user = request.user
+    
+    
     if request.method == 'POST': # someone is editing site configuration
         try: 
             link = int(request.POST.get("stepindex"))
-            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
+            pr_id = 0
+            return HttpResponseRedirect('/reblock/compute/'+str(user)+"-"+str(pr_id)+"/"+str(link))
         except: 
             link = 0
-            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
+            pr_id = 0
+            return HttpResponseRedirect('/reblock/compute/'+str(user)+"-"+str(pr_id)+"/"+str(link))
         
     else:
         # We are browsing data
 
 
         number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
-        ori_layer = BlockJSON3.objects.filter(author=user).order_by('-date_edited')
+        
+        
+        ori_layer = BlockJSON4.objects.filter(author=user).order_by('-date_edited')
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
+        
         
         road_layers = RoadJSON3.objects.filter(author=user).order_by('-date_edited')        
         road_proj = project_meter2degree(layer = road_layers,num = number)
@@ -226,64 +233,79 @@ def compute(request):
                 RequestContext(request, c),
                 )
 
-def intermediate(request):
-    if request.method == 'POST': # someone is editing site configuration
-        try: 
-            link = int(request.POST.get("stepindex"))
-            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
-        except: 
-            link = 0
-            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
-    else:
-        return render_to_response(
-            'reblock/intermediate.html',
-            )
-
+@login_required
+def final(request, slot_user, project_id):
+    user = request.user
     
+    ##########should be slotified user
+    if str(user)==slot_user:
+        if request.method == 'POST': # someone is editing site configuration
+            pass
+        else:
+            number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].number
+            ori_layer = BlockJSON4.objects.filter(author=user).order_by('-date_edited')
+            ori_proj = project_meter2degree(layer = ori_layer,num = number,offset = int(project_id))
+            
+            road_layers = RoadJSON3.objects.filter(author=user).order_by('-date_edited')        
+            road_proj = project_meter2degree(layer = road_layers,num = number,offset = int(project_id))
+            
+            inter_layers = InteriorJSON3.objects.filter(author=user).order_by('-date_edited')        
+            inter_proj = project_meter2degree(layer = inter_layers,num = number,offset = int(project_id))
+
+            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
+            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
+
+            c = {
+                    'ori_proj': ori_proj,
+                    'road_proj': road_proj,
+                    'inter_proj': inter_proj,
+                    'centerlat':centerlat,
+                    'centerlng':centerlng,
+            
+                    }
+                    
+            return render_to_response(
+                'reblock/steps.html',
+                RequestContext(request, c),
+                )
+
+
 
 
 @login_required
-def steps(request, index):
+def steps(request, step_index, slot_user, project_id):
     user = request.user
     
-    if request.method == 'POST': # someone is editing site configuration
-        print 2222222222
-        try: 
-            link = int(request.POST.get("stepindex"))
-            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
-        except: 
-            link = 0
-            return HttpResponseRedirect('/reblock/intermediate/'+str(link))
-    else:
-        
-        centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lat
-        centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lng
-        
-        number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
-        
-        ori_layer = BlockJSON3.objects.filter(author=user).order_by('-date_edited')
-        ori_proj = project_meter2degree(layer = ori_layer,num = number)
+    ##########should be slotified user
+    if str(user)==slot_user:
+        if request.method == 'POST': # someone is editing site configuration
+            pass
+        else:
+            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
+            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
+            
+            number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].number
+            ori_layer = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].blockjson4_set.all().order_by('-date_edited') 
+            ori_proj = project_meter2degree(layer = ori_layer,num = 1)
 
-##################step data######################
-        step_layers = IntermediateJSON5.objects.filter(author=user).order_by('-date_edited').reverse()        
-        inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(index))
+    ##################step data######################
+            step_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].intermediatejson6_set.all().order_by('-date_edited').reverse()   
+            inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+            road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
 
-        road_layers = IntermediateJSON5.objects.filter(author=user).order_by('-date_edited').reverse()        
-        road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(index))
-
-        c = {
-                'ori_proj': ori_proj,
-                'road_proj': road_proj,
-                'inter_proj': inter_proj,
-                'centerlat':centerlat,
-                'centerlng':centerlng,
-        
-                }
-                
-        return render_to_response(
-            'reblock/steps.html',
-            RequestContext(request, c),
-            )
+            c = {
+                    'ori_proj': ori_proj,
+                    'road_proj': road_proj,
+                    'inter_proj': inter_proj,
+                    'centerlat':centerlat,
+                    'centerlng':centerlng,
+            
+                    }
+                    
+            return render_to_response(
+                'reblock/steps.html',
+                RequestContext(request, c),
+                )
 
 
 def isnumber(s):
@@ -309,7 +331,7 @@ def project_meter2degree(layer = None, num = 1, offset = 0):
     
         myjson = la.topo_json
         new_layer= DataSource(myjson)[0]
-        srs = layer[0].srs
+        srs = la.srs
         if not isnumber(srs):
             srs = default_srs
         new_proj =[]
@@ -335,7 +357,7 @@ def projectRd_meter2degree(layer = None, num = 1, offset = 0):
     
         myjson = la.road_json
         new_layer= DataSource(myjson)[0]
-        srs = layer[0].srs
+        srs = la.srs
         if not isnumber(srs):
             srs = default_srs
         new_proj =[]
@@ -429,7 +451,7 @@ def run_once(original,name=None, user = None, block_index = 0, srs = None):
         block = original.copy()
     
     roads = simplejson.dumps({"type": "FeatureCollection",
-                           "features": [e.geoJSON() for e in block.myedges() if e.road]})
+                           "features": [e.geoJSON(np.array([0, 0])) for e in block.myedges() if e.road]})
         
     block.plot_roads(master=original, new_plot=False)
     return roads
@@ -516,8 +538,11 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
     while myG.interior_parcels:############extract###########
         #save remaining interior parcel to the database
         gJson = simplejson.dumps(json.loads(mgh.graphFromMyFaces(myG.interior_parcels).myedges_geoJSON()))
-        roads = simplejson.dumps({"type": "FeatureCollection","features": [e.geoJSON() for e in myG.myedges() if e.road]})
-        db_json = IntermediateJSON5(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(myG.interior_parcels),block_index = block_index, srs = srs)
+        roads = simplejson.dumps({"type": "FeatureCollection","features": [e.geoJSON(np.array([0, 0])) for e in myG.myedges() if e.road]})
+        
+        number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
+        
+        db_json = IntermediateJSON6(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(myG.interior_parcels),block_index = block_index, srs = srs, number = number)
         db_json.save()
 
         result, depth = mgh.form_equivalence_classes(myG)
