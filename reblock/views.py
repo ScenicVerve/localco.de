@@ -211,7 +211,7 @@ def compute(request):
         number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
         
         
-        ori_layer = BlockJSON4.objects.filter(author=user).order_by('-date_edited')
+        ori_layer = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(0)].blockjson4_set.all().order_by('-date_edited') 
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
         
