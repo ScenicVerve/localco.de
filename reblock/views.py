@@ -33,6 +33,7 @@ from django.contrib.gis.geos import fromstr
 from tasks import *
 from reblock.forms import *
 from reblock.models import *
+from django.utils import text
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
@@ -135,17 +136,22 @@ def review(request):
             desc = request.POST.get("description")
         else:
             desc = "-"
-        
         print name
-        # For every layer in the layer form, write a PostGIS object to the DB
+        #print text.slugify(name)
         
-        srs = checkedPrj(layer_data[0]['srs'])
+        datainfo = {}
+        datainfo["name"] = name
+        datainfo["location"] = location
+        datainfo["description"] = desc
+        datainfo["srs"] = checkedPrj(layer_data[0]['srs'])
+        
+        # For every layer in the layer form, write a PostGIS object to the DB
         ds = DataSource(layer_data[0]['file_location'])
         layer = ds[0]
                 
         geoms = checkGeometryType(layer)
         scale_factor2 = scaleFactor(geoms)
-        run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, srs = srs)
+        run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, data = datainfo)
 
         return HttpResponseRedirect('/reblock/compute/')
         
@@ -486,14 +492,17 @@ def new_import(lst, name=None,scale = 1):
 
     original = import_and_setup(lst,scale = scale)#create and clean the graph. 
     blocklist = original.connected_components()
-
+    print str(blocklist)+ "--------blocklist"
     print("This map has {} block(s). \n".format(len(blocklist)))
+
 
     # plot the full original map
     for b in blocklist:
         # defines original geometery as a side effect,
+        pass
         b.plot_roads(master=b, new_plot=False, update=True)
 
+    
     blocklist.sort(key=lambda b: len(b.interior_parcels), reverse=True)
 
     return blocklist

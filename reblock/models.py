@@ -199,6 +199,12 @@ class DataFile(Dated):
 class BloockNUM(Named, Authored, Dated):
     number = models.IntegerField(null=True, blank=True)
 
+class DataSave(Named, Authored, Dated):
+    prjname = models.TextField(null=True, blank=True)
+    location = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    number = models.ForeignKey(BloockNUM)
+
 class SaveJSON3(Named, Authored, Dated):
     topo_json = models.TextField(null=True, blank=True)
     block_index = models.IntegerField(null=True, blank=True)

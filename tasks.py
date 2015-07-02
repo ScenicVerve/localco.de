@@ -14,14 +14,16 @@ rewrite topology, using linestring list as input, save data to the database
 """
 @app.task
 
-def run_topology(lst, name=None, user = None, scale_factor=1, srs=None):
+def run_topology(lst, name=None, user = None, scale_factor=1, data=None):
 
 
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     print blocklist
     num = BloockNUM(name=name, number = len(blocklist), author = user)
     num.save()
-    
+    srs = data["srs"]
+    data_save = DataSave(prjname=data["name"], location = data["location"], author = user,description = data["description"], number = num)
+    data_save.save()
     
     for i,g in enumerate(blocklist):
         #ALL THE PARCELS

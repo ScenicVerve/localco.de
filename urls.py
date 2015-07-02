@@ -20,6 +20,8 @@ interurls2 = [url(r'^$', 'reblock.views.compute'),
              url(r'^(?P<slot_user>[-\w\d]+)-(?P<project_id>[0-9]+)/', include(interurls3)),
 ]
 
+
+
 urlpatterns = patterns('',
 
     # home
@@ -37,7 +39,6 @@ urlpatterns = patterns('',
     (r'^reblock/configure/$', 'reblock.views.configure'),
     (r'^reblock/get_sites/$', 'reblock.views.get_sites'),
     
-    
     (r'^reblock/compute/', include(interurls2)),
     
     #intermediate
@@ -49,7 +50,6 @@ urlpatterns = patterns('',
     (r'^reblock/register/$', 'reblock.views.register'),
     (r'^registration/registration_complete/$', 'reblock.views.registration_complete'),
     #(r'^webfinches/user/$', 'webfinches.views.user'),
-    
 
     
     # Login / logout.
