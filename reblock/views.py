@@ -145,6 +145,7 @@ def review(request):
                 
         geoms = checkGeometryType(layer)
         scale_factor2 = scaleFactor(geoms)
+        print geoms, 55555555
         run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, srs = srs)
 
         return HttpResponseRedirect('/reblock/compute/')
@@ -483,7 +484,7 @@ imports the file, plots the original map, and returns
 a list of blocks from the original map.
 """
 def new_import(lst, name=None,scale = 1):
-
+    print lst
     original = import_and_setup(lst,scale = scale)#create and clean the graph.
     print original, 2222
     blocklist = original.connected_components()
