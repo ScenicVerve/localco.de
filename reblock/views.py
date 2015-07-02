@@ -7,7 +7,6 @@ import tempfile, zipfile
 import cStringIO
 import datetime
 import numpy as np
-from matplotlib import pyplot as plt
 
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
@@ -456,8 +455,6 @@ plots all blocks in the same figure.
 """
 
 def run_once(original,name=None, user = None, block_index = 0, srs = None):
-
-    plt.figure()
 
     if len(original.interior_parcels) > 0:
         block = original.copy()
