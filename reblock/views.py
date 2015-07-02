@@ -484,8 +484,10 @@ a list of blocks from the original map.
 """
 def new_import(lst, name=None,scale = 1):
 
-    original = import_and_setup(lst,scale = scale)#create and clean the graph. 
+    original = import_and_setup(lst,scale = scale)#create and clean the graph.
+    print original, 2222
     blocklist = original.connected_components()
+    print blocklist, 3333
 
     print("This map has {} block(s). \n".format(len(blocklist)))
 
