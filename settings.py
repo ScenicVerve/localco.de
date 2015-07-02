@@ -2,6 +2,13 @@ import os
 import djcelery
 djcelery.setup_loader()
 
+#Broker Settings
+BROKER_HOST = 'localhost'
+BROKER_PORT = 5672
+BROKER_USER = 'guest'
+BROKER_PASSWORD = 'guest'
+BROKER_VHOST = '/'
+
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 

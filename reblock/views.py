@@ -7,7 +7,6 @@ import tempfile, zipfile
 import cStringIO
 import datetime
 import numpy as np
-from matplotlib import pyplot as plt
 
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
@@ -534,8 +533,6 @@ plots all blocks in the same figure.
 
 def run_once(original,name=None, user = None, block_index = 0, srs = None):
 
-    plt.figure()
-
     if len(original.interior_parcels) > 0:
         block = original.copy()
 
@@ -561,12 +558,8 @@ imports the file, plots the original map, and returns
 a list of blocks from the original map.
 """
 def new_import(lst, name=None,scale = 1):
-
-    original = import_and_setup(lst,scale = scale)#create and clean the graph. 
+    original = import_and_setup(lst,scale = scale)#create and clean the graph.
     blocklist = original.connected_components()
-    print str(blocklist)+ "--------blocklist"
-    print("This map has {} block(s). \n".format(len(blocklist)))
-
 
     # plot the full original map
     for b in blocklist:
@@ -631,7 +624,8 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
     target_mypath = None
     if vquiet is False:
-        print("Begin w {} Interior Parcels".format(len(myG.interior_parcels)))
+        pass
+        #print("Begin w {} Interior Parcels".format(len(myG.interior_parcels)))
 
     md = 100
 
@@ -666,9 +660,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
                 flist = list(set(result[3]) - set(result.get(5, [])))
 
         if quiet is False:
-            print("Cur max depth is {}; {}".format(md, len(flist)) +
-                  " parcels at current depth. \n" +
-                  "{0:.1f} new roads so far".format(added_road_length))
+            pass
 
         # potential segments from parcels in flist
 
@@ -697,7 +689,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
         remain = len(myG.interior_parcels)
         if quiet is False:
-            print("\n{} interior parcels left".format(remain))
+            pass #print("\n{} interior parcels left".format(remain))
         if vquiet is False:
             if remain > 300 or remain in [50, 100, 150, 200, 225, 250, 275]:
                 pass
