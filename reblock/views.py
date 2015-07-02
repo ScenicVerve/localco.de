@@ -488,12 +488,7 @@ def new_import(lst, name=None,scale = 1):
     original = import_and_setup(lst,scale = scale)#create and clean the graph.
     blocklist = original.connected_components()
 
-    print("This map has {} block(s). \n".format(len(blocklist)))
-
-    # plot the full original map
-    for b in blocklist:
-        # defines original geometery as a side effect,
-        b.plot_roads(master=b, new_plot=False, update=True)
+    #print("This map has {} block(s). \n".format(len(blocklist)))
 
     blocklist.sort(key=lambda b: len(b.interior_parcels), reverse=True)
 
