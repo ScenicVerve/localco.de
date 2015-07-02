@@ -10,8 +10,8 @@ except ImportError:
 
 import settings
 
-project = os.path.basename(os.path.dirname(__file__))
-os.environ['DJANGO_SETTINGS_MODULE'] = '%s.settings' % project
+#project = os.path.basename(os.path.dirname(__file__))
+#os.environ['DJANGO_SETTINGS_MODULE'] = '%s.settings' % project
 
 if __name__ == "__main__":
     #os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{ localcode }}.settings")
