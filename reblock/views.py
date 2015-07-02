@@ -39,7 +39,7 @@ import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
 from django.utils import simplejson
 from fractions import Fraction
-
+from slugify import slugify
 
 center_lat = None
 center_lng = None
@@ -126,22 +126,22 @@ def review(request):
         #########get the information filled by user#########
         if len(str(request.POST.get("name")))>0 :
             name = request.POST.get("name")
-        else:
+        elif len(str(layer_data[0]['name']))>0:
             name = layer_data[0]['name']
+        else:
+            name = "default"
         if len(str(request.POST.get("location")))>0 :
             location = request.POST.get("location")
         else:
-            location = "-"
+            location = "default"
         if len(str(request.POST.get("description")))>0 :
             desc = request.POST.get("description")
         else:
             desc = "-"
-        print name
-        #print text.slugify(name)
         
         datainfo = {}
-        datainfo["name"] = name
-        datainfo["location"] = location
+        datainfo["name"] = slugify(name)
+        datainfo["location"] = slugify(location)
         datainfo["description"] = desc
         datainfo["srs"] = checkedPrj(layer_data[0]['srs'])
         
@@ -210,6 +210,7 @@ def compute(request):
     
     user = request.user
     
+    num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
     
     if request.method == 'POST': # someone is editing site configuration
         try:
@@ -221,24 +222,25 @@ def compute(request):
         except:
             pr_id = 0
         
+        datt = num.datasave_set.all().order_by('-date_edited')[0]
+        
         if link == -1:
-            return HttpResponseRedirect('/reblock/compute/'+str(user)+"-"+str(pr_id)+"/")
+            return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(pr_id)+"/")
         else:
-            return HttpResponseRedirect('/reblock/compute/'+str(user)+"-"+str(pr_id)+"/"+str(link))
+            return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(pr_id)+"/"+str(link))
         
     else:
         # We are browsing data
-        number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
+        number = num.number
         
-        
-        ori_layer = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(0)].blockjson4_set.all().order_by('-date_edited') 
+        ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
         
-        road_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(0)].roadjson4_set.all().order_by('-date_edited') 
+        road_layers = num.roadjson4_set.all().order_by('-date_edited') 
         road_proj = project_meter2degree(layer = road_layers,num = number)
         
-        inter_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(0)].interiorjson4_set.all().order_by('-date_edited')    
+        inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
         centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lat
@@ -294,7 +296,41 @@ def final(request, slot_user, project_id):
                 RequestContext(request, c),
                 )
 
+@login_required
+def final_slut(request, slot_user, project_id, project_name, location):
+    user = request.user
+    
+    ##########should be slotified user
+    if str(user)==slot_user:
+        if request.method == 'POST': # someone is editing site configuration
+            pass
+        else:
+            number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].number
+            ori_layer = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].blockjson4_set.all().order_by('-date_edited') 
+            ori_proj = project_meter2degree(layer = ori_layer,num = number)
+            
+            road_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].roadjson4_set.all().order_by('-date_edited') 
+            road_proj = project_meter2degree(layer = road_layers,num = number)
+            
+            inter_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].interiorjson4_set.all().order_by('-date_edited')    
+            inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
+            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
+            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
+
+            c = {
+                    'ori_proj': ori_proj,
+                    'road_proj': road_proj,
+                    'inter_proj': inter_proj,
+                    'centerlat':centerlat,
+                    'centerlng':centerlng,
+            
+                    }
+                    
+            return render_to_response(
+                'reblock/steps.html',
+                RequestContext(request, c),
+                )
 
 
 @login_required
@@ -331,6 +367,42 @@ def steps(request, step_index, slot_user, project_id):
                 'reblock/steps.html',
                 RequestContext(request, c),
                 )
+
+@login_required
+def steps_slut(request, step_index, slot_user, project_id, project_name, location):
+    user = request.user
+    
+    ##########should be slotified user
+    if str(user)==slot_user:
+        if request.method == 'POST': # someone is editing site configuration
+            pass
+        else:
+            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
+            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
+            
+            number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].number
+            ori_layer = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].blockjson4_set.all().order_by('-date_edited') 
+            ori_proj = project_meter2degree(layer = ori_layer,num = number)
+
+    ##################step data######################
+            step_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].intermediatejson6_set.all().order_by('-date_edited').reverse()   
+            inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+            road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+
+            c = {
+                    'ori_proj': ori_proj,
+                    'road_proj': road_proj,
+                    'inter_proj': inter_proj,
+                    'centerlat':centerlat,
+                    'centerlng':centerlng,
+            
+                    }
+                    
+            return render_to_response(
+                'reblock/steps.html',
+                RequestContext(request, c),
+                )
+
 
 
 def isnumber(s):

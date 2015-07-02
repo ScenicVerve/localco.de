@@ -13,11 +13,11 @@ interurls = [url(r'^$', 'reblock.views.intermediate'),
 #user sluted url
 
 
-interurls3 = [url(r'^$', 'reblock.views.final'),
-             url(r'^(?P<step_index>[0-9]+)/$', 'reblock.views.steps'),
+interurls3 = [url(r'^$', 'reblock.views.final_slut'),
+             url(r'^(?P<step_index>[0-9]+)/$', 'reblock.views.steps_slut'),
 ]
 interurls2 = [url(r'^$', 'reblock.views.compute'),
-             url(r'^(?P<slot_user>[-\w\d]+)-(?P<project_id>[0-9]+)/', include(interurls3)),
+             url(r'^(?P<slot_user>[-\w\d]+)_(?P<project_name>[-\w\d]+)_(?P<location>[-\w\d]+)_(?P<project_id>[0-9]+)/', include(interurls3)),
 ]
 
 
