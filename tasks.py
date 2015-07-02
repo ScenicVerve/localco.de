@@ -16,7 +16,7 @@ rewrite topology, using linestring list as input, save data to the database
 
 def run_topology(lst, name=None, user = None, scale_factor=1, srs=None):
 
-
+    print 'this is my', lst
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     print blocklist
     num = BloockNUM(name=name, number = len(blocklist), author = user)
