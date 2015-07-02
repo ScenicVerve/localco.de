@@ -545,7 +545,8 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
     target_mypath = None
     if vquiet is False:
-        print("Begin w {} Interior Parcels".format(len(myG.interior_parcels)))
+        pass
+        #print("Begin w {} Interior Parcels".format(len(myG.interior_parcels)))
 
     md = 100
 
@@ -580,9 +581,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
                 flist = list(set(result[3]) - set(result.get(5, [])))
 
         if quiet is False:
-            print("Cur max depth is {}; {}".format(md, len(flist)) +
-                  " parcels at current depth. \n" +
-                  "{0:.1f} new roads so far".format(added_road_length))
+            pass
 
         # potential segments from parcels in flist
 
@@ -611,7 +610,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
         remain = len(myG.interior_parcels)
         if quiet is False:
-            print("\n{} interior parcels left".format(remain))
+            pass #print("\n{} interior parcels left".format(remain))
         if vquiet is False:
             if remain > 300 or remain in [50, 100, 150, 200, 225, 250, 275]:
                 pass
