@@ -20,6 +20,7 @@ def run_topology(lst, name=None, user = None, scale_factor=1, srs=None):
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     print blocklist
     num = BloockNUM(name=name, number = len(blocklist), author = user)
+    print num, 8888888888
     num.save()
     
     
