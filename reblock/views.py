@@ -209,7 +209,6 @@ def compute(request):
     
     user = request.user
     
-    num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
     
     if request.method == 'POST': # someone is editing site configuration
         try:
@@ -221,6 +220,9 @@ def compute(request):
         except:
             pr_id = 0
         
+        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[pr_id]
+
+        
         datt = num.datasave_set.all().order_by('-date_edited')[0]
         
         if link == -1:
@@ -229,6 +231,8 @@ def compute(request):
             return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(pr_id)+"/"+str(link))
         
     else:
+        
+        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
         # We are browsing data
         number = num.number
         
