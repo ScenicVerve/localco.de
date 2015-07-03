@@ -28,7 +28,7 @@
 
 
 <body>
-	<div id="map" style="width: 600px; height: 400px"></div>
+<div style="width:500px; height:500px" id="map"></div>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 
@@ -78,10 +78,19 @@ var interJSONList = (("{{inter_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
 interData = JSON.parse( interJSONList );
 
 
+var locate = L.geoJson(oriData, {
+            weight: 1.5,
+            color: "#B0DE5C",
+            opacity: 0.8,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.8,
+            dashArray: '4',
+
+		});
 
 L.geoJson(oriData, {
             weight: 1.5,
-            color: "#B0DE5C",
+            color: "#FFA500",
             opacity: 0.8,
             fillColor: "#B0DE5C",
             fillOpacity: 0.8,
@@ -91,8 +100,8 @@ L.geoJson(oriData, {
 
 
 L.geoJson(interData, {
-            weight: 2,
-            color: "blue",
+            weight: 2.5,
+            color: "#FFA500",
             opacity: 0.8,
             fillColor: "#blue",
             fillOpacity: 0.8
@@ -101,14 +110,17 @@ L.geoJson(interData, {
 
 
 L.geoJson(roadData, {
-            weight: 2,
-            color: "#FC4E2A",
+            weight: 2.5,
+            color: "#2F4F4F",
             opacity: 0.8,
             fillColor: "#B0DE5C",
             fillOpacity: 0.8
 
 		}).addTo(map);
-        
+
+
+map.fitBounds(locate.getBounds());
+
 
         
 <!--layer from geoJson to overlay on top of map

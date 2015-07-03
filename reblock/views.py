@@ -264,42 +264,6 @@ def compute(request):
                 )
 
 @login_required
-def final(request, slot_user, project_id):
-    user = request.user
-    
-    ##########should be slotified user
-    if str(user)==slot_user:
-        if request.method == 'POST': # someone is editing site configuration
-            pass
-        else:
-            number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].number
-            ori_layer = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].blockjson4_set.all().order_by('-date_edited') 
-            ori_proj = project_meter2degree(layer = ori_layer,num = number)
-            
-            road_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].roadjson4_set.all().order_by('-date_edited') 
-            road_proj = project_meter2degree(layer = road_layers,num = number)
-            
-            inter_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].interiorjson4_set.all().order_by('-date_edited')    
-            inter_proj = project_meter2degree(layer = inter_layers,num = number)
-
-            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
-            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
-
-            c = {
-                    'ori_proj': ori_proj,
-                    'road_proj': road_proj,
-                    'inter_proj': inter_proj,
-                    'centerlat':centerlat,
-                    'centerlng':centerlng,
-            
-                    }
-                    
-            return render_to_response(
-                'reblock/steps.html',
-                RequestContext(request, c),
-                )
-
-@login_required
 def final_slut(request, slot_user, project_id, project_name, location):
     user = request.user
     
@@ -335,41 +299,6 @@ def final_slut(request, slot_user, project_id, project_name, location):
                 RequestContext(request, c),
                 )
 
-
-@login_required
-def steps(request, step_index, slot_user, project_id):
-    user = request.user
-    
-    ##########should be slotified user
-    if str(user)==slot_user:
-        if request.method == 'POST': # someone is editing site configuration
-            pass
-        else:
-            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
-            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
-            
-            number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].number
-            ori_layer = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].blockjson4_set.all().order_by('-date_edited') 
-            ori_proj = project_meter2degree(layer = ori_layer,num = number)
-
-    ##################step data######################
-            step_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].intermediatejson6_set.all().order_by('-date_edited').reverse()   
-            inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
-            road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
-
-            c = {
-                    'ori_proj': ori_proj,
-                    'road_proj': road_proj,
-                    'inter_proj': inter_proj,
-                    'centerlat':centerlat,
-                    'centerlng':centerlng,
-            
-                    }
-                    
-            return render_to_response(
-                'reblock/steps.html',
-                RequestContext(request, c),
-                )
 
 @login_required
 def steps_slut(request, step_index, slot_user, project_id, project_name, location):
