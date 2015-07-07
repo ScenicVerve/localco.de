@@ -391,7 +391,6 @@ def compute(request):
         
         inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
-        print ori_proj
         
         c = {
                 'ori_proj': ori_proj,
