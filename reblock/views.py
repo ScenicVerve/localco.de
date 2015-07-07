@@ -40,6 +40,9 @@ from django.utils import simplejson
 from fractions import Fraction
 from slugify import slugify
 
+from django.views.generic.list import ListView
+from django.utils import timezone
+
 center_lat = None
 center_lng = None
 default_srs = 24373
@@ -268,18 +271,19 @@ def final_slut(request, slot_user, project_id, project_name, location):
     user = request.user
     
     ##########should be slotified user
-    if str(user)==slot_user:
+    if slugify(str(user))==slot_user:
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].number
-            ori_layer = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].blockjson4_set.all().order_by('-date_edited') 
+            num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
+            number = num.number
+            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
-            road_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].roadjson4_set.all().order_by('-date_edited') 
+            road_layers = num.roadjson4_set.all().order_by('-date_edited') 
             road_proj = project_meter2degree(layer = road_layers,num = number)
             
-            inter_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].interiorjson4_set.all().order_by('-date_edited')    
+            inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
             inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
             centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
@@ -299,27 +303,28 @@ def final_slut(request, slot_user, project_id, project_name, location):
                 RequestContext(request, c),
                 )
 
-
 @login_required
-def steps_slut(request, step_index, slot_user, project_id, project_name, location):
+def final_whole(request, slot_user, project_id, project_name, location):
     user = request.user
     
     ##########should be slotified user
-    if str(user)==slot_user:
+    if slugify(str(user))==slot_user:
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
-            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
-            
-            number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].number
-            ori_layer = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].blockjson4_set.all().order_by('-date_edited') 
+            num = BloockNUM.objects.order_by('-date_edited')[int(project_id)]
+            number = num.number
+            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
+            
+            road_layers = num.roadjson4_set.all().order_by('-date_edited') 
+            road_proj = project_meter2degree(layer = road_layers,num = number)
+            
+            inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
+            inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
-    ##################step data######################
-            step_layers = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)].intermediatejson6_set.all().order_by('-date_edited').reverse()   
-            inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
-            road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+            centerlat =  CenterSave.objects.order_by('-date_edited')[int(project_id)].lat
+            centerlng =  CenterSave.objects.order_by('-date_edited')[int(project_id)].lng
 
             c = {
                     'ori_proj': ori_proj,
@@ -337,6 +342,77 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
 
 
 
+
+@login_required
+def steps_slut(request, step_index, slot_user, project_id, project_name, location):
+    user = request.user
+    
+    ##########should be slotified user
+    if slugify(str(user))==slot_user:
+        if request.method == 'POST': # someone is editing site configuration
+            pass
+        else:
+            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
+            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
+            
+            num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
+            number = num.number
+
+            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+            ori_proj = project_meter2degree(layer = ori_layer,num = number)
+
+    ##################step data######################
+            step_layers = num.intermediatejson6_set.all().order_by('-date_edited').reverse()   
+            inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+            road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+
+            c = {
+                    'ori_proj': ori_proj,
+                    'road_proj': road_proj,
+                    'inter_proj': inter_proj,
+                    'centerlat':centerlat,
+                    'centerlng':centerlng,
+            
+                    }
+                    
+            return render_to_response(
+                'reblock/steps.html',
+                RequestContext(request, c),
+                )
+
+"""
+redirect to a page showing the recent reblocks created by the same user
+"""
+@login_required
+def recent(request):
+    user = request.user
+    
+    ##########should be slotified user
+    if request.method == 'POST': # someone is editing site configuration
+        pass
+    else:            
+        num = BloockNUM.objects.order_by('-date_edited')[:4]
+        
+        lst = []
+        for i,n in enumerate(num):
+            datt = n.datasave_set.all().order_by('-date_edited')[0]
+            link = '/reblock/recent/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
+            lst.append(link)
+        
+        print lst
+        json_lst = simplejson.dumps(lst)
+        c = {
+        "lst" : json_lst
+        
+
+                }
+                    
+        return render_to_response(
+            'reblock/recent.html',
+            RequestContext(request, c),
+            )
+
+
 def isnumber(s):
     s = str(s)
     try:
@@ -348,6 +424,7 @@ def isnumber(s):
             return True
         except ValueError: 
             return False
+
 
 
 """

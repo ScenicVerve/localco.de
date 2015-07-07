@@ -20,6 +20,9 @@ interurls2 = [url(r'^$', 'reblock.views.compute'),
              url(r'^(?P<slot_user>[-\w\d]+)_(?P<project_name>[-\w\d]+)_(?P<location>[-\w\d]+)_(?P<project_id>[0-9]+)/', include(interurls3)),
 ]
 
+interurls4 = [url(r'^$', 'reblock.views.recent'),
+             url(r'^(?P<slot_user>[-\w\d]+)_(?P<project_name>[-\w\d]+)_(?P<location>[-\w\d]+)_(?P<project_id>[0-9]+)/$', 'reblock.views.final_whole'),
+]
 
 
 urlpatterns = patterns('',
@@ -51,6 +54,14 @@ urlpatterns = patterns('',
     (r'^registration/registration_complete/$', 'reblock.views.registration_complete'),
     #(r'^webfinches/user/$', 'webfinches.views.user'),
 
+    #recent
+    (r'^reblock/recent/', include(interurls4)),
+    
+    
+    
+    
+    
+    
     
     # Login / logout.
     (r'^login/$', login, {'template_name': 'registration/login.html'}),
