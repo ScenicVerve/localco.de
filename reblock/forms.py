@@ -83,7 +83,7 @@ class NewPassword(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('new_password1',)
+        fields = ('username', 'new_password1',)
                 
 
 '''        

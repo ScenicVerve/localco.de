@@ -46,7 +46,7 @@ from fractions import Fraction
 from slugify import slugify
 
 
-import datetime, random, sha
+import datetime, random
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.mail import send_mail
 
@@ -112,8 +112,8 @@ def register(request):
 		user = User.objects.create_user(username, user_email, user_pwd1)
 		user.save()
 		registered = True
-		email = EmailMultiAlternatives('Openreblock - Registration confirmation','You are registered!','eleannapan@gmail.com', [user_email])
-	    	email.send()
+		#email = EmailMultiAlternatives('Openreblock - Registration confirmation','You are registered!','eleannapan@gmail.com', [user_email])
+	    	#email.send()
 		return render_to_response(
 		'reblock/registration_complete.html',
 		{},
@@ -129,7 +129,7 @@ def register(request):
 	    #password2 =user.set_password(user.password)
 	    #config_password1 = request.POST.get("password1")
 	    #config_password2 = request.POST.get("password2")
-	    
+	    #
 	    
 	    #    if config_password1 and config_password1 == config_password2:
 	    #	final_password = config_password1
@@ -176,19 +176,16 @@ def forgot_password(request):
 	    
 	    config_username = request.POST.get("username")
 	    user = User.objects.get(username__exact=config_username)
-	    user.set_password(user.new_password1)
-	    nnn = request.POST.get("new_password1")
+	    new_password1 = request.POST.get("new_password1")
+	    user.set_password(new_password1)
+	    #new_password2 = request.POST.get("new_password2")
 	    user.save()
-	    #u = create_user.filter(user_pwd1=request.POST['password1'])
-	    #print u
-	    
+	    print user
 
 	    #email = EmailMultiAlternatives('test',config_password1,'eleannapan@gmail.com', ['eleannapan@gmail.com'])
 	    #email.send()
-	    #return render_to_response('reblock/retrieve_password.html',{'user_form': user_form},context)
 	    return HttpResponseRedirect('/set_new_password/') #this redirects correct
 
-	    
 	else:
 	    print 2222
 	    return render_to_response(
@@ -197,15 +194,15 @@ def forgot_password(request):
 	    context)
 	    #go to register
 
-    return render(request, 'reblock/forgot_password.html', {'user_form': UserForm})
+    return render(request, 'reblock/forgot_password.html', {'new': NewPassword})
 
 
 def set_new_password(request):
     context = RequestContext(request)
     
-    registered = False
-    if request.method == 'POST':
-	user_form = UserForm(request.POST)
+    #registered = False
+    #if request.method == 'POST':
+	#user_form = UserForm(request.POST)
 	#if User.objects.filter(username=request.POST['username']).exists():
 	#    u = User.objects.get(username__exact = username)
 	#    u.set_password('new password')
@@ -215,9 +212,6 @@ def set_new_password(request):
 	{},
 	context)
 
-	
-
-	
 
 #def password_change(request):
 #    if request.method == 'POST':
@@ -247,8 +241,9 @@ def set_new_password(request):
 #	'reblock/retrieve_password.html',
 #	{}, context)
 
-    #return HttpResponseRedirect('/login/')  	
-		
+    #return HttpResponseRedirect('/login/')
+    
+
 @login_required
 def user_logout(request):
     # Since we know the user is logged in, we can now just log them out.
