@@ -176,16 +176,16 @@ def forgot_password(request):
 	    
 	    config_username = request.POST.get("username")
 	    user = User.objects.get(username__exact=config_username)
-	    user.set_password('new_password')
 	    new_password1 = request.POST.get("new_password1")
+	    user.set_password(new_password1)
 	    #new_password2 = request.POST.get("new_password2")
 	    user.save()
+	    print user
 
 	    #email = EmailMultiAlternatives('test',config_password1,'eleannapan@gmail.com', ['eleannapan@gmail.com'])
 	    #email.send()
 	    return HttpResponseRedirect('/set_new_password/') #this redirects correct
 
-	    
 	else:
 	    print 2222
 	    return render_to_response(
@@ -212,9 +212,6 @@ def set_new_password(request):
 	{},
 	context)
 
-	
-
-	
 
 #def password_change(request):
 #    if request.method == 'POST':
@@ -244,8 +241,9 @@ def set_new_password(request):
 #	'reblock/retrieve_password.html',
 #	{}, context)
 
-    #return HttpResponseRedirect('/login/')  	
-		
+    #return HttpResponseRedirect('/login/')
+    
+
 @login_required
 def user_logout(request):
     # Since we know the user is logged in, we can now just log them out.
