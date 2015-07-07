@@ -504,7 +504,6 @@ redirect to a page showing the recent reblocks created by the same user
 """
 @login_required
 def recent(request):
-    user = request.user
     
     ##########should be slotified user
     if request.method == 'POST': # someone is editing site configuration
@@ -516,6 +515,8 @@ def recent(request):
         lstjson = []
         for i,n in enumerate(num):
             datt = n.datasave_set.all().order_by('-date_edited')[0]
+            user = datt.author
+            
             number = n.number
             link = '/reblock/recent/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
             lst.append(link)
