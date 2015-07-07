@@ -20,12 +20,9 @@
  <script type='text/javascript'>
 
 
-    var lat = "{{centerlat}}"
-    var lng = "{{centerlng}}"
-        
 		var map = L.map('map');
         map.remove();
-        map = L.map('map').setView([lat, lng], 16);
+        map = L.map('map');
         		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
 			maxZoom: 18,
 			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
