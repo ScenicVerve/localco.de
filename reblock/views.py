@@ -129,7 +129,7 @@ def register(request):
 	    #password2 =user.set_password(user.password)
 	    #config_password1 = request.POST.get("password1")
 	    #config_password2 = request.POST.get("password2")
-	    
+	    #
 	    
 	    #    if config_password1 and config_password1 == config_password2:
 	    #	final_password = config_password1
