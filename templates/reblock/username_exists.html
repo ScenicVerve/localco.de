@@ -1,0 +1,27 @@
+{% extends 'reblock/index.html' %}
+{% load static %}
+
+{% block jslibs %}
+
+{% endblock %}
+
+{% block subtitle %}
+    Register
+{% endblock %}
+
+{% block content %}
+
+		<p><h1>Username exists</h1></p>
+		<p>Please type a different username to register!</p>
+		
+		
+{% endblock %}
+					
+             
+
+
+{% block scripts %}
+  <script type="text/javascript" src="{% get_static_prefix %}js/jquery-1.6.2.min.js"></script>
+  <script type="text/javascript" src="{% get_static_prefix %}js/jquery-ui-1.8.16.custom.min.js"></script>
+  <script type="text/javascript" src="{% get_static_prefix %}js/loadPage.js"></script>
+{% endblock %}
