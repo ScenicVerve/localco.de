@@ -28,7 +28,8 @@ interurls4 = [url(r'^$', 'reblock.views.recent'),
 urlpatterns = patterns('',
 
     # home
-    (r'^$', 'localcode.views.home'),
+    #(r'^$', 'localcode.views.home'),
+    (r'^$', include(interurls4)),
     #(home'^about/$', 'localcode.views.about'),
     #(r'^tools/$', 'localcode.views.tools'),
 
