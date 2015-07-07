@@ -9,18 +9,21 @@ import datetime
 import numpy as np
 from matplotlib import pyplot as plt
 
+
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render_to_response, redirect, render
 from django.template import RequestContext
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 
 from django.contrib.auth.views import login
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
+from django.contrib.auth.models import User, UserManager
 
 import django.contrib.gis
 from django.contrib.gis.geos import *
@@ -33,11 +36,17 @@ from django.contrib.gis.geos import fromstr
 from tasks import *
 from reblock.forms import *
 from reblock.models import *
+from reblock.models import UserProfile
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
 from django.utils import simplejson
 from fractions import Fraction
+
+import datetime, random, sha
+from django.shortcuts import render_to_response, get_object_or_404
+from django.core.mail import send_mail
+
 
 
 center_lat = None
@@ -82,31 +91,167 @@ def register(request):
     registered = False
 
     if request.method == 'POST':
-        user_form = UserForm(data=request.POST)
-
-        if user_form.is_valid():
-            # Save the user's form data to the database.
-            user = user_form.save()
-            user.set_password(user.password)
-            user.save()
-            registered = True
-	    
-	    return HttpResponseRedirect('/registration/registration_complete/')
+        user_form = UserForm(request.POST)
 	
-	    email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
-	    email.send()
+	if User.objects.filter(username=request.POST['username']).exists():
+	    return HttpResponseRedirect('/login/')  
+	
+	else:    
+	    #if user_form.is_valid():
+	    # Save the user's form data to the database.
+	    username = request.POST.get("username")
+	    user_email = request.POST.get("email")
+	    user_pwd1 = request.POST.get("password1")
+	    user_pwd2 = request.POST.get("password2")
 	    
-
-        else:
-            print user_form.errors
-
+	    if user_pwd1 == user_pwd2:
+		user = User.objects.create_user(username, user_email, user_pwd1)
+		user.save()
+		registered = True
+		email = EmailMultiAlternatives('Openreblock - Registration confirmation','You are registered!','eleannapan@gmail.com', [user_email])
+	    	email.send()
+		return render_to_response(
+		'reblock/registration_complete.html',
+		{},
+		context)
+	    
+	    else:
+		registered = False
+		return render_to_response(
+		'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)
+	    ##    else:
+	    #user = user_form.save()
+	    #password1 =user.set_password(user.password)
+	    #password2 =user.set_password(user.password)
+	    #config_password1 = request.POST.get("password1")
+	    #config_password2 = request.POST.get("password2")
+	    
+	    
+	    #    if config_password1 and config_password1 == config_password2:
+	    #	final_password = config_password1
+	    #	#print 'password match'
+	    #	user.save()
+	    #	registered = True
+	    #	email = EmailMultiAlternatives('test','You are registered!','eleannapan@gmail.com', ['eleannapan@gmail.com'])
+	    #	email.send()
+	    #	return render_to_response(
+	    #	'reblock/registration_complete.html',
+	    #	{},
+	    #	context)
+	    #    
+	    #    elif config_password1 and config_password1 != config_password2:
+	    #	#password1 != password2:
+	    #	print "password mismatch"
+	    #	#raise forms.ValidationError("Passwords don't match")
+	    #	registered = False
+	    #	#print user_form.errors
+	    #	return render_to_response(
+	    #	 'reblock/register.html',
+	    #	#{'user_form': user_form, 'registered': registered},
+	    #	context)
+	    ##    else:
+	    #	print user_form.errors
     else:
-        user_form = UserForm()
-
+	user_form = UserForm()
+    
 	return render_to_response(
 		'reblock/register.html',
 		{'user_form': user_form, 'registered': registered},
 		context)
+
+		
+def forgot_password(request):
+    context = RequestContext(request)
+    registered = False
+    if request.method == 'POST':
+	#print 1111
+        user_form = UserForm(request.POST)
+	new = NewPassword(request.POST)
+	if User.objects.filter(username=request.POST['username']).exists():
+	    print 11111
+	    
+	    config_username = request.POST.get("username")
+	    user = User.objects.get(username__exact=config_username)
+	    user.set_password(user.new_password1)
+	    nnn = request.POST.get("new_password1")
+	    user.save()
+	    #u = create_user.filter(user_pwd1=request.POST['password1'])
+	    #print u
+	    
+
+	    #email = EmailMultiAlternatives('test',config_password1,'eleannapan@gmail.com', ['eleannapan@gmail.com'])
+	    #email.send()
+	    #return render_to_response('reblock/retrieve_password.html',{'user_form': user_form},context)
+	    return HttpResponseRedirect('/set_new_password/') #this redirects correct
+
+	    
+	else:
+	    print 2222
+	    return render_to_response(
+	    'reblock/forgot_password.html',
+	    {'user_form': user_form, 'registered': registered},
+	    context)
+	    #go to register
+
+    return render(request, 'reblock/forgot_password.html', {'user_form': UserForm})
+
+
+def set_new_password(request):
+    context = RequestContext(request)
+    
+    registered = False
+    if request.method == 'POST':
+	user_form = UserForm(request.POST)
+	#if User.objects.filter(username=request.POST['username']).exists():
+	#    u = User.objects.get(username__exact = username)
+	#    u.set_password('new password')
+	#    u.save()
+    return render_to_response(
+	'reblock/set_new_password.html',
+	{},
+	context)
+
+	
+
+	
+
+#def password_change(request):
+#    if request.method == 'POST':
+#        form = PasswordChangeForm(user=request.user, data=request.POST)
+#        if form.is_valid():
+#            form.save()   
+#    else:
+#	pass
+
+		
+#def retrieve_password(request):
+#    context = RequestContext(request)
+#	    
+#		
+#
+#    #form = UserForgotPasswordForm(None, request.POST)
+#
+#    #if form.is_valid():
+#	
+#	#form.save(from_email='eleannapan@gmail.com', email_template_name='/reblock/forgot_password/')
+#	#form.save()
+#    config_password1 = User.objects.filter(user_pwd1=request.POST['password1'])
+#    email = EmailMultiAlternatives('test',config_password1,'eleannapan@gmail.com', ['eleannapan@gmail.com'])
+#    email.send()
+#	
+#    return render_to_response(
+#	'reblock/retrieve_password.html',
+#	{}, context)
+
+    #return HttpResponseRedirect('/login/')  	
+		
+@login_required
+def user_logout(request):
+    # Since we know the user is logged in, we can now just log them out.
+    logout(request)
+
+    # Take the user back to the homepage.
+    return HttpResponseRedirect('/logout/')  
 
 
 @login_required
@@ -128,8 +273,6 @@ def review(request):
                 geoms = checkGeometryType(layer)
                 scale_factor2 = scaleFactor(geoms)
                 run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, srs = srs)
-
-
 
         return HttpResponseRedirect('/reblock/compute/')
         
@@ -184,7 +327,7 @@ def review(request):
             RequestContext(request, c),
             )
 
-@login_required
+
 @login_required
 def compute(request):
     

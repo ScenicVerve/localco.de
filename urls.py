@@ -18,13 +18,20 @@ urlpatterns = patterns('',
     #(r'^webfinches/login/create_account/$', 'webfinches.views.create_account'),
     (r'^reblock/upload/$', 'reblock.views.upload'),
     (r'^reblock/review/$', 'reblock.views.review'),
-    (r'^reblock/browse/$', 'reblock.views.browse'),
-    (r'^reblock/browse_empty/$', 'reblock.views.browse_empty'), #browse warning
-    (r'^reblock/configure/$', 'reblock.views.configure'),
-    (r'^reblock/get_sites/$', 'reblock.views.get_sites'),
+    #(r'^reblock/browse/$', 'reblock.views.browse'),
+    #(r'^reblock/browse_empty/$', 'reblock.views.browse_empty'), #browse warning
+    #(r'^reblock/configure/$', 'reblock.views.configure'),
+    #(r'^reblock/get_sites/$', 'reblock.views.get_sites'),
     (r'^reblock/compute/$', 'reblock.views.compute'),
     (r'^reblock/register/$', 'reblock.views.register'),
-    (r'^registration/registration_complete/$', 'reblock.views.registration_complete'),
+    (r'^reblock/registration_complete/$', 'reblock.views.register'),
+    (r'^reblock/forgot_password/$', 'reblock.views.forgot_password'),
+    (r'^set_new_password/$', 'reblock.views.set_new_password'),
+    
+    #(r'^password_change/$', 'django.contrib.auth.views.password_change'),
+    
+    #(r'^reblock/password_change/done/$', 'django.contrib.auth.views.password_change_done'),
+    #(r'^retrieve_password/$', 'reblock.views.retrieve_password'),
     #(r'^webfinches/user/$', 'webfinches.views.user'),
 
     # Login / logout.

@@ -7,6 +7,7 @@ import collections
 
 from django import forms
 from django.contrib import gis
+from django.db import models
 from django.contrib.auth.models import User
 from django.core import validators
 from django.contrib.gis.db import models
@@ -294,3 +295,8 @@ def create_from_shapefile(self, path):
     for feature in layer:
         DataLayer.objects.create(geometry=feature['geometry'], field=feature['field'])
         
+class UserProfile(models.Model):
+    user = models.OneToOneField(User)
+    activation_key = models.CharField(max_length=30)
+    
+    

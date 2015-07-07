@@ -2,9 +2,16 @@ import os
 import zipfile
 
 from django import forms
+from django.core import validators
+from django.core.validators import validate_email
+from django.db.models import Q
+from django.utils.translation import ugettext_lazy as _
+
 from django.forms import widgets
 from django.forms.formsets import formset_factory
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, UserManager
+from django.contrib.auth.forms import (
+    AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm,)
 
 from reblock.models import DataFile, DataLayer, UploadEvent
 
@@ -63,12 +70,86 @@ class SiteConfigurationForm(forms.ModelForm):
         
         
 class UserForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput())
+    password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
+    password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password')
+        fields = ('username', 'email', 'password', 'password2')
         
+class NewPassword(forms.ModelForm):
+    new_password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
+    #new_password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
+
+    class Meta:
+        model = User
+        fields = ('new_password1',)
+                
+
+'''        
+def isValidUsername(self, field_data, all_data):
+    try:
+        User.objects.get(username=field_data)
+    except User.DoesNotExist:
+        return
+    raise validators.ValidationError('The username "%s" is already taken.' % field_data)
+
+
+def save(self, new_data):
+    u = User.objects.create_user(new_data['username'],
+                                 new_data['email'],
+                                 new_data['password1'])
+    u.is_active = False
+    u.save()
+    return u
+'''
+
+#class UserForgotPasswordForm(PasswordResetForm):
+#    username = forms.CharField(required=True)
+#    email = forms.EmailField(required=True,max_length=254)
+#    class Meta:
+#        model = User
+#        fields = ("username", "email",)        
+#
+
+
+#
+#
+#class PasswordResetForm(forms.Form):
+#    password1 = forms.CharField(
+#        label=_('New password'),
+#        widget=forms.PasswordInput,
+#    )
+#    password2 = forms.CharField(
+#        label=_('New password (confirm)'),
+#        widget=forms.PasswordInput,
+#    )
+#
+#    error_messages = {
+#        'password_mismatch': _("The two passwords didn't match."),
+#    }
+#
+#    def __init__(self, *args, **kwargs):
+#        self.user = kwargs.pop('user')
+#        super(PasswordResetForm, self).__init__(*args, **kwargs)
+#
+#    def clean_password2(self):
+#        password1 = self.cleaned_data.get('password1', '')
+#        password2 = self.cleaned_data['password2']
+#        if not password1 == password2:
+#            raise forms.ValidationError(
+#                self.error_messages['password_mismatch'],
+#                code='password_mismatch')
+#        return password2
+#
+#    def save(self, commit=True):
+#        self.user.set_password(self.cleaned_data['password1'])
+#        if commit:
+#            get_user_model()._default_manager.filter(pk=self.user.pk).update(
+#                password=self.user.password,
+#            )
+#        return self.user
+    
 
 ZipFormSet = formset_factory(ZipUploadForm, extra=1)
 LayerReviewFormSet = formset_factory(LayerReviewForm, extra=0)
