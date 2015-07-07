@@ -53,6 +53,7 @@ urlpatterns = patterns('',
 
     (r'^reblock/register/$', 'reblock.views.register'),
     (r'^reblock/registration_complete/$', 'reblock.views.register'),
+    (r'^reblock/username_exists/$', 'reblock.views.register'),
     (r'^reblock/forgot_password/$', 'reblock.views.forgot_password'),
     (r'^set_new_password/$', 'reblock.views.set_new_password'),
     

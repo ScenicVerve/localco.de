@@ -1,64 +1,181 @@
+{% extends 'reblock/home.html' %}
 
-<!DOCTYPE html>
-<!--
-HTML and Javascript Slideshow
-Copyright (C) 2011  html5marketplace.com
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+{% block content %}
+{% block scripts %}
+  <head>
+      <title>Open Reblock</title>
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>HTML Slideshow (Direct)</title>
-<link rel="stylesheet" type="text/css" href="http://www.html5marketplace.com/slideshow/direct/cssstyles.css" />
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+    <!--<script src="http://www.html5marketplace.com/slideshow/jquery-1.4.2.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="http://www.html5marketplace.com/slideshow/direct/cssstyles.css" />-->
+
 </head>
+
+
 <body>
-<center>
+    <center>
 <h1>OPEN REBLOCK</h1>
-<br /><br />
+            <a id = "0">
+            <div style="width:300px; height:300px" id="map0" class="map" ></div>
+            </a>
+            <a id = "1">
+            <div style="width:300px; height:300px" id="map1" class="map"></div>
+            </a>
+            <a id = "2">
+            <div style="width:300px; height:300px" id="map2" class="map"></div>
+            </a>
+            <a id = "3">
+            <div style="width:300px; height:300px" id="map3" class="map"></div>
+            </a>
+
+<!--
+
 <div id="container">
 	<ul>
         <li>
             <a id = "0">
-            <img src="http://www.html5marketplace.com/slideshow/images/picture1.jpg" width="604" height="453" />
+                <div style="width:604px; height:453px" id="map0" class="map"></div>
             </a>
         </li>
         <li>
             <a id = "1">
-            <img src="http://www.html5marketplace.com/slideshow/images/picture2.jpg" width="604" height="453" />
+            <div style="width:604px; height:453px" id="map1" class="map"></div>
             </a>
         </li>
         <li>
             <a id = "2">
-            <img src="http://www.html5marketplace.com/slideshow/images/picture3.jpg" width="604" height="453" />
+            <div style="width:604px; height:453px" id="map2" class="map"></div>
             </a>
         </li>
-
-        
-        
-        
+        <li>
+            <a id = "3">
+            <div style="width:604px; height:453px" id="map3" class="map"></div>
+            </a>
+        </li>
         
         
       </ul>
       <span class="button prevButton"></span>
       <span class="button nextButton"></span>
 </div>
+-->
+
+
 </center>
+    
 
-<script src="http://www.html5marketplace.com/slideshow/jquery-1.4.2.min.js"></script>
 
-<script>
+ <script type='text/javascript'>
+
+
+		var map0 = L.map('map0');
+        		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'examples.map-20v6611k'
+		}).addTo(map0);
+        
+		var map1 = L.map('map1');
+        		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'examples.map-20v6611k'
+		}).addTo(map1);
+        
+        var map2 = L.map('map2');
+        		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'examples.map-20v6611k'
+		}).addTo(map2);
+
+
+		var map3 = L.map('map3');
+        		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'examples.map-20v6611k'
+		}).addTo(map3);
+        
+        var test = {{ lstdata|safe }};
+
+        var testjson = {{ lstjson|safe }};
+
+
+
+var mygeo0 = L.geoJson(testjson[0], {
+            weight: 1,
+            color: "#2F4F4F",
+            opacity: 1,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.4
+
+		})
+var mygeo1 = L.geoJson(testjson[1], {
+            weight: 1,
+            color: "#2F4F4F",
+            opacity: 1,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.4
+
+		})
+var mygeo2 = L.geoJson(testjson[2], {
+            weight: 1,
+            color: "#2F4F4F",
+            opacity: 1,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.4
+
+		})
+var mygeo3 = L.geoJson(testjson[3], {
+            weight: 1,
+            color: "#2F4F4F",
+            opacity: 1,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.4
+
+		})
+        
+map0.fitBounds(mygeo0.getBounds());
+mygeo0.addTo(map0);
+
+map1.fitBounds(mygeo1.getBounds());
+mygeo1.addTo(map1);
+
+map2.fitBounds(mygeo2.getBounds());
+mygeo2.addTo(map2);
+
+map3.fitBounds(mygeo3.getBounds());
+mygeo3.addTo(map3);
+
+
+for(var i = 0;i<test.length;i++){
+a = document.getElementById(String(i));
+a.setAttribute("href", test[i]);
+}
+        
+        
+        
+        
+        
+        
+	</script>
+    
+<!--
+    <script>
 $(window).load(function(){
 		var pages = $('#container li'), current=0;
 		var currentPage,nextPage;
@@ -87,35 +204,20 @@ $(window).load(function(){
 });
 
 
-var test = {{ lst|safe }};
-for(var i = 0;i<test.length;i++){
-    console.log(i)
-a = document.getElementById(String(i));
-a.setAttribute("href", test[i]);
-}
+
+
+
 
 
 </script>
-<form> 
-<input type=button 
-value=test[0]
-onClick="self.location=test[0]">
-</form> 
-<form> 
-<input type=button 
-value="test[1]"
-onClick="self.location=test[1]">
-</form> 
-<form> 
-<input type=button 
-value="test[2]"
-onClick="self.location=test[2]">
-</form> 
-<form> 
-<input type=button 
-value="test[3]"
-onClick="self.location=test[3]">
-</form> 
-
+-->
+    
+    
+    
 </body>
-</html>
+
+
+
+{% endblock %}
+     
+{% endblock %}
