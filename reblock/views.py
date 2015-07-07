@@ -77,7 +77,12 @@ def upload(request):
         for form in formset:
             if form.is_valid() and form.has_changed():
                 data_file = form.save(upload)
-        return HttpResponseRedirect('/reblock/review/')
+		return HttpResponseRedirect('/reblock/review/')
+	    else:
+		return render_to_response(
+		'reblock/browse_empty.html',
+		{})
+		
     else:
         formset = ZipFormSet()
 

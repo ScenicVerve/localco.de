@@ -39,7 +39,7 @@ urlpatterns = patterns('',
     (r'^reblock/review/$', 'reblock.views.review'),
 
     #(r'^reblock/browse/$', 'reblock.views.browse'),
-    #(r'^reblock/browse_empty/$', 'reblock.views.browse_empty'), #browse warning
+    (r'^reblock/browse_empty/$', 'reblock.views.upload'), #browse warning
     #(r'^reblock/configure/$', 'reblock.views.configure'),
     #(r'^reblock/get_sites/$', 'reblock.views.get_sites'),
     (r'^reblock/compute/', include(interurls2)),
