@@ -394,16 +394,11 @@ def compute(request):
         inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
-        centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lat
-        centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lng
         
         c = {
                 'ori_proj': ori_proj,
                 'road_proj': road_proj,
-                'inter_proj': inter_proj,
-                'centerlat':centerlat,
-                'centerlng':centerlng,
-        
+                'inter_proj': inter_proj,        
                 }
                 
         return render_to_response(
@@ -431,16 +426,10 @@ def final_slut(request, slot_user, project_id, project_name, location):
             inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
             inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
-            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
-            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
-
             c = {
                     'ori_proj': ori_proj,
                     'road_proj': road_proj,
                     'inter_proj': inter_proj,
-                    'centerlat':centerlat,
-                    'centerlng':centerlng,
-            
                     }
                     
             return render_to_response(
@@ -468,16 +457,10 @@ def final_whole(request, slot_user, project_id, project_name, location):
             inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
             inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
-            centerlat =  CenterSave.objects.order_by('-date_edited')[int(project_id)].lat
-            centerlng =  CenterSave.objects.order_by('-date_edited')[int(project_id)].lng
-
             c = {
                     'ori_proj': ori_proj,
                     'road_proj': road_proj,
                     'inter_proj': inter_proj,
-                    'centerlat':centerlat,
-                    'centerlng':centerlng,
-            
                     }
                     
             return render_to_response(
@@ -497,9 +480,6 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
-            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
-            
             num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
             number = num.number
 
@@ -515,9 +495,6 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
                     'ori_proj': ori_proj,
                     'road_proj': road_proj,
                     'inter_proj': inter_proj,
-                    'centerlat':centerlat,
-                    'centerlng':centerlng,
-            
                     }
                     
             return render_to_response(
