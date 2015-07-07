@@ -3,3 +3,4 @@ psycopg2==2.4.5
 celery==3.1.8
 django-celery==3.1.16
 markdown2==2.0.1
+python-slugify==1.1.2

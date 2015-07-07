@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block subtitle %}
-    Build Site Configurations
+    Intermediate Steps
 {% endblock %}
 
 {% block layernavs %}
@@ -19,13 +19,10 @@
 
     
     
-<form id="layerconfigure" action="/reblock/configure/" method="POST" enctype="multipart/form-data">
+<form id="layerconfigure" action="/reblock/intermediate/" method="POST" enctype="multipart/form-data">
     
     {% csrf_token %}
     {{ formset.management_form }}
-
-
-
     
     {% if test_layers %}
     <div class="layerset col">
@@ -34,11 +31,10 @@
       {% endfor %}
     </div>
     {% endif %}
-
-    <div><input type="submit" value="Upload New Configuration" /></div>
-    <div><h1> Site Configuration Name: <input type="text" name="name"/></h1></div>
-    <div> Set Radius: <input type="text" name="radius"/>(Defaults to 1,000 mts)</div>
-    <div> Set SRS: <input type="text" name="srs"/>(Defaults to Site layer's SRS)</div>
+    
+    <input type="submit" value="Check Intermediate Step" />
+    <div> Intermediate step: <input type="text" name="radius"/>(default = 0)</div>
+    
 </form>
 
 {% endblock %}

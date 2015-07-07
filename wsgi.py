@@ -15,6 +15,8 @@ framework.
 """
 import os
 import sys
+import djcelery
+djcelery.setup_loader()
 
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if path not in sys.path:

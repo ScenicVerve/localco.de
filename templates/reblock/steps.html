@@ -30,11 +30,9 @@
 <body>
 <div style="width:500px; height:500px" id="map"></div>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
-<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 
 
 <script>
-    
     var lat = "{{centerlat}}"
     var lng = "{{centerlng}}"
     console.log(lat)
@@ -57,7 +55,15 @@ var oriJSONList = (("{{ori_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
             }));
 
 oriData = JSON.parse( oriJSONList );
+var locate = L.geoJson(oriData, {
+            weight: 1.5,
+            color: "#B0DE5C",
+            opacity: 0.8,
+            fillColor: "#B0DE5C",
+            fillOpacity: 0.8,
+            dashArray: '4',
 
+		});
 var roadJSONList = (("{{road_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
                 return {
                     l   : '<',
@@ -80,15 +86,6 @@ var interJSONList = (("{{inter_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
 interData = JSON.parse( interJSONList );
 
 
-var locate = L.geoJson(oriData, {
-            weight: 1.5,
-            color: "#B0DE5C",
-            opacity: 0.8,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.8,
-            dashArray: '4',
-
-		});
 
 L.geoJson(oriData, {
             weight: 1.5,
@@ -99,6 +96,7 @@ L.geoJson(oriData, {
             dashArray: '4',
 
 		}).addTo(map);
+
 
 
 L.geoJson(interData, {
@@ -120,7 +118,6 @@ L.geoJson(roadData, {
 
 		}).addTo(map);
 
-
 map.fitBounds(locate.getBounds());
 
 
@@ -128,34 +125,12 @@ map.fitBounds(locate.getBounds());
 <!--layer from geoJson to overlay on top of map
 
 
-
-var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interJSONList));
-$('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
-
-
-var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(oriJSONList));
-$('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
-	
-var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadJSONList));
-$('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
-
-
-
-    </script>
-    
-
+	</script>
 
 
 
 
 {% endblock %}
-
-
-<div id="container"></div>
-
-
-
-
                   <form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ formset.management_form }}
@@ -165,7 +140,6 @@ $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').append
         
 
               </form>
-</form>
 
 {% endblock %}
 

@@ -7,7 +7,6 @@ import tempfile, zipfile
 import cStringIO
 import datetime
 import numpy as np
-from matplotlib import pyplot as plt
 
 
 from django.http import HttpResponse
@@ -36,18 +35,23 @@ from django.contrib.gis.geos import fromstr
 from tasks import *
 from reblock.forms import *
 from reblock.models import *
+
 from reblock.models import UserProfile
+from django.utils import text
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
 from django.utils import simplejson
 from fractions import Fraction
+from slugify import slugify
+
 
 import datetime, random, sha
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.mail import send_mail
 
-
+from django.views.generic.list import ListView
+from django.utils import timezone
 
 center_lat = None
 center_lng = None
@@ -261,18 +265,42 @@ def review(request):
     """
     user = request.user
     if request.method == 'POST': # someone is giving us data
-        formset = LayerReviewFormSet(request.POST)
+        #formset = LayerReviewFormSet(request.POST)
         
-        if formset.is_valid():
-            # For every layer in the layer form, write a PostGIS object to the DB
-            for form in formset:
-                srs = checkedPrj(form.cleaned_data['srs'])
-                ds = DataSource(form.cleaned_data['file_location'])
-                layer = ds[0]
+        upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
+        data_files = DataFile.objects.filter(upload=upload)
+        layer_data = [ f.get_layer_data() for f in data_files ]
+        
+        #########get the information filled by user#########
+        if len(str(request.POST.get("name")))>0 :
+            name = request.POST.get("name")
+        elif len(str(layer_data[0]['name']))>0:
+            name = layer_data[0]['name']
+        else:
+            name = "default"
+        if len(str(request.POST.get("location")))>0 :
+            location = request.POST.get("location")
+        else:
+            location = "default"
+        if len(str(request.POST.get("description")))>0 :
+            desc = request.POST.get("description")
+        else:
+            desc = "-"
+        
+        datainfo = {}
+        datainfo["name"] = slugify(name)
+        datainfo["location"] = slugify(location)
+        datainfo["description"] = desc
+        datainfo["srs"] = checkedPrj(layer_data[0]['srs'])
+        
+        # For every layer in the layer form, write a PostGIS object to the DB
+        ds = DataSource(layer_data[0]['file_location'])
+        layer = ds[0]
                 
-                geoms = checkGeometryType(layer)
-                scale_factor2 = scaleFactor(geoms)
-                run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, srs = srs)
+
+        geoms = checkGeometryType(layer)
+        scale_factor2 = scaleFactor(geoms)
+        run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, data = datainfo)
 
         return HttpResponseRedirect('/reblock/compute/')
         
@@ -288,7 +316,6 @@ def review(request):
         srs = layer_data[0]['srs']
         if not isnumber(srs):
             srs = default_srs
-        print srs
         ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
         
         reviewdic = []
@@ -316,37 +343,58 @@ def review(request):
         
         formset = LayerReviewFormSet( initial=layer_data )
 	
-    c = {
-            'test_layers': reviewjson,
-            'formset':formset,
-            'centerlat':center_lat,
-            'centerlng':center_lng,
-            }
-    return render_to_response(
-            'reblock/review.html',
-            RequestContext(request, c),
-            )
+        c = {
+                'test_layers': reviewjson,
+                'formset':formset,
+                'centerlat':center_lat,
+                'centerlng':center_lng,
+                }
+        return render_to_response(
+                'reblock/review.html',
+                RequestContext(request, c),
+                )
 
 
 @login_required
 def compute(request):
     
     user = request.user
+    
+    
     if request.method == 'POST': # someone is editing site configuration
-        pass
+        try:
+            link = int(request.POST.get("stepindex"))
+        except:
+            link = -1
+        try:
+            pr_id = int(request.POST.get("projindex"))
+        except:
+            pr_id = 0
+        
+        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[pr_id]
 
+        
+        datt = num.datasave_set.all().order_by('-date_edited')[0]
+        
+        if link == -1:
+            return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(pr_id)+"/")
+        else:
+            return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(pr_id)+"/"+str(link))
+        
     else:
+        
+        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
         # We are browsing data
-
-
-        number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0].number
-        ori_layer = BlockJSON3.objects.filter(author=user).order_by('-date_edited')
+        number = num.number
+        
+        ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
-        road_layers = RoadJSON3.objects.filter(author=user).order_by('-date_edited')        
+        
+        road_layers = num.roadjson4_set.all().order_by('-date_edited') 
         road_proj = project_meter2degree(layer = road_layers,num = number)
         
-        inter_layers = InteriorJSON3.objects.filter(author=user).order_by('-date_edited')        
+        inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
         centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[0].lat
@@ -360,13 +408,157 @@ def compute(request):
                 'centerlng':centerlng,
         
                 }
-        
-        state = StateTopology.objects.filter(author=user).order_by('-date_edited')
-        
+                
         return render_to_response(
                 'reblock/compute.html',
                 RequestContext(request, c),
                 )
+
+@login_required
+def final_slut(request, slot_user, project_id, project_name, location):
+    user = request.user
+    
+    ##########should be slotified user
+    if slugify(str(user))==slot_user:
+        if request.method == 'POST': # someone is editing site configuration
+            pass
+        else:
+            num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
+            number = num.number
+            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+            ori_proj = project_meter2degree(layer = ori_layer,num = number)
+            
+            road_layers = num.roadjson4_set.all().order_by('-date_edited') 
+            road_proj = project_meter2degree(layer = road_layers,num = number)
+            
+            inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
+            inter_proj = project_meter2degree(layer = inter_layers,num = number)
+
+            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
+            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
+
+            c = {
+                    'ori_proj': ori_proj,
+                    'road_proj': road_proj,
+                    'inter_proj': inter_proj,
+                    'centerlat':centerlat,
+                    'centerlng':centerlng,
+            
+                    }
+                    
+            return render_to_response(
+                'reblock/steps.html',
+                RequestContext(request, c),
+                )
+
+@login_required
+def final_whole(request, slot_user, project_id, project_name, location):
+    user = request.user
+    
+    ##########should be slotified user
+    if slugify(str(user))==slot_user:
+        if request.method == 'POST': # someone is editing site configuration
+            pass
+        else:
+            num = BloockNUM.objects.order_by('-date_edited')[int(project_id)]
+            number = num.number
+            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+            ori_proj = project_meter2degree(layer = ori_layer,num = number)
+            
+            road_layers = num.roadjson4_set.all().order_by('-date_edited') 
+            road_proj = project_meter2degree(layer = road_layers,num = number)
+            
+            inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
+            inter_proj = project_meter2degree(layer = inter_layers,num = number)
+
+            centerlat =  CenterSave.objects.order_by('-date_edited')[int(project_id)].lat
+            centerlng =  CenterSave.objects.order_by('-date_edited')[int(project_id)].lng
+
+            c = {
+                    'ori_proj': ori_proj,
+                    'road_proj': road_proj,
+                    'inter_proj': inter_proj,
+                    'centerlat':centerlat,
+                    'centerlng':centerlng,
+            
+                    }
+                    
+            return render_to_response(
+                'reblock/steps.html',
+                RequestContext(request, c),
+                )
+
+
+
+
+@login_required
+def steps_slut(request, step_index, slot_user, project_id, project_name, location):
+    user = request.user
+    
+    ##########should be slotified user
+    if slugify(str(user))==slot_user:
+        if request.method == 'POST': # someone is editing site configuration
+            pass
+        else:
+            centerlat =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lat
+            centerlng =  CenterSave.objects.filter(author=user).order_by('-date_edited')[int(project_id)].lng
+            
+            num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
+            number = num.number
+
+            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+            ori_proj = project_meter2degree(layer = ori_layer,num = number)
+
+    ##################step data######################
+            step_layers = num.intermediatejson6_set.all().order_by('-date_edited').reverse()   
+            inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+            road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+
+            c = {
+                    'ori_proj': ori_proj,
+                    'road_proj': road_proj,
+                    'inter_proj': inter_proj,
+                    'centerlat':centerlat,
+                    'centerlng':centerlng,
+            
+                    }
+                    
+            return render_to_response(
+                'reblock/steps.html',
+                RequestContext(request, c),
+                )
+
+"""
+redirect to a page showing the recent reblocks created by the same user
+"""
+@login_required
+def recent(request):
+    user = request.user
+    
+    ##########should be slotified user
+    if request.method == 'POST': # someone is editing site configuration
+        pass
+    else:            
+        num = BloockNUM.objects.order_by('-date_edited')[:4]
+        
+        lst = []
+        for i,n in enumerate(num):
+            datt = n.datasave_set.all().order_by('-date_edited')[0]
+            link = '/reblock/recent/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
+            lst.append(link)
+        
+        print lst
+        json_lst = simplejson.dumps(lst)
+        c = {
+        "lst" : json_lst
+        
+
+                }
+                    
+        return render_to_response(
+            'reblock/recent.html',
+            RequestContext(request, c),
+            )
 
 
 def isnumber(s):
@@ -382,17 +574,18 @@ def isnumber(s):
             return False
 
 
+
 """
 function to reproject gdal layer(in meters) to degree, and output geojson file
 num is the amount of block to keep from the layer
 """
-def project_meter2degree(layer = None, num = 1):
+def project_meter2degree(layer = None, num = 1, offset = 0):
     layer_json = []
-    for la in layer[:num]:
+    for la in layer[offset*num:num+offset*num]:
     
         myjson = la.topo_json
         new_layer= DataSource(myjson)[0]
-        srs = layer[0].srs
+        srs = la.srs
         if not isnumber(srs):
             srs = default_srs
         new_proj =[]
@@ -408,6 +601,31 @@ def project_meter2degree(layer = None, num = 1):
     
     return layer_json
 
+"""
+function to reproject gdal layer(in meters) to degree, and output geojson file
+num is the amount of block to keep from the layer
+"""
+def projectRd_meter2degree(layer = None, num = 1, offset = 0):
+    layer_json = []
+    for la in layer[offset*num:num+offset*num]:
+    
+        myjson = la.road_json
+        new_layer= DataSource(myjson)[0]
+        srs = la.srs
+        if not isnumber(srs):
+            srs = default_srs
+        new_proj =[]
+        coord_transform = CoordTransform(SpatialReference(srs), SpatialReference(4326))
+        for feat in new_layer:
+            geom = feat.geom
+                
+            geom.transform(coord_transform)
+                
+            new_proj.append(json.loads(geom.json))
+        layer_json.extend(new_proj)
+    layer_json = json.dumps(layer_json)
+    
+    return layer_json
 
 def centroid(geom):
     lst = [Polygon(LinearRing(g.coords)).centroid for g in geom]
@@ -473,8 +691,6 @@ plots all blocks in the same figure.
 
 def run_once(original,name=None, user = None, block_index = 0, srs = None):
 
-    plt.figure()
-
     if len(original.interior_parcels) > 0:
         block = original.copy()
 
@@ -486,8 +702,8 @@ def run_once(original,name=None, user = None, block_index = 0, srs = None):
     else:
         block = original.copy()
     
-    roads = json.dumps({"type": "FeatureCollection",
-                           "features": [e.geoJSON() for e in block.myedges() if e.road]})
+    roads = simplejson.dumps({"type": "FeatureCollection",
+                           "features": [e.geoJSON(np.array([0, 0])) for e in block.myedges() if e.road]})
         
     block.plot_roads(master=original, new_plot=False)
     return roads
@@ -500,17 +716,16 @@ imports the file, plots the original map, and returns
 a list of blocks from the original map.
 """
 def new_import(lst, name=None,scale = 1):
-
-    original = import_and_setup(lst,scale = scale)#create and clean the graph. 
+    original = import_and_setup(lst,scale = scale)#create and clean the graph.
     blocklist = original.connected_components()
-
-    print("This map has {} block(s). \n".format(len(blocklist)))
 
     # plot the full original map
     for b in blocklist:
         # defines original geometery as a side effect,
+        pass
         b.plot_roads(master=b, new_plot=False, update=True)
 
+    
     blocklist.sort(key=lambda b: len(b.interior_parcels), reverse=True)
 
     return blocklist
@@ -567,16 +782,21 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
     target_mypath = None
     if vquiet is False:
-        print("Begin w {} Interior Parcels".format(len(myG.interior_parcels)))
+        pass
+        #print("Begin w {} Interior Parcels".format(len(myG.interior_parcels)))
 
     md = 100
 
-    while myG.interior_parcels:############extract?###########
+    while myG.interior_parcels:############extract###########
         #save remaining interior parcel to the database
         gJson = simplejson.dumps(json.loads(mgh.graphFromMyFaces(myG.interior_parcels).myedges_geoJSON()))
-        db_json = IntermediateJSON4(name=name, topo_json = gJson, author = user,step_index = len(myG.interior_parcels),block_index = block_index, srs = srs)
-        db_json.save()
+        roads = simplejson.dumps({"type": "FeatureCollection","features": [e.geoJSON(np.array([0, 0])) for e in myG.myedges() if e.road]})
         
+        number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
+        
+        db_json = IntermediateJSON6(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(myG.interior_parcels),block_index = block_index, srs = srs, number = number)
+        db_json.save()
+
         result, depth = mgh.form_equivalence_classes(myG)
 
         # flist from result!
@@ -598,9 +818,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
                 flist = list(set(result[3]) - set(result.get(5, [])))
 
         if quiet is False:
-            print("Cur max depth is {}; {}".format(md, len(flist)) +
-                  " parcels at current depth. \n" +
-                  "{0:.1f} new roads so far".format(added_road_length))
+            pass
 
         # potential segments from parcels in flist
 
@@ -629,7 +847,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
         remain = len(myG.interior_parcels)
         if quiet is False:
-            print("\n{} interior parcels left".format(remain))
+            pass #print("\n{} interior parcels left".format(remain))
         if vquiet is False:
             if remain > 300 or remain in [50, 100, 150, 200, 225, 250, 275]:
                 pass

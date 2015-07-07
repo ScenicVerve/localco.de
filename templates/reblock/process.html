@@ -28,25 +28,21 @@
 
 
 <body>
-<div style="width:500px; height:500px" id="map"></div>
+	<div id="map" style="width: 600px; height: 400px"></div>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
-<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 
 
 <script>
-    
     var lat = "{{centerlat}}"
     var lng = "{{centerlng}}"
     console.log(lat)
 		var map = L.map('map').setView([lat, lng], 16);
-        		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-			maxZoom: 18,
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			id: 'examples.map-20v6611k'
-		}).addTo(map);
-
+L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+    maxZoom: 20,
+    id: 'panthersuper.7558b934',
+    accessToken: 'pk.eyJ1IjoicGFudGhlcnN1cGVyIiwiYSI6Il9JRlBXMkkifQ.4VOcpN_xI1jf1XxjnIZHmw'
+}).addTo(map);
 
 var oriJSONList = (("{{ori_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
                 return {
@@ -80,19 +76,10 @@ var interJSONList = (("{{inter_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
 interData = JSON.parse( interJSONList );
 
 
-var locate = L.geoJson(oriData, {
-            weight: 1.5,
-            color: "#B0DE5C",
-            opacity: 0.8,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.8,
-            dashArray: '4',
-
-		});
 
 L.geoJson(oriData, {
             weight: 1.5,
-            color: "#FFA500",
+            color: "#B0DE5C",
             opacity: 0.8,
             fillColor: "#B0DE5C",
             fillOpacity: 0.8,
@@ -102,8 +89,8 @@ L.geoJson(oriData, {
 
 
 L.geoJson(interData, {
-            weight: 2.5,
-            color: "#FFA500",
+            weight: 2,
+            color: "blue",
             opacity: 0.8,
             fillColor: "#blue",
             fillOpacity: 0.8
@@ -112,60 +99,35 @@ L.geoJson(interData, {
 
 
 L.geoJson(roadData, {
-            weight: 2.5,
-            color: "#2F4F4F",
+            weight: 2,
+            color: "#FC4E2A",
             opacity: 0.8,
             fillColor: "#B0DE5C",
             fillOpacity: 0.8
 
 		}).addTo(map);
-
-
-map.fitBounds(locate.getBounds());
-
+        
 
         
-<!--layer from geoJson to overlay on top of map
+<!--layer from geoJson to overlay on top of map-->
 
 
-
-var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interJSONList));
-$('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
-
-
-var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(oriJSONList));
-$('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
-	
-var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadJSONList));
-$('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
-
-
-
-    </script>
-    
-
+	</script>
 
 
 
 
 {% endblock %}
+    
+    <!--
+<form id="layerconfigure" action="/reblock/configure/" method="POST" enctype="multipart/form-data">
 
 
-<div id="container"></div>
-
-
-
-
-                  <form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ formset.management_form }}
-    <input type="submit" value="Check" />
-    <div> Project Index: <input type="text" name="projindex"/>(default = 0)</div>
-    <div> Intermediate Step Index: <input type="text" name="stepindex"/></div>
-        
-
-              </form>
-</form>
+    <div><input type="submit" value="Upload New Configuration" /></div>
+    <div><h1> Site Configuration Name: <input type="text" name="name"/></h1></div>
+    <div> Set Radius: <input type="text" name="radius"/>(Defaults to 1,000 mts)</div>
+    <div> Set SRS: <input type="text" name="srs"/>(Defaults to Site layer's SRS)</div>
+</form>-->
 
 {% endblock %}
 
