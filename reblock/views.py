@@ -511,7 +511,7 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
 """
 redirect to a page showing the recent reblocks created by the same user
 """
-@login_required
+#@login_required
 def recent(request):
     
     ##########should be slotified user
