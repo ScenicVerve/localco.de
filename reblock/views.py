@@ -519,16 +519,12 @@ def recent(request):
     else:            
         num = BloockNUM.objects.order_by('-date_edited')[:4]
         
-        lst = []
         lstjson = []
         for i,n in enumerate(num):
             datt = n.datasave_set.all().order_by('-date_edited')[0]
             user = datt.author
             
-            number = n.number
-            link = '/reblock/recent/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
-            lst.append(link)
-            
+            number = n.number            
             ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
@@ -540,9 +536,7 @@ def recent(request):
             lstjson.append(json.loads(ori_proj))
             
         lstjson = simplejson.dumps(lstjson)
-        json_lst = simplejson.dumps(lst)
         c = {
-        "lstdata" : json_lst,
         "lstjson" : lstjson
         
 
@@ -565,14 +559,14 @@ def profile(request):
     else:            
         num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[:4]
         
-        lst = []
+        lstlink = []
         lstjson = []
         for i,n in enumerate(num):
             datt = n.datasave_set.all().order_by('-date_edited')[0]
             
             number = n.number
             link = '/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
-            lst.append(link)
+            lstlink.append(link)
             
             ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
@@ -585,10 +579,11 @@ def profile(request):
             lstjson.append(json.loads(ori_proj))
             
         lstjson = simplejson.dumps(lstjson)
-        json_lst = simplejson.dumps(lst)
+        lstlink = simplejson.dumps(lstlink)
         c = {
-        "lstdata" : json_lst,
-        "lstjson" : lstjson
+        "lstlink" : lstlink,
+        "lstjson" : lstjson,
+        "username": str(user),
         
 
                 }

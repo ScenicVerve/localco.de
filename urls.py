@@ -34,7 +34,8 @@ urlpatterns = patterns('',
     #(r'^tools/$', 'localcode.views.tools'),
 
     # webfinches
-    (r'^reblock/$', 'reblock.views.index'),
+    #(r'^reblock/$', 'reblock.views.index'),
+    (r'^reblock/$', include(interurls4)),
     #(r'^webfinches/login/create_account/$', 'webfinches.views.create_account'),
     (r'^reblock/upload/$', 'reblock.views.upload'),
     (r'^reblock/review/$', 'reblock.views.review'),

@@ -109,9 +109,8 @@
 			id: 'examples.map-20v6611k'
 		}).addTo(map3);
         
-        var test = {{ lstdata|safe }};
-
-        var testjson = {{ lstjson|safe }};
+        
+var testjson = {{ lstjson|safe }};
 
 
 
@@ -158,14 +157,7 @@ map2.fitBounds(mygeo2.getBounds());
 mygeo2.addTo(map2);
 
 map3.fitBounds(mygeo3.getBounds());
-mygeo3.addTo(map3);
-
-
-for(var i = 0;i<test.length;i++){
-a = document.getElementById(String(i));
-a.setAttribute("href", test[i]);
-}
-        
+mygeo3.addTo(map3);  
         
         
         
