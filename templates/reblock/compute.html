@@ -126,14 +126,15 @@ map.fitBounds(locate.getBounds());
 
 
 
-var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interJSONList));
+
+var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interJSONList).replace(/\\/g, ''));
 $('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
 
 
-var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(oriJSONList));
+var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(oriJSONList).replace(/\\/g, ''));
 $('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
 	
-var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadJSONList));
+var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadJSONList).replace(/\\/g, ''));
 $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
 
 

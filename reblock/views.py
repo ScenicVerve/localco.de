@@ -519,12 +519,19 @@ def recent(request):
     else:            
         num = BloockNUM.objects.order_by('-date_edited')[:4]
         
+
         lstjson = []
+        lstprjname = []
+        lstlocation = []
+        lstdes = []
         for i,n in enumerate(num):
             datt = n.datasave_set.all().order_by('-date_edited')[0]
-            user = datt.author
             
-            number = n.number            
+            number = n.number
+
+            lstprjname.append(str(datt.prjname))
+            lstlocation.append(str(datt.location))
+            lstdes.append(datt.description)
             ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
@@ -536,11 +543,16 @@ def recent(request):
             lstjson.append(json.loads(ori_proj))
             
         lstjson = simplejson.dumps(lstjson)
-        c = {
-        "lstjson" : lstjson
+        lstprjname = simplejson.dumps(lstprjname)
+        lstlocation = simplejson.dumps(lstlocation)
+        lstdes = simplejson.dumps(lstdes)
         
-
-                }
+        c = {
+        "lstjson" : lstjson,
+        "lstprjname": lstprjname,
+        "lstlocation": lstlocation,
+        "lstdes": lstdes,       
+        }
                     
         return render_to_response(
             'reblock/recent.html',
@@ -561,13 +573,19 @@ def profile(request):
         
         lstlink = []
         lstjson = []
+        lstprjname = []
+        lstlocation = []
+        lstdes = []
         for i,n in enumerate(num):
             datt = n.datasave_set.all().order_by('-date_edited')[0]
             
             number = n.number
             link = '/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
             lstlink.append(link)
-            
+
+            lstprjname.append(str(datt.prjname))
+            lstlocation.append(str(datt.location))
+            lstdes.append(datt.description)
             ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
@@ -580,13 +598,18 @@ def profile(request):
             
         lstjson = simplejson.dumps(lstjson)
         lstlink = simplejson.dumps(lstlink)
+        lstprjname = simplejson.dumps(lstprjname)
+        lstlocation = simplejson.dumps(lstlocation)
+        lstdes = simplejson.dumps(lstdes)
+        
         c = {
         "lstlink" : lstlink,
         "lstjson" : lstjson,
         "username": str(user),
-        
-
-                }
+        "lstprjname": lstprjname,
+        "lstlocation": lstlocation,
+        "lstdes": lstdes,       
+        }
                     
         return render_to_response(
             'reblock/profile.html',
@@ -633,7 +656,7 @@ def project_meter2degree(layer = None, num = 1, offset = 0):
                 
             new_proj.append(json.loads(geom.json))
         layer_json.extend(new_proj)
-    layer_json = json.dumps(layer_json)
+    layer_json = simplejson.dumps(layer_json)
     
     return layer_json
 
@@ -659,7 +682,7 @@ def projectRd_meter2degree(layer = None, num = 1, offset = 0):
                 
             new_proj.append(json.loads(geom.json))
         layer_json.extend(new_proj)
-    layer_json = json.dumps(layer_json)
+    layer_json = simplejson.dumps(layer_json)
     
     return layer_json
 

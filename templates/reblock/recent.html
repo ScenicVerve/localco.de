@@ -25,19 +25,27 @@
     
     
     <center>
-            <a id = "0" >
-            <div style="width:300px; height:300px;float:left;margin: 0 0 10px 10px;" id="map0" class="map" ></div>
+        
+            <a  style = "float:left;margin: 0 0 10px 10px;" id = "0">
+            <div style="width:300px; height:300px;" id="map0" class="map" ></div>
+            <div id = "prj0"> 
+            </div>
             </a>
-            <a id = "1" >
-            <div style="width:300px; height:300px;float:left; margin: 0 0 10px 10px;" id="map1" class="map"></div>
+            <a  style = "float:left; margin: 0 0 10px 10px;" id = "1">
+            <div style="width:300px; height:300px;" id="map1" class="map"></div>
+            <div id = "prj1">
+            </div>
             </a>
-            <a id = "2" >
-            <div style="width:300px; height:300px;float:left; margin: 0 0 10px 10px;" id="map2" class="map"></div>
+            <a  style = "float:left; margin: 0 0 10px 10px;" id = "2">
+            <div style="width:300px; height:300px;" id="map2" class="map"></div>
+            <div id = "prj2">
+            </div>
             </a>
-            <a id = "3" >
-            <div style="width:300px; height:300px;float:left; margin: 0 0 10px 10px;" id="map3" class="map"></div>
+            <a  style = "float:left; margin: 0 0 10px 10px;" id = "3">
+            <div style="width:300px; height:300px;" id="map3" class="map"></div>
+            <div id = "prj3">
+            </div>
             </a>
-
 <!--
 
 <div id="container">
@@ -117,6 +125,8 @@
         
         
 var testjson = {{ lstjson|safe }};
+var testprj = {{ lstprjname|safe }};
+var testloc = {{ lstlocation|safe }};
 
 
 
@@ -165,7 +175,9 @@ mygeo2.addTo(map2);
 map3.fitBounds(mygeo3.getBounds());
 mygeo3.addTo(map3);  
         
-        
+for(var i = 0;i<test.length;i++){
+document.getElementById("prj"+String(i)).innerHTML = testprj[i];
+}
         
         
         
