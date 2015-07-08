@@ -63,11 +63,10 @@ urlpatterns = patterns('',
     #(r'^reblock/password_change/done/$', 'django.contrib.auth.views.password_change_done'),
     #(r'^retrieve_password/$', 'reblock.views.retrieve_password'),
     #(r'^webfinches/user/$', 'webfinches.views.user'),
+    
+    #profile
+    (r'^reblock/profile/$', 'reblock.views.profile'),
 
-    #recent
-    (r'^reblock/recent/', include(interurls4)),
-    
-    
     
     
     
