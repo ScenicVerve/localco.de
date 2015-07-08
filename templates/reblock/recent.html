@@ -4,8 +4,6 @@
 
 
 {% block content %}
-{% block scripts %}
-  <head>
       <title>Open Reblock</title>
 
 	<meta charset="utf-8" />
@@ -16,10 +14,8 @@
     <!--<script src="http://www.html5marketplace.com/slideshow/jquery-1.4.2.min.js"></script>
     <link rel="stylesheet" type="text/css" href="http://www.html5marketplace.com/slideshow/direct/cssstyles.css" />-->
 
-</head>
 
 
-<body>
     
     
     
@@ -83,7 +79,59 @@
     
 
 
- <script type='text/javascript'>
+
+    
+<!--
+    <script>
+$(window).load(function(){
+		var pages = $('#container li'), current=0;
+		var currentPage,nextPage;
+
+		$('#container .button').click(function(){
+			currentPage= pages.eq(current);
+			if($(this).hasClass('prevButton'))
+			{
+
+				if (current <= 0)
+					current=pages.length-1;
+				else
+					current=current-1;
+			}
+			else
+			{
+				if (current >= pages.length-1)
+					current=0;
+				else
+					current=current+1;
+			}
+			nextPage = pages.eq(current);	
+			currentPage.hide();	
+			nextPage.show();		
+		});
+});
+
+
+
+
+
+
+
+</script>
+-->
+    
+    
+    
+
+
+
+{% endblock %}
+     
+     
+     
+     
+     {% block scripts %}
+
+      <script type='text/javascript'>
 
 
 		var map0 = L.map('map0');
@@ -182,51 +230,4 @@ document.getElementById("prj"+String(i)).innerHTML = testprj[i];
         
         
 	</script>
-    
-<!--
-    <script>
-$(window).load(function(){
-		var pages = $('#container li'), current=0;
-		var currentPage,nextPage;
-
-		$('#container .button').click(function(){
-			currentPage= pages.eq(current);
-			if($(this).hasClass('prevButton'))
-			{
-
-				if (current <= 0)
-					current=pages.length-1;
-				else
-					current=current-1;
-			}
-			else
-			{
-				if (current >= pages.length-1)
-					current=0;
-				else
-					current=current+1;
-			}
-			nextPage = pages.eq(current);	
-			currentPage.hide();	
-			nextPage.show();		
-		});
-});
-
-
-
-
-
-
-
-</script>
--->
-    
-    
-    
-</body>
-
-
-
-{% endblock %}
-     
 {% endblock %}
