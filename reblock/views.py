@@ -295,7 +295,6 @@ def review(request):
         datainfo["location"] = slugify(location)
         datainfo["description"] = desc
         datainfo["srs"] = checkedPrj(layer_data[0]['srs'])
-	print datainfo["srs"]
         
         # For every layer in the layer form, write a PostGIS object to the DB
         ds = DataSource(layer_data[0]['file_location'])
