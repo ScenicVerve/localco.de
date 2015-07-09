@@ -405,9 +405,11 @@ def compute(request):
         except:
             pr_id = 0
         
-        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[pr_id]
+        
+        ###########need raise exception if no data saved for current project id ################
+        num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[pr_id]
 
-        datt = num.datasave_set.all().order_by('-date_edited')[0]
+        datt = num.datasave2_set.all().order_by('-date_edited')[0]
         
         if link == -1:
             return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(pr_id)+"/")
@@ -555,22 +557,23 @@ def recent(request):
         lstlocation = []
         lstdes = []
         for i,n in enumerate(num):
-            datt = n.datasave_set.all().order_by('-date_edited')[0]
-            
-            number = n.number
+            if len(n.datasave2_set.all())>0:
+                datt = n.datasave2_set.all().order_by('-date_edited')[0]
+                
+                number = n.number
 
-            lstprjname.append(str(datt.prjname))
-            lstlocation.append(str(datt.location))
-            lstdes.append(datt.description)
-            ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
-            ori_proj = project_meter2degree(layer = ori_layer,num = number)
-        
-            #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
-            #~ road_proj = project_meter2degree(layer = road_layers,num = number)
-            #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
-            #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
+                lstprjname.append(str(datt.prjname))
+                lstlocation.append(str(datt.location))
+                lstdes.append(datt.description)
+                ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
+                ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
-            lstjson.append(json.loads(ori_proj))
+                #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
+                #~ road_proj = project_meter2degree(layer = road_layers,num = number)
+                #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
+                #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
+                
+                lstjson.append(json.loads(ori_proj))
             
         lstjson = simplejson.dumps(lstjson)
         lstprjname = simplejson.dumps(lstprjname)
@@ -607,24 +610,25 @@ def profile(request):
         lstlocation = []
         lstdes = []
         for i,n in enumerate(num):
-            datt = n.datasave_set.all().order_by('-date_edited')[0]
-            
-            number = n.number
-            link = '/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
-            lstlink.append(link)
+            if len(n.datasave2_set.all())>0:
+                datt = n.datasave2_set.all().order_by('-date_edited')[0]
+                
+                number = n.number
+                link = '/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(datt.d_id)+"/"
+                lstlink.append(link)
 
-            lstprjname.append(str(datt.prjname))
-            lstlocation.append(str(datt.location))
-            lstdes.append(datt.description)
-            ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
-            ori_proj = project_meter2degree(layer = ori_layer,num = number)
-        
-            #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
-            #~ road_proj = project_meter2degree(layer = road_layers,num = number)
-            #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
-            #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
+                lstprjname.append(str(datt.prjname))
+                lstlocation.append(str(datt.location))
+                lstdes.append(datt.description)
+                ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
+                ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
-            lstjson.append(json.loads(ori_proj))
+                #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
+                #~ road_proj = project_meter2degree(layer = road_layers,num = number)
+                #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
+                #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
+                
+                lstjson.append(json.loads(ori_proj))
             
         lstjson = simplejson.dumps(lstjson)
         lstlink = simplejson.dumps(lstlink)

@@ -23,7 +23,8 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None):
     num.save()
     proj_id = data["num"]
     srs = data["srs"]
-    data_save = DataSave(prjname=data["name"], location = data["location"], author = user,description = data["description"], number = num)
+    d_id =data["num"] 
+    data_save = DataSave2(prjname=data["name"], location = data["location"], author = user,description = data["description"], number = num, d_id = d_id)
     data_save.save()
     
     for i,g in enumerate(blocklist):
