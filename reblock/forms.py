@@ -94,7 +94,7 @@ class NewPassword(forms.ModelForm):
     email = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=100)))
     class Meta:
         model = User
-        fields = ('username', 'email', 'new_password1',)
+        fields = ('username', 'email', s'new_password1',)
                 
 
 '''        

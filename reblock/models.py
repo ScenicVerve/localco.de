@@ -194,6 +194,8 @@ class DataFile(Dated):
                 else:
                     data['srs'] = None
                 return data['srs']
+            else:
+                pass
         except: return None
     
 
