@@ -12,6 +12,7 @@ from django.forms.formsets import formset_factory
 from django.contrib.auth.models import User, UserManager
 from django.contrib.auth.forms import (
     AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm,)
+from django.shortcuts import render_to_response, redirect, render
 
 from reblock.models import DataFile, DataLayer, UploadEvent
 
@@ -25,15 +26,25 @@ class ZipUploadForm(forms.ModelForm):
 
     def clean_file(self):
         zip_file = self.cleaned_data['file']
-        zf = zipfile.ZipFile(zip_file)
-        contents = zf.namelist()
-        filetypes = [os.path.splitext(c)[1] for c in contents]
-        if '.shp' not in filetypes:
-            raise forms.ValidationError('.zip uploads must contain .shp files')
-        if '.dbf' not in filetypes:
-            raise forms.ValidationError('.zip uploads must contain .dbf files')
-        if '.shx' not in filetypes:
-            raise forms.ValidationError('.zip uploads must contain .shx files')
+
+        if not zipfile.is_zipfile(zip_file):
+            print "1"
+            raise forms.ValidationError('The file is not a zip format. Please zip the file and upload again.')
+            
+        else:    
+            zf = zipfile.ZipFile(zip_file)
+            contents = zf.namelist()
+            
+            filetypes = [os.path.splitext(c)[1] for c in contents]
+            if '.shp' not in filetypes:
+                raise forms.ValidationError('.zip uploads must contain .shp files')
+            if '.dbf' not in filetypes:
+                raise forms.ValidationError('.zip uploads must contain .dbf files')
+            if '.shx' not in filetypes:
+                raise forms.ValidationError('.zip uploads must contain .shx files')
+            #if '.prj' not in filetypes:
+            #    raise forms.ValidationError('.zip uploads must contain .prj files')
+
         return zip_file
 
     def save(self, upload, commit=True):
@@ -72,18 +83,18 @@ class SiteConfigurationForm(forms.ModelForm):
 class UserForm(forms.ModelForm):
     password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
     password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
-
+    email = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=100)))
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'password2')
+        fields = ('username', 'email', 'password1', 'password2')
         
 class NewPassword(forms.ModelForm):
     new_password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
     #new_password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
-
+    email = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=100)))
     class Meta:
         model = User
-        fields = ('username', 'new_password1',)
+        fields = ('username', 'email', 'new_password1',)
                 
 
 '''        

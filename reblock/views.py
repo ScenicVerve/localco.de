@@ -73,16 +73,42 @@ def upload(request):
     if request.method == 'POST':
         upload = UploadEvent(user=user)
         upload.save()
+	
         formset = ZipFormSet(request.POST, request.FILES)
+	
+	
         for form in formset:
             if form.is_valid() and form.has_changed():
                 data_file = form.save(upload)
+		print "ggggg"
 		return HttpResponseRedirect('/reblock/review/')
-	    else:
+	    
+	    elif form.errors:
+		
+		print "error"
+		
+	    elif not form.has_changed():
 		return render_to_response(
 		'reblock/browse_empty.html',
 		{})
 		
+		#print 'no shp found'
+		#return render_to_response(
+		#'reblock/browse_empty.html',
+		#{})
+
+	    
+	#    else:
+	#	print 'no prj found'
+	#
+	#	return render_to_response(
+	#	'reblock/browse_empty.html',
+	#	{})
+	#    elif not form.has_changed():
+	#	return render_to_response(
+	#	'reblock/browse_empty.html',
+	#	{})
+			
     else:
         formset = ZipFormSet()
 
@@ -120,8 +146,8 @@ def register(request):
 		user = User.objects.create_user(username, user_email, user_pwd1)
 		user.save()
 		registered = True
-		#email = EmailMultiAlternatives('Openreblock - Registration confirmation','You are registered!','eleannapan@gmail.com', [user_email])
-	    	#email.send()
+		email = EmailMultiAlternatives('Openreblock - Registration confirmation','You are registered!','eleannapan@gmail.com', [user_email])
+	    	email.send()
 		return render_to_response(
 		'reblock/registration_complete.html',
 		{},
@@ -187,11 +213,13 @@ def forgot_password(request):
 	    new_password1 = request.POST.get("new_password1")
 	    user.set_password(new_password1)
 	    #new_password2 = request.POST.get("new_password2")
+	    user_email = user.email
+	    #print user_email
+	    
 	    user.save()
-	    print user
-
-	    #email = EmailMultiAlternatives('test',config_password1,'eleannapan@gmail.com', ['eleannapan@gmail.com'])
-	    #email.send()
+	    message = 'Your new password has changed to: '
+	    email = EmailMultiAlternatives('password change',message + new_password1,'eleannapan@gmail.com', [user_email])
+	    email.send()
 	    return HttpResponseRedirect('/set_new_password/') #this redirects correct
 
 	else:
@@ -304,6 +332,11 @@ def review(request):
 
         geoms = checkGeometryType(layer)
         scale_factor2 = scaleFactor(geoms)
+	
+	num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()
+	
+	datainfo["num"] = len(num)
+	
         run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, data = datainfo)
 
         return HttpResponseRedirect('/reblock/compute/')
@@ -377,7 +410,6 @@ def compute(request):
         
         num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[pr_id]
 
-        
         datt = num.datasave_set.all().order_by('-date_edited')[0]
         
         if link == -1:
@@ -421,7 +453,7 @@ def final_slut(request, slot_user, project_id, project_name, location):
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
+            num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
             number = num.number
             ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
@@ -452,7 +484,7 @@ def final_whole(request, slot_user, project_id, project_name, location):
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.order_by('-date_edited')[int(project_id)]
+            num = BloockNUM.objects.order_by('-date_edited').reverse()[int(project_id)]
             number = num.number
             ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)

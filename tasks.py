@@ -6,6 +6,8 @@ from reblock.views import *
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
 
+from reblock.forms import *
+
 app = Celery('tasks', broker='amqp://guest@localhost//')
 
 
@@ -19,6 +21,7 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None):
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     num = BloockNUM(name=name, number = len(blocklist), author = user)
     num.save()
+    proj_id = data["num"]
     srs = data["srs"]
     data_save = DataSave(prjname=data["name"], location = data["location"], author = user,description = data["description"], number = num)
     data_save.save()
@@ -43,8 +46,9 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None):
 
     
     print "Calculation Done!!!"
-    #email = EmailMultiAlternatives('test','test','eleannapan@gmail.com', ['eleannapan@gmail.com'])
-    #email.send()
+    message = 'Your reblock is ready! Check it out here:'+' '+'http://openreblock.berkeley.edu/reblock/compute/'+str(user)+'/' +str(data["name"])+'/' +str(data["location"])+'/'+str(proj_id)+'/'+' '+'You can always find your past reblocks on your profile page. Thanks!'
+    email = EmailMultiAlternatives('Open Reblock notification. Calculation done!',message,'eleannapan@gmail.com', [user.email])
+    email.send()
 
 
 
