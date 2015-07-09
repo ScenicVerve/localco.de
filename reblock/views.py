@@ -453,7 +453,7 @@ def final_slut(request, slot_user, project_id, project_name, location):
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
+            num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
             number = num.number
             ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
@@ -484,7 +484,7 @@ def final_whole(request, slot_user, project_id, project_name, location):
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.order_by('-date_edited')[int(project_id)]
+            num = BloockNUM.objects.order_by('-date_edited').reverse()[int(project_id)]
             number = num.number
             ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
@@ -518,7 +518,7 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
+            num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
             number = num.number
 
             ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
