@@ -356,15 +356,26 @@ def review(request):
         ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
         
         reviewdic = []
+        x_ct = 0
+        y_ct = 0
         
         count = 0
         for feat in layer:
             geom = feat.geom # getting clone of feature geometry
             geom.transform(ct) # transforming
             reviewdic.append(json.loads(geom.json))
+            if count == 0 and geom[0][0][0] and isnumber(geom[0][0][0]): 
+                count =1
+                x_ct = geom[0][0][0]
+                y_ct = geom[0][0][1]
         
         reviewjson = json.dumps(reviewdic)
         
+        center_lat = y_ct
+        center_lng = x_ct
+        
+        center = CenterSave(name=user, lat = str(center_lat),lng = str(center_lng), author = user)
+        center.save()
 
         
         formset = LayerReviewFormSet( initial=layer_data )
@@ -397,7 +408,7 @@ def compute(request):
         except:
             pr_id = 0
         
-        num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[pr_id]
+        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[pr_id]
 
         datt = num.datasave_set.all().order_by('-date_edited')[0]
         
@@ -442,7 +453,7 @@ def final_slut(request, slot_user, project_id, project_name, location):
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
+            num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
             number = num.number
             ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
@@ -473,7 +484,7 @@ def final_whole(request, slot_user, project_id, project_name, location):
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.order_by('-date_edited').reverse()[int(project_id)]
+            num = BloockNUM.objects.order_by('-date_edited')[int(project_id)]
             number = num.number
             ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
@@ -507,7 +518,7 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
+            num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
             number = num.number
 
             ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
@@ -541,16 +552,19 @@ def recent(request):
     else:            
         num = BloockNUM.objects.order_by('-date_edited')[:4]
         
-        lst = []
+
         lstjson = []
+        lstprjname = []
+        lstlocation = []
+        lstdes = []
         for i,n in enumerate(num):
             datt = n.datasave_set.all().order_by('-date_edited')[0]
-            user = datt.author
             
             number = n.number
-            link = '/reblock/recent/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
-            lst.append(link)
-            
+
+            lstprjname.append(str(datt.prjname))
+            lstlocation.append(str(datt.location))
+            lstdes.append(datt.description)
             ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
@@ -562,16 +576,76 @@ def recent(request):
             lstjson.append(json.loads(ori_proj))
             
         lstjson = simplejson.dumps(lstjson)
-        json_lst = simplejson.dumps(lst)
-        c = {
-        "lstdata" : json_lst,
-        "lstjson" : lstjson
+        lstprjname = simplejson.dumps(lstprjname)
+        lstlocation = simplejson.dumps(lstlocation)
+        lstdes = simplejson.dumps(lstdes)
         
-
-                }
+        c = {
+        "lstjson" : lstjson,
+        "lstprjname": lstprjname,
+        "lstlocation": lstlocation,
+        "lstdes": lstdes,       
+        }
                     
         return render_to_response(
             'reblock/recent.html',
+            RequestContext(request, c),
+            )
+#
+"""
+redirect to a page showing the recent reblocks created by the same user
+"""
+@login_required
+def profile(request):
+    user = request.user
+    ##########should be slotified user
+    if request.method == 'POST': # someone is editing site configuration
+        pass
+    else:            
+        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[:4]
+        
+        lstlink = []
+        lstjson = []
+        lstprjname = []
+        lstlocation = []
+        lstdes = []
+        for i,n in enumerate(num):
+            datt = n.datasave_set.all().order_by('-date_edited')[0]
+            
+            number = n.number
+            link = '/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
+            lstlink.append(link)
+
+            lstprjname.append(str(datt.prjname))
+            lstlocation.append(str(datt.location))
+            lstdes.append(datt.description)
+            ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
+            ori_proj = project_meter2degree(layer = ori_layer,num = number)
+        
+            #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
+            #~ road_proj = project_meter2degree(layer = road_layers,num = number)
+            #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
+            #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
+            
+            lstjson.append(json.loads(ori_proj))
+            
+        lstjson = simplejson.dumps(lstjson)
+        lstlink = simplejson.dumps(lstlink)
+        lstprjname = simplejson.dumps(lstprjname)
+        lstlocation = simplejson.dumps(lstlocation)
+        lstdes = simplejson.dumps(lstdes)
+        
+        c = {
+        "lstlink" : lstlink,
+        "lstjson" : lstjson,
+        "username": str(user),
+        "lstprjname": lstprjname,
+        "lstlocation": lstlocation,
+        "lstdes": lstdes,       
+        }
+                    
+        return render_to_response(
+            'reblock/profile.html',
             RequestContext(request, c),
             )
 

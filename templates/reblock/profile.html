@@ -54,7 +54,6 @@
             </a>
 
 <!--
-
 <div id="container">
 	<ul>
         <li>
@@ -93,8 +92,6 @@
 {% block scripts %}
 
  <script type='text/javascript'>
-
-
 		var map0 = L.map('map0');
         		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
 			maxZoom: 18,
@@ -121,8 +118,6 @@
 				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
 			id: 'examples.map-20v6611k'
 		}).addTo(map2);
-
-
 		var map3 = L.map('map3');
         		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
 			maxZoom: 18,
@@ -138,19 +133,14 @@ var name = "{{ username|safe }}";
 var testprj = {{ lstprjname|safe }};
 var testloc = {{ lstlocation|safe }};
 var testde = {{ lstdes|safe }};
-
 var name = "{{ username|safe }}";
-
 document.getElementById("name").innerHTML = name + " 's profile page";
-
-
 var mygeo0 = L.geoJson(testjson[0], {
             weight: 1,
             color: "#2F4F4F",
             opacity: 1,
             fillColor: "#B0DE5C",
             fillOpacity: 0.4
-
 		})
 var mygeo1 = L.geoJson(testjson[1], {
             weight: 1,
@@ -158,7 +148,6 @@ var mygeo1 = L.geoJson(testjson[1], {
             opacity: 1,
             fillColor: "#B0DE5C",
             fillOpacity: 0.4
-
 		})
 var mygeo2 = L.geoJson(testjson[2], {
             weight: 1,
@@ -166,7 +155,6 @@ var mygeo2 = L.geoJson(testjson[2], {
             opacity: 1,
             fillColor: "#B0DE5C",
             fillOpacity: 0.4
-
 		})
 var mygeo3 = L.geoJson(testjson[3], {
             weight: 1,
@@ -174,28 +162,20 @@ var mygeo3 = L.geoJson(testjson[3], {
             opacity: 1,
             fillColor: "#B0DE5C",
             fillOpacity: 0.4
-
 		})
         
 map0.fitBounds(mygeo0.getBounds());
 mygeo0.addTo(map0);
-
 map1.fitBounds(mygeo1.getBounds());
 mygeo1.addTo(map1);
-
 map2.fitBounds(mygeo2.getBounds());
 mygeo2.addTo(map2);
-
 map3.fitBounds(mygeo3.getBounds());
 mygeo3.addTo(map3);
-
-
 for(var i = 0;i<test.length;i++){
 a = document.getElementById(String(i));
 a.setAttribute("href", test[i]);
-console.log(test[i]);
 document.getElementById("prj"+String(i)).innerHTML = testprj[i];
-
 }
         
         
@@ -210,12 +190,10 @@ document.getElementById("prj"+String(i)).innerHTML = testprj[i];
 $(window).load(function(){
 		var pages = $('#container li'), current=0;
 		var currentPage,nextPage;
-
 		$('#container .button').click(function(){
 			currentPage= pages.eq(current);
 			if($(this).hasClass('prevButton'))
 			{
-
 				if (current <= 0)
 					current=pages.length-1;
 				else
@@ -233,13 +211,6 @@ $(window).load(function(){
 			nextPage.show();		
 		});
 });
-
-
-
-
-
-
-
 </script>
 -->
     

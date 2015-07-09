@@ -233,6 +233,12 @@ class InteriorJSON4(SaveJSON3):
     def __unicode__(self):
         return "InteriorJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
+
+    
+
+
+
+
 class IntermediateJSON6(Named, Authored, Dated):
     step_index = models.IntegerField(null=True, blank=True)
     topo_json = models.TextField(null=True, blank=True)
@@ -242,6 +248,11 @@ class IntermediateJSON6(Named, Authored, Dated):
     number = models.ForeignKey(BloockNUM)
     def __unicode__(self):
         return "IntermediateJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
+
+
+class CenterSave(Named, Authored, Dated):
+    lat = models.TextField(null=True, blank=True)
+    lng = models.TextField(null=True, blank=True)
 
 class DataLayer(Named, Authored, Dated, Noted, GeomType,FilePath, Units):
     srs = models.CharField(max_length=50, null=True, blank=True)
