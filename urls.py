@@ -67,12 +67,7 @@ urlpatterns = patterns('',
     #recent
     (r'^reblock/recent/', include(interurls4)),
     
-    
-    
-    
-    
-    
-    
+
     # Login / logout.
     (r'^login/$', login, {'template_name': 'registration/login.html'}),
     (r'^logout/$', 'django.contrib.auth.views.logout' ),
