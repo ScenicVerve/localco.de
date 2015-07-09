@@ -4,14 +4,14 @@
 {% endblock %}
 
 {% block subtitle %}
-  Browse Data Layers
+  Upload Files
 {% endblock %}
 
 {% block content %}
                 <form id="layerbrowser", action="/reblock/browse/" method="POST" enctype="multipast/form-data">
                 {% csrf_token %}
                 {{ formset.management_form }}
-                <p>You don't have any Datalayers yet, please upload some SHP files first!</p>
+                <p>You didn't select any zip file. Please upload a zip file first!</p>
 
                 </form>
 {% endblock %}

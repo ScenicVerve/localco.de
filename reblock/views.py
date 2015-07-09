@@ -73,16 +73,42 @@ def upload(request):
     if request.method == 'POST':
         upload = UploadEvent(user=user)
         upload.save()
+	
         formset = ZipFormSet(request.POST, request.FILES)
+	
+	
         for form in formset:
             if form.is_valid() and form.has_changed():
                 data_file = form.save(upload)
+		print "ggggg"
 		return HttpResponseRedirect('/reblock/review/')
-	    else:
+	    
+	    elif form.errors:
+		
+		print "error"
+		
+	    elif not form.has_changed():
 		return render_to_response(
 		'reblock/browse_empty.html',
 		{})
 		
+		#print 'no shp found'
+		#return render_to_response(
+		#'reblock/browse_empty.html',
+		#{})
+
+	    
+	#    else:
+	#	print 'no prj found'
+	#
+	#	return render_to_response(
+	#	'reblock/browse_empty.html',
+	#	{})
+	#    elif not form.has_changed():
+	#	return render_to_response(
+	#	'reblock/browse_empty.html',
+	#	{})
+			
     else:
         formset = ZipFormSet()
 
@@ -120,8 +146,8 @@ def register(request):
 		user = User.objects.create_user(username, user_email, user_pwd1)
 		user.save()
 		registered = True
-		#email = EmailMultiAlternatives('Openreblock - Registration confirmation','You are registered!','eleannapan@gmail.com', [user_email])
-	    	#email.send()
+		email = EmailMultiAlternatives('Openreblock - Registration confirmation','You are registered!','eleannapan@gmail.com', [user_email])
+	    	email.send()
 		return render_to_response(
 		'reblock/registration_complete.html',
 		{},
@@ -187,11 +213,13 @@ def forgot_password(request):
 	    new_password1 = request.POST.get("new_password1")
 	    user.set_password(new_password1)
 	    #new_password2 = request.POST.get("new_password2")
+	    user_email = user.email
+	    #print user_email
+	    
 	    user.save()
-	    print user
-
-	    #email = EmailMultiAlternatives('test',config_password1,'eleannapan@gmail.com', ['eleannapan@gmail.com'])
-	    #email.send()
+	    message = 'Your new password has changed to: '
+	    email = EmailMultiAlternatives('password change',message + new_password1,'eleannapan@gmail.com', [user_email])
+	    email.send()
 	    return HttpResponseRedirect('/set_new_password/') #this redirects correct
 
 	else:
@@ -295,6 +323,7 @@ def review(request):
         datainfo["location"] = slugify(location)
         datainfo["description"] = desc
         datainfo["srs"] = checkedPrj(layer_data[0]['srs'])
+	print datainfo["srs"]
         
         # For every layer in the layer form, write a PostGIS object to the DB
         ds = DataSource(layer_data[0]['file_location'])
@@ -303,6 +332,11 @@ def review(request):
 
         geoms = checkGeometryType(layer)
         scale_factor2 = scaleFactor(geoms)
+	
+	num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()
+	
+	datainfo["num"] = len(num)
+	
         run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, data = datainfo)
 
         return HttpResponseRedirect('/reblock/compute/')
@@ -365,7 +399,6 @@ def compute(request):
         
         num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[pr_id]
 
-        
         datt = num.datasave_set.all().order_by('-date_edited')[0]
         
         if link == -1:
@@ -508,19 +541,16 @@ def recent(request):
     else:            
         num = BloockNUM.objects.order_by('-date_edited')[:4]
         
-
+        lst = []
         lstjson = []
-        lstprjname = []
-        lstlocation = []
-        lstdes = []
         for i,n in enumerate(num):
             datt = n.datasave_set.all().order_by('-date_edited')[0]
+            user = datt.author
             
             number = n.number
-
-            lstprjname.append(str(datt.prjname))
-            lstlocation.append(str(datt.location))
-            lstdes.append(datt.description)
+            link = '/reblock/recent/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
+            lst.append(link)
+            
             ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
@@ -532,81 +562,18 @@ def recent(request):
             lstjson.append(json.loads(ori_proj))
             
         lstjson = simplejson.dumps(lstjson)
-        lstprjname = simplejson.dumps(lstprjname)
-        lstlocation = simplejson.dumps(lstlocation)
-        lstdes = simplejson.dumps(lstdes)
-        
+        json_lst = simplejson.dumps(lst)
         c = {
-        "lstjson" : lstjson,
-        "lstprjname": lstprjname,
-        "lstlocation": lstlocation,
-        "lstdes": lstdes,       
-        }
+        "lstdata" : json_lst,
+        "lstjson" : lstjson
+        
+
+                }
                     
         return render_to_response(
             'reblock/recent.html',
             RequestContext(request, c),
             )
-
-"""
-redirect to a page showing the recent reblocks created by the same user
-"""
-@login_required
-def profile(request):
-    user = request.user
-    ##########should be slotified user
-    if request.method == 'POST': # someone is editing site configuration
-        pass
-    else:            
-        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[:4]
-        
-        lstlink = []
-        lstjson = []
-        lstprjname = []
-        lstlocation = []
-        lstdes = []
-        for i,n in enumerate(num):
-            datt = n.datasave_set.all().order_by('-date_edited')[0]
-            
-            number = n.number
-            link = '/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
-            lstlink.append(link)
-
-            lstprjname.append(str(datt.prjname))
-            lstlocation.append(str(datt.location))
-            lstdes.append(datt.description)
-            ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
-            ori_proj = project_meter2degree(layer = ori_layer,num = number)
-        
-            #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
-            #~ road_proj = project_meter2degree(layer = road_layers,num = number)
-            #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
-            #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
-            
-            lstjson.append(json.loads(ori_proj))
-            
-        lstjson = simplejson.dumps(lstjson)
-        lstlink = simplejson.dumps(lstlink)
-        lstprjname = simplejson.dumps(lstprjname)
-        lstlocation = simplejson.dumps(lstlocation)
-        lstdes = simplejson.dumps(lstdes)
-        
-        c = {
-        "lstlink" : lstlink,
-        "lstjson" : lstjson,
-        "username": str(user),
-        "lstprjname": lstprjname,
-        "lstlocation": lstlocation,
-        "lstdes": lstdes,       
-        }
-                    
-        return render_to_response(
-            'reblock/profile.html',
-            RequestContext(request, c),
-            )
-
-
-
 
 
 def isnumber(s):
@@ -645,7 +612,7 @@ def project_meter2degree(layer = None, num = 1, offset = 0):
                 
             new_proj.append(json.loads(geom.json))
         layer_json.extend(new_proj)
-    layer_json = simplejson.dumps(layer_json)
+    layer_json = json.dumps(layer_json)
     
     return layer_json
 
@@ -671,7 +638,7 @@ def projectRd_meter2degree(layer = None, num = 1, offset = 0):
                 
             new_proj.append(json.loads(geom.json))
         layer_json.extend(new_proj)
-    layer_json = simplejson.dumps(layer_json)
+    layer_json = json.dumps(layer_json)
     
     return layer_json
 
