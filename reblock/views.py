@@ -83,9 +83,6 @@ def upload(request):
 		
 		return HttpResponseRedirect('/reblock/review/')
 	    
-	    elif form.errors:
-		
-		print "error"
 		
 	    elif not form.has_changed():
 		return render_to_response(
