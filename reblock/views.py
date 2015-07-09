@@ -552,16 +552,19 @@ def recent(request):
     else:            
         num = BloockNUM.objects.order_by('-date_edited')[:4]
         
-        lst = []
+
         lstjson = []
+        lstprjname = []
+        lstlocation = []
+        lstdes = []
         for i,n in enumerate(num):
             datt = n.datasave_set.all().order_by('-date_edited')[0]
-            user = datt.author
             
             number = n.number
-            link = '/reblock/recent/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
-            lst.append(link)
-            
+
+            lstprjname.append(str(datt.prjname))
+            lstlocation.append(str(datt.location))
+            lstdes.append(datt.description)
             ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
@@ -573,16 +576,76 @@ def recent(request):
             lstjson.append(json.loads(ori_proj))
             
         lstjson = simplejson.dumps(lstjson)
-        json_lst = simplejson.dumps(lst)
-        c = {
-        "lstdata" : json_lst,
-        "lstjson" : lstjson
+        lstprjname = simplejson.dumps(lstprjname)
+        lstlocation = simplejson.dumps(lstlocation)
+        lstdes = simplejson.dumps(lstdes)
         
-
-                }
+        c = {
+        "lstjson" : lstjson,
+        "lstprjname": lstprjname,
+        "lstlocation": lstlocation,
+        "lstdes": lstdes,       
+        }
                     
         return render_to_response(
             'reblock/recent.html',
+            RequestContext(request, c),
+            )
+#
+"""
+redirect to a page showing the recent reblocks created by the same user
+"""
+@login_required
+def profile(request):
+    user = request.user
+    ##########should be slotified user
+    if request.method == 'POST': # someone is editing site configuration
+        pass
+    else:            
+        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[:4]
+        
+        lstlink = []
+        lstjson = []
+        lstprjname = []
+        lstlocation = []
+        lstdes = []
+        for i,n in enumerate(num):
+            datt = n.datasave_set.all().order_by('-date_edited')[0]
+            
+            number = n.number
+            link = '/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(i)+"/"
+            lstlink.append(link)
+
+            lstprjname.append(str(datt.prjname))
+            lstlocation.append(str(datt.location))
+            lstdes.append(datt.description)
+            ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
+            ori_proj = project_meter2degree(layer = ori_layer,num = number)
+        
+            #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
+            #~ road_proj = project_meter2degree(layer = road_layers,num = number)
+            #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
+            #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
+            
+            lstjson.append(json.loads(ori_proj))
+            
+        lstjson = simplejson.dumps(lstjson)
+        lstlink = simplejson.dumps(lstlink)
+        lstprjname = simplejson.dumps(lstprjname)
+        lstlocation = simplejson.dumps(lstlocation)
+        lstdes = simplejson.dumps(lstdes)
+        
+        c = {
+        "lstlink" : lstlink,
+        "lstjson" : lstjson,
+        "username": str(user),
+        "lstprjname": lstprjname,
+        "lstlocation": lstlocation,
+        "lstdes": lstdes,       
+        }
+                    
+        return render_to_response(
+            'reblock/profile.html',
             RequestContext(request, c),
             )
 
