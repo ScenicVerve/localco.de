@@ -133,13 +133,15 @@ class DataFile(Dated):
         abs_path = self.abs_path()
         # see if we need to extract it
         extract_dir = self.extract_path()
+        print extract_dir
         basename = os.path.split( extract_dir )[1]
+        #print basename
         if not os.path.isdir( extract_dir ):
             # extract it to a directory with that name
             os.mkdir( extract_dir )
             zip_file = zipfile.ZipFile( self.file )
             zip_file.extractall( extract_dir )
-        
+
         # get shape type
         shape_path = self.path_of_part('.shp')
         ds = DataSource( shape_path )

@@ -80,12 +80,9 @@ def upload(request):
         for form in formset:
             if form.is_valid() and form.has_changed():
                 data_file = form.save(upload)
-		print "ggggg"
+		
 		return HttpResponseRedirect('/reblock/review/')
 	    
-	    elif form.errors:
-		
-		print "error"
 		
 	    elif not form.has_changed():
 		return render_to_response(
@@ -206,7 +203,7 @@ def forgot_password(request):
         user_form = UserForm(request.POST)
 	new = NewPassword(request.POST)
 	if User.objects.filter(username=request.POST['username']).exists():
-	    print 11111
+	    #print 11111
 	    
 	    config_username = request.POST.get("username")
 	    user = User.objects.get(username__exact=config_username)
@@ -223,7 +220,7 @@ def forgot_password(request):
 	    return HttpResponseRedirect('/set_new_password/') #this redirects correct
 
 	else:
-	    print 2222
+	    #print 2222
 	    return render_to_response(
 	    'reblock/forgot_password.html',
 	    {'user_form': user_form, 'registered': registered},
@@ -323,7 +320,7 @@ def review(request):
         datainfo["location"] = slugify(location)
         datainfo["description"] = desc
         datainfo["srs"] = checkedPrj(layer_data[0]['srs'])
-	print datainfo["srs"]
+	#print datainfo["srs"]
         
         # For every layer in the layer form, write a PostGIS object to the DB
         ds = DataSource(layer_data[0]['file_location'])
