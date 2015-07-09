@@ -34,7 +34,8 @@ urlpatterns = patterns('',
     #(r'^tools/$', 'localcode.views.tools'),
 
     # webfinches
-    (r'^reblock/$', 'reblock.views.index'),
+    #(r'^reblock/$', 'reblock.views.index'),
+    (r'^reblock/$', include(interurls4)),
     #(r'^webfinches/login/create_account/$', 'webfinches.views.create_account'),
     (r'^reblock/upload/$', 'reblock.views.upload'),
     (r'^reblock/review/$', 'reblock.views.review'),
@@ -63,11 +64,10 @@ urlpatterns = patterns('',
     #(r'^reblock/password_change/done/$', 'django.contrib.auth.views.password_change_done'),
     #(r'^retrieve_password/$', 'reblock.views.retrieve_password'),
     #(r'^webfinches/user/$', 'webfinches.views.user'),
+    
+    #profile
+    (r'^reblock/profile/$', 'reblock.views.profile'),
 
-    #recent
-    (r'^reblock/recent/', include(interurls4)),
-    
-    
     
     
     
