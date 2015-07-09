@@ -558,7 +558,7 @@ def recent(request):
             'reblock/recent.html',
             RequestContext(request, c),
             )
-
+#
 """
 redirect to a page showing the recent reblocks created by the same user
 """
