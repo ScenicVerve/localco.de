@@ -113,6 +113,7 @@ class DataFile(Dated):
         Returns `None` if the file can't be found
         """
         path_to_part = self._get_folder(self.extract_path(), ext)
+        print path_to_part
         if ext in path_to_part:
             return path_to_part
         else:
@@ -144,6 +145,7 @@ class DataFile(Dated):
 
         # get shape type
         shape_path = self.path_of_part('.shp')
+        #print shape_path
         ds = DataSource( shape_path )
         layer = ds[0]
         'Here we add a check for geometry types???'
