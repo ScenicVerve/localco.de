@@ -322,26 +322,15 @@ def review(request):
         ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
         
         reviewdic = []
-        x_ct = 0
-        y_ct = 0
         
         count = 0
         for feat in layer:
             geom = feat.geom # getting clone of feature geometry
             geom.transform(ct) # transforming
             reviewdic.append(json.loads(geom.json))
-            if count == 0 and geom[0][0][0] and isnumber(geom[0][0][0]): 
-                count =1
-                x_ct = geom[0][0][0]
-                y_ct = geom[0][0][1]
         
         reviewjson = json.dumps(reviewdic)
         
-        center_lat = y_ct
-        center_lng = x_ct
-        
-        center = CenterSave(name=user, lat = str(center_lat),lng = str(center_lng), author = user)
-        center.save()
 
         
         formset = LayerReviewFormSet( initial=layer_data )
@@ -374,7 +363,7 @@ def compute(request):
         except:
             pr_id = 0
         
-        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[pr_id]
+        num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[pr_id]
 
         
         datt = num.datasave_set.all().order_by('-date_edited')[0]
@@ -420,7 +409,7 @@ def final_slut(request, slot_user, project_id, project_name, location):
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
+            num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
             number = num.number
             ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
@@ -451,7 +440,7 @@ def final_whole(request, slot_user, project_id, project_name, location):
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.order_by('-date_edited')[int(project_id)]
+            num = BloockNUM.objects.order_by('-date_edited').reverse()[int(project_id)]
             number = num.number
             ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
@@ -485,7 +474,7 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[int(project_id)]
+            num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
             number = num.number
 
             ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
