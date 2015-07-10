@@ -36,6 +36,7 @@
 
 
 <script>
+var run = 1;
 
 loadmap("{{ori_proj}}","{{road_proj}}", "{{inter_proj}}" );
 
@@ -131,19 +132,31 @@ map.fitBounds(locate.getBounds());
 
 
 function reload(){
+    $("#update").append('<div style="width:500px; height:500px" id="map"></div>');
+
     $.getJSON("/reblock/reload/", {refresh: "true"}, function(json){
-        
     loadmap(json["ori"],json["rd"], json["int"] );
   });
-
-    
-    
-    
 }
 
+function reloadstep(){
 
+    $.getJSON("/reblock/reload_step/", {refresh: "true"}, function(json){
+    if (json["start"]){
+    
+    if (json["finish"] ){
+    reload();
+    run = 0;
+}else{
+        $("#update").append('<div style="width:500px; height:500px" id="map"></div>');
 
-        
+    loadmap(json["ori"],json["rd"], json["int"] );
+}
+}
+
+  });
+}
+
 <!--layer from geoJson to overlay on top of map
 
 
@@ -159,24 +172,23 @@ function reload(){
 //~ var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadJSONList).replace(/\\/g, ''));
 //~ $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
 
+var refreshID = window.setInterval(function(){
+    $("#map").remove();
+    reloadstep();
+if (run == 0){
+    clearInterval(refreshID);
+    
+}
+},5000
+);
+
+
 
 
 $(document).ready(function(){
     $("#bt2").click(function(){
         $("#map").remove();
-        $("#update").append('<div style="width:500px; height:500px" id="map"></div>');
-        //loadmap("{{ori_proj}}","{{road_proj}}", "{{inter_proj}}");
         reload();
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
     });
 });
 

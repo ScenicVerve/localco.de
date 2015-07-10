@@ -113,7 +113,6 @@ class DataFile(Dated):
         Returns `None` if the file can't be found
         """
         path_to_part = self._get_folder(self.extract_path(), ext)
-        print path_to_part
         if ext in path_to_part:
             return path_to_part
         else:
@@ -134,7 +133,6 @@ class DataFile(Dated):
         abs_path = self.abs_path()
         # see if we need to extract it
         extract_dir = self.extract_path()
-        print extract_dir
         basename = os.path.split( extract_dir )[1]
         #print basename
         if not os.path.isdir( extract_dir ):
@@ -202,6 +200,11 @@ class DataFile(Dated):
                 pass
         except: return None
     
+class UploadEvent(models.Model):
+    user = models.ForeignKey(User)
+    date = models.DateTimeField(auto_now_add=True)
+    def __unicode__(self):
+        return "UploadEvent: %s" % self.date
 
 class BloockNUM(Named, Authored, Dated):
     number = models.IntegerField(null=True, blank=True)
@@ -220,6 +223,14 @@ class SaveJSON3(Named, Authored, Dated):
     
     class Meta:
         abstract=True
+
+class FinishSign2(Named, Authored, Dated):
+    upload = models.ForeignKey(UploadEvent)
+
+class StartSign2(Named, Authored, Dated):
+    upload = models.ForeignKey(UploadEvent)
+
+
 
 class BlockJSON4(SaveJSON3):
     number = models.ForeignKey(BloockNUM)
@@ -269,11 +280,6 @@ class DataLayer(Named, Authored, Dated, Noted, GeomType,FilePath, Units):
     def __unicode__(self):
         return "DataLayer: %s" % self.name
 
-class UploadEvent(models.Model):
-    user = models.ForeignKey(User)
-    date = models.DateTimeField(auto_now_add=True)
-    def __unicode__(self):
-        return "UploadEvent: %s" % self.date
 
 class Attribute(Named):
     layer = models.ForeignKey(DataLayer)

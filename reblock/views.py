@@ -8,6 +8,7 @@ import cStringIO
 import datetime
 import numpy as np
 
+from celery.result import AsyncResult
 
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
@@ -330,12 +331,10 @@ def review(request):
         geoms = checkGeometryType(layer)
         scale_factor2 = scaleFactor(geoms)
 	
-	num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()
-	
-	datainfo["num"] = len(num)
-	
-        run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, data = datainfo)
-
+        num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()
+        datainfo["num"] = len(num)
+        
+        mytask = run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, data = datainfo)
         return HttpResponseRedirect('/reblock/compute/')
         
     else: # we are asking them to review data
@@ -435,11 +434,12 @@ def compute(request):
 @login_required
 def reload(request):
     user = request.user
+    
+    ###############lag between start task and save num object
     num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
 
-    # We are browsing data
     number = num.number
-        
+    print num.datasave2_set.all()[0].prjname
     ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
     road_layers = num.roadjson4_set.all().order_by('-date_edited') 
@@ -452,9 +452,72 @@ def reload(request):
     dic["rd"] = str(road_proj)
     dic["int"] = str(inter_proj)
     json = simplejson.dumps(dic)
+    print "reload............"
     return HttpResponse(json, mimetype='application/json')
 
+"""
+reload the last step of the project
+"""
+@login_required
+def reload_step(request):
+    user = request.user
+    print 324565353534534535
 
+    upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
+    print upload
+    print 000000000000000000000000000
+    dic = {}
+
+    start = len(upload.startsign2_set.all())
+    
+    print "reload step............start = "+str(start)
+    
+    if start:
+        dic["start"] = 1
+    else:
+        dic["start"] = 0
+    
+    ###############lag between start task and save num object
+    num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
+    number = num.number
+
+    ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+    ori_proj = project_meter2degree(layer = ori_layer,num = number)
+    
+    ##################step data######################
+    step_layers = num.intermediatejson6_set.all().order_by('-date_edited').reverse()   
+    
+    step_index = len(step_layers)/number-1
+
+    if step_index>=0:
+        inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+        road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+        
+        dic["ori"] = str(ori_proj)
+        dic["rd"] = str(road_proj)
+        dic["int"] = str(inter_proj)
+        
+        finish = len(upload.finishsign2_set.all())
+        if finish:
+            dic["finish"] = 1
+        else:
+            dic["finish"] = 0
+    else:
+        finish = len(upload.finishsign2_set.all())
+
+        if finish:
+            dic["finish"] = 1
+        else:
+            dic["finish"] = 0
+    
+    print "reload step............finish = "+str(finish)
+
+    json = simplejson.dumps(dic)
+
+    return HttpResponse(json, mimetype='application/json')
+
+    
+    
 
 
 
@@ -554,6 +617,11 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
                 RequestContext(request, c),
                 )
 
+    
+
+
+
+
 """
 redirect to a page showing the recent reblocks created by the same user
 """
@@ -616,7 +684,7 @@ def profile(request):
     ##########should be slotified user
     if request.method == 'POST': # someone is editing site configuration
         pass
-    else:            
+    else:
         num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[:4]
         
         lstlink = []

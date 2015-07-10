@@ -70,7 +70,7 @@ urlpatterns = patterns('',
 
     #reload page
     (r'^reblock/reload/$', 'reblock.views.reload'),
-
+    (r'^reblock/reload_step/$', 'reblock.views.reload_step'),
     
     
     
