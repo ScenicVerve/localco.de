@@ -1029,15 +1029,16 @@ def graphFromLineString(lst,name = None,rezero=np.array([0, 0]),scale = 1):
 #		
 #    myG = mg.MyGraph(name=name)
 
-    for p in plist:
-        for e in p.edges:
-            myG.add_edge(mg.MyEdge(e.nodes))
-    if scale != 1:
-        myG = rescale_mygraph(myG,rezero,scale)
-    print("data loaded")
-
-    return myG
-        
+    #for p in plist:
+    #    for e in p.edges:
+    #        myG.add_edge(mg.MyEdge(e.nodes))
+    #if scale != 1:
+    #    myG = rescale_mygraph(myG,rezero,scale)
+    #print("data loaded")
+    #
+    #return myG
+    #    
+    
     
 """
 The function that check the projection information according to the file uploaded to the database
