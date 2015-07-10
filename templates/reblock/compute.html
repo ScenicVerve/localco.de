@@ -28,14 +28,20 @@
 
 
 <body>
+    <div id = "update">
 <div style="width:500px; height:500px" id="map"></div>
+</div> 
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
 
 <script>
 
-		var map = L.map('map');
+loadmap();
+function loadmap(){
+    
+    		var map = L.map('map');
         		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
 			maxZoom: 18,
 			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
@@ -119,6 +125,13 @@ L.geoJson(roadData, {
 
 
 map.fitBounds(locate.getBounds());
+    
+    
+}
+
+
+
+
 
 
         
@@ -127,17 +140,30 @@ map.fitBounds(locate.getBounds());
 
 
 
-var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interJSONList).replace(/\\/g, ''));
-$('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
+//~ var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interJSONList).replace(/\\/g, ''));
+//~ $('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
+//~ 
+//~ 
+//~ var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(oriJSONList).replace(/\\/g, ''));
+//~ $('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
+	//~ 
+//~ var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadJSONList).replace(/\\/g, ''));
+//~ $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
 
 
-var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(oriJSONList).replace(/\\/g, ''));
-$('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
-	
-var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadJSONList).replace(/\\/g, ''));
-$('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
 
-
+$(document).ready(function(){
+    $("#bt2").click(function(){
+        $("#map").remove();
+        $("#update").append('<div style="width:500px; height:500px" id="map"></div>');
+        loadmap();
+        
+        
+        
+        
+        
+    });
+});
 
     </script>
     
@@ -149,8 +175,7 @@ $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').append
 {% endblock %}
 
 
-<div id="container"></div>
-
+<!--<div id="container"></div>-->
 
 
 
@@ -164,6 +189,8 @@ $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').append
 
               </form>
 </form>
+
+<button id = "bt2">reload map</button>
 
 {% endblock %}
 

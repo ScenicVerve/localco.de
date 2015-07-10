@@ -353,27 +353,14 @@ def review(request):
         ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
         
         reviewdic = []
-        x_ct = 0
-        y_ct = 0
-        
-        count = 0
+
         for feat in layer:
             geom = feat.geom # getting clone of feature geometry
             geom.transform(ct) # transforming
             reviewdic.append(json.loads(geom.json))
-            if count == 0 and geom[0][0][0] and isnumber(geom[0][0][0]): 
-                count =1
-                x_ct = geom[0][0][0]
-                y_ct = geom[0][0][1]
+
         
         reviewjson = json.dumps(reviewdic)
-        
-        center_lat = y_ct
-        center_lng = x_ct
-        
-        center = CenterSave(name=user, lat = str(center_lat),lng = str(center_lng), author = user)
-        center.save()
-
         
         formset = LayerReviewFormSet( initial=layer_data )
 	
@@ -396,6 +383,8 @@ def compute(request):
     
     
     if request.method == 'POST': # someone is editing site configuration
+        numlst = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()
+
         try:
             link = int(request.POST.get("stepindex"))
         except:
@@ -403,11 +392,11 @@ def compute(request):
         try:
             pr_id = int(request.POST.get("projindex"))
         except:
-            pr_id = 0
+            pr_id = len(numlst)-1
         
+        num = numlst[pr_id]
         
         ###########need raise exception if no data saved for current project id ################
-        num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[pr_id]
 
         datt = num.datasave2_set.all().order_by('-date_edited')[0]
         
