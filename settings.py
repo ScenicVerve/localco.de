@@ -33,7 +33,6 @@ else: # If i'm running it on the server
     
     ADMINS = (
             ('Nicholas de Monchaux', 'demonchaux@berkeley.edu'),
-            ('Benjamin Golder', 'benjamin.j.golder@gmail.com'),
             ('Carlos Sandoval', 'ce.sandoval@berkeley.edu'),
     )  
     
