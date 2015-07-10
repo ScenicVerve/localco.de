@@ -33,13 +33,12 @@
 </div> 
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
 
 <script>
 
-loadmap();
-function loadmap(){
+loadmap("{{ori_proj}}","{{road_proj}}", "{{inter_proj}}" );
+function loadmap(ori,road, inter ){
     
     		var map = L.map('map');
         		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
@@ -51,7 +50,7 @@ function loadmap(){
 		}).addTo(map);
 
 
-var oriJSONList = (("{{ori_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
+var oriJSONList = ((ori).replace(/&(l|g|quo)t;/g, function(a,b){
                 return {
                     l   : '<',
                     g   : '>',
@@ -61,7 +60,7 @@ var oriJSONList = (("{{ori_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
 
 oriData = JSON.parse( oriJSONList );
 
-var roadJSONList = (("{{road_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
+var roadJSONList = ((road).replace(/&(l|g|quo)t;/g, function(a,b){
                 return {
                     l   : '<',
                     g   : '>',
@@ -72,7 +71,7 @@ var roadJSONList = (("{{road_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
 roadData = JSON.parse( roadJSONList );
 
 
-var interJSONList = (("{{inter_proj}}").replace(/&(l|g|quo)t;/g, function(a,b){
+var interJSONList = ((inter).replace(/&(l|g|quo)t;/g, function(a,b){
                 return {
                     l   : '<',
                     g   : '>',
@@ -130,7 +129,26 @@ map.fitBounds(locate.getBounds());
 }
 
 
+function reload(){
+    $.getJSON("/reblock/reload_ori/", {refresh: "true"}, function(json){
+    var test = (("{{json}}").replace(/&(l|g|quo)t;/g, function(a,b){
+                return {
+                    l   : '<',
+                    g   : '>',
+                    quo : '"'
+                }[b];
+            }));
+        
+        
+        
+    alert("{{json}}");
+    loadmap(test,"{{road_proj}}", "{{inter_proj}}" );
+  });
 
+    
+    
+    
+}
 
 
 
@@ -156,8 +174,14 @@ $(document).ready(function(){
     $("#bt2").click(function(){
         $("#map").remove();
         $("#update").append('<div style="width:500px; height:500px" id="map"></div>');
-        loadmap();
+        //loadmap("{{ori_proj}}","{{road_proj}}", "{{inter_proj}}");
+
         
+        
+        
+        
+        
+        reload();
         
         
         
@@ -175,7 +199,7 @@ $(document).ready(function(){
 {% endblock %}
 
 
-<!--<div id="container"></div>-->
+<div id="container"></div>
 
 
 

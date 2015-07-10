@@ -414,7 +414,6 @@ def compute(request):
         ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
-        
         road_layers = num.roadjson4_set.all().order_by('-date_edited') 
         road_proj = project_meter2degree(layer = road_layers,num = number)
         
@@ -431,6 +430,25 @@ def compute(request):
                 'reblock/compute.html',
                 RequestContext(request, c),
                 )
+
+
+@login_required
+def reload_ori(request):
+    user = request.user
+    num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
+
+    # We are browsing data
+    number = num.number
+        
+    ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+    ori_proj = project_meter2degree(layer = ori_layer,num = number)
+    
+
+    return HttpResponse(ori_proj, mimetype='application/json')
+
+
+
+
 
 @login_required
 def final_slut(request, slot_user, project_id, project_name, location):
