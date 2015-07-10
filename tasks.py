@@ -17,6 +17,9 @@ rewrite topology, using linestring list as input, save data to the database
 @app.task
 
 def run_topology(lst, name=None, user = None, scale_factor=1, data=None):
+    prev_message = 'Your calculation is now in progress! We will notify you again once it is completed!'
+    email = EmailMultiAlternatives('Open Reblock notification. Calculation started!',prev_message,'openreblock@gmail.com', [user.email])
+    email.send()
 
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     num = BloockNUM(name=name, number = len(blocklist), author = user)
@@ -46,8 +49,9 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None):
 
     
     print "Calculation Done!!!"
-    message = 'Your reblock is ready! Check it out here:'+' '+'http://openreblock.berkeley.edu/reblock/compute/'+str(user)+'/' +str(data["name"])+'/' +str(data["location"])+'/'+str(proj_id)+'/'+' '+'You can always find your past reblocks on your profile page. Thanks!'
-    email = EmailMultiAlternatives('Open Reblock notification. Calculation done!',message,'eleannapan@gmail.com', [user.email])
+    message = 'Your reblock is ready! Check it out here:'+' '+'http://127.0.0.1:8000/reblock/compute/'+str(user)+'_' +str(data["name"])+'_' +str(data["location"])+'_'+str(proj_id)+'/'+' '+'You can always find your past reblocks on your profile page'+' '+'http://127.0.0.1:8000/reblock/profile'+' '+'Thanks!'
+    #message = 'Your reblock is ready! Check it out here:'+' '+'http://openreblock.berkeley.edu/reblock/compute/'+str(user)+'_' +str(data["name"])+'_' +str(data["location"])+'_'+str(proj_id)+'/'+' '+'You can always find your past reblocks on your profile page'+' '+'http://openreblock.berkeley.edu/reblock/profile'+' '+'Thanks!'
+    email = EmailMultiAlternatives('Open Reblock notification. Calculation done!',message,'openreblock@gmail.com', [user.email])
     email.send()
 
 

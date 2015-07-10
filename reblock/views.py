@@ -143,7 +143,9 @@ def register(request):
 		user = User.objects.create_user(username, user_email, user_pwd1)
 		user.save()
 		registered = True
-		email = EmailMultiAlternatives('Openreblock - Registration confirmation','You are registered!','eleannapan@gmail.com', [user_email])
+		message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://127.0.0.1:8000/login/'
+		#message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://openreblock.berkeley.edu/login/'
+		email = EmailMultiAlternatives('Openreblock - Registration confirmation',message,'openreblock@gmail.com', [user_email])
 	    	email.send()
 		return render_to_response(
 		'reblock/registration_complete.html',
@@ -214,8 +216,8 @@ def forgot_password(request):
 	    #print user_email
 	    
 	    user.save()
-	    message = 'Your new password has changed to: '
-	    email = EmailMultiAlternatives('password change',message + new_password1,'eleannapan@gmail.com', [user_email])
+	    message = 'Your new password has changed to: '+ new_password1+' '+'Use it to log back in openreblock.berkeley.edu'
+	    email = EmailMultiAlternatives('password change',message ,'openreblock@gmail.com', [user_email])
 	    email.send()
 	    return HttpResponseRedirect('/set_new_password/') #this redirects correct
 
@@ -328,6 +330,15 @@ def review(request):
                 
 
         geoms = checkGeometryType(layer)
+	
+	
+	l =[]
+	for i in range(len(geoms)):
+	    co = geoms[i].coords
+	    l.append(co)
+	    
+
+	#print geoms[0].coords
         scale_factor2 = scaleFactor(geoms)
 	
 	num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()
@@ -760,6 +771,7 @@ def checkGeometryType(gdal_layer, srs=None):
     
     if len(lst)>0 and len(lst)<=6000:
         return lst
+	
     
     elif len(lst)>6000:
         raise IOError(str(len(lst))+" too many polygons to process, maximum number of Polygons is 1,200")
@@ -824,7 +836,7 @@ def import_and_setup(lst,component = None,threshold=1,rezero=np.array([0, 0]), c
     # check that rezero is an array of len(2)
     # check that threshold is a float
     print "start creating graph based on input geometry"
-    myG = graphFromLineString(lst, name, rezero,scale = scale)#create the graph. can't directly show step
+    myG = graph_from_segments(lst, name, rezero,scale = scale)#create the graph. can't directly show step
     print "start clean up"
     myG = myG.clean_up_geometry(threshold, connected)#clean the graph. can't directly show step
     print "Finish cleaning up"
@@ -974,6 +986,39 @@ def graphFromLineString(lst,name = None,rezero=np.array([0, 0]),scale = 1):
     print("data loaded")
 
     return myG
+    
+    
+#def graph_from_segments(lst,name = None,rezero=np.array([0, 0]),scale = 1):
+#    nodedict = dict()
+#    plist = []
+#    
+#    for l in lst:
+#	l = np.array(l.coords)
+#	nodes = []
+#	for i in l:
+#	    if i%2 != 0:
+#		
+#		i = i-rezero
+#		myN = mg.MyNode(i)
+#		if myN not in nodedict:
+#		    nodes.append(myN)
+#		    nodedict[myN] = myN
+#		else:
+#		    nodes.append(nodedict[myN])
+#		edges = [(nodes[i], nodes[i+1]) for i in range(0, len(nodes)-1)]
+#		plist.append(mg.MyFace(edges))
+#		
+#    myG = mg.MyGraph(name=name)
+
+    for p in plist:
+        for e in p.edges:
+            myG.add_edge(mg.MyEdge(e.nodes))
+    if scale != 1:
+        myG = rescale_mygraph(myG,rezero,scale)
+    print("data loaded")
+
+    return myG
+        
     
 """
 The function that check the projection information according to the file uploaded to the database

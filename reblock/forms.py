@@ -83,7 +83,7 @@ class SiteConfigurationForm(forms.ModelForm):
 class UserForm(forms.ModelForm):
     password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
     password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
-    email = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=100)))
+    email = forms.CharField(widget=forms.TextInput(attrs=dict(required=True, max_length=100)))
     class Meta:
         model = User
         fields = ('username', 'email', 'password1', 'password2')
@@ -91,7 +91,7 @@ class UserForm(forms.ModelForm):
 class NewPassword(forms.ModelForm):
     new_password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
     #new_password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
-    email = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=100)))
+    email = forms.CharField(widget=forms.TextInput(attrs=dict(required=False, max_length=100)))
     class Meta:
         model = User
         fields = ('username', 'email', 'new_password1',)
