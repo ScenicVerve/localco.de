@@ -433,7 +433,7 @@ def compute(request):
 
 
 @login_required
-def reload_ori(request):
+def reload(request):
     user = request.user
     num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
 
@@ -442,9 +442,17 @@ def reload_ori(request):
         
     ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
-    
+    road_layers = num.roadjson4_set.all().order_by('-date_edited') 
+    road_proj = project_meter2degree(layer = road_layers,num = number)
+    inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
+    inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
-    return HttpResponse(ori_proj, mimetype='application/json')
+    dic = {}
+    dic["ori"] = str(ori_proj)
+    dic["rd"] = str(road_proj)
+    dic["int"] = str(inter_proj)
+    json = simplejson.dumps(dic)
+    return HttpResponse(json, mimetype='application/json')
 
 
 

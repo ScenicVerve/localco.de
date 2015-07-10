@@ -69,7 +69,7 @@ urlpatterns = patterns('',
     (r'^reblock/profile/$', 'reblock.views.profile'),
 
     #reload page
-    (r'^reblock/reload_ori/$', 'reblock.views.reload_ori'),
+    (r'^reblock/reload/$', 'reblock.views.reload'),
 
     
     

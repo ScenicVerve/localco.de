@@ -38,6 +38,7 @@
 <script>
 
 loadmap("{{ori_proj}}","{{road_proj}}", "{{inter_proj}}" );
+
 function loadmap(ori,road, inter ){
     
     		var map = L.map('map');
@@ -130,19 +131,9 @@ map.fitBounds(locate.getBounds());
 
 
 function reload(){
-    $.getJSON("/reblock/reload_ori/", {refresh: "true"}, function(json){
-    var test = (("{{json}}").replace(/&(l|g|quo)t;/g, function(a,b){
-                return {
-                    l   : '<',
-                    g   : '>',
-                    quo : '"'
-                }[b];
-            }));
+    $.getJSON("/reblock/reload/", {refresh: "true"}, function(json){
         
-        
-        
-    alert("{{json}}");
-    loadmap(test,"{{road_proj}}", "{{inter_proj}}" );
+    loadmap(json["ori"],json["rd"], json["int"] );
   });
 
     
@@ -175,13 +166,13 @@ $(document).ready(function(){
         $("#map").remove();
         $("#update").append('<div style="width:500px; height:500px" id="map"></div>');
         //loadmap("{{ori_proj}}","{{road_proj}}", "{{inter_proj}}");
+        reload();
 
         
         
         
         
         
-        reload();
         
         
         
