@@ -472,11 +472,9 @@ reload the last step of the project
 @login_required
 def reload_step(request):
     user = request.user
-    print 324565353534534535
 
     upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
     print upload
-    print 000000000000000000000000000
     dic = {}
 
     start = len(upload.startsign2_set.all())
