@@ -230,7 +230,8 @@ class FinishSign2(Named, Authored, Dated):
 class StartSign2(Named, Authored, Dated):
     upload = models.ForeignKey(UploadEvent)
 
-
+class StepStart(Named, Authored, Dated):
+    upload = models.ForeignKey(UploadEvent)
 
 class BlockJSON4(SaveJSON3):
     number = models.ForeignKey(BloockNUM)

@@ -20,16 +20,19 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None):
     upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
     
     start = StartSign2(name=name, upload = upload, author = user)
+    start.save()
+
     prev_message = 'Your calculation is now in progress! We will notify you again once it is completed!'
     email = EmailMultiAlternatives('Open Reblock notification. Calculation started!',prev_message,'openreblock@gmail.com', [user.email])
     email.send()
 
-    start.save()
     
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
     num = BloockNUM(name=name, number = len(blocklist), author = user)
     num.save()
-    
+    step = StepStart(name=name, upload = upload, author = user)
+    step.save()
+
     proj_id = data["num"]
     srs = data["srs"]
     d_id =data["num"] 
@@ -37,9 +40,7 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None):
     data_save.save()
     
     numlst = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
-    print "11111111111111111111111111111"
     print numlst.datasave2_set.all()[0].prjname
-    print 2222222222222222222
     for i,g in enumerate(blocklist):
         #ALL THE PARCELS
         parcels = simplejson.dumps(json.loads(g.myedges_geoJSON()))
@@ -64,8 +65,8 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None):
     finish.save()
     
     print "Calculation Done!!!"
-    message = 'Your reblock is ready! Check it out here:'+' '+'http://127.0.0.1:8000/reblock/compute/'+str(user)+'_' +str(data["name"])+'_' +str(data["location"])+'_'+str(proj_id)+'/'+' '+'You can always find your past reblocks on your profile page'+' '+'http://127.0.0.1:8000/reblock/profile'+' '+'Thanks!'
-    #message = 'Your reblock is ready! Check it out here:'+' '+'http://openreblock.berkeley.edu/reblock/compute/'+str(user)+'_' +str(data["name"])+'_' +str(data["location"])+'_'+str(proj_id)+'/'+' '+'You can always find your past reblocks on your profile page'+' '+'http://openreblock.berkeley.edu/reblock/profile'+' '+'Thanks!'
+    #message = 'Your reblock is ready! Check it out here:'+' '+'http://127.0.0.1:8000/reblock/compute/'+str(user)+'_' +str(data["name"])+'_' +str(data["location"])+'_'+str(proj_id)+'/'+' '+'You can always find your past reblocks on your profile page'+' '+'http://127.0.0.1:8000/reblock/profile'+' '+'Thanks!'
+    message = 'Your reblock is ready! Check it out here:'+' '+'http://openreblock.berkeley.edu/reblock/compute/'+str(user)+'_' +str(data["name"])+'_' +str(data["location"])+'_'+str(proj_id)+'/'+' '+'You can always find your past reblocks on your profile page'+' '+'http://openreblock.berkeley.edu/reblock/profile'+' '+'Thanks!'
     email = EmailMultiAlternatives('Open Reblock notification. Calculation done!',message,'openreblock@gmail.com', [user.email])
     email.send()
 

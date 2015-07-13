@@ -486,6 +486,15 @@ def reload_step(request):
     else:
         dic["start"] = 0
     
+    step = len(upload.stepstart_set.all())
+    
+    print "reload step............step = "+str(step)
+    
+    if step:
+        dic["step"] = 1
+    else:
+        dic["step"] = 0
+    
     ###############lag between start task and save num object
     num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
     number = num.number
@@ -921,7 +930,7 @@ def import_and_setup(lst,component = None,threshold=1,rezero=np.array([0, 0]), c
     # check that rezero is an array of len(2)
     # check that threshold is a float
     print "start creating graph based on input geometry"
-    myG = graph_from_segments(lst, name, rezero,scale = scale)#create the graph. can't directly show step
+    myG = graphFromLineString(lst, name, rezero,scale = scale)#create the graph. can't directly show step
     print "start clean up"
     myG = myG.clean_up_geometry(threshold, connected)#clean the graph. can't directly show step
     print "Finish cleaning up"
