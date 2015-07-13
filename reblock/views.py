@@ -7,6 +7,7 @@ import tempfile, zipfile
 import cStringIO
 import datetime
 import numpy as np
+import networkx as nx
 
 from celery.result import AsyncResult
 
@@ -301,6 +302,7 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
+	
         
         #########get the information filled by user#########
         if len(str(request.POST.get("name")))>0 :
@@ -317,6 +319,11 @@ def review(request):
             desc = request.POST.get("description")
         else:
             desc = "-"
+	if len(str(request.POST.get("barrier_index")))>0 :
+	    b_index = request.POST.get("barrier_index")  
+	else:
+            b_index = "-"    
+	#print b_index
         
         datainfo = {}
         datainfo["name"] = slugify(name)
@@ -331,23 +338,18 @@ def review(request):
                 
 
         geoms = checkGeometryType(layer)
+	#graph_indices = get_index(b_index)
 	
-	
-	l =[]
-	for i in range(len(geoms)):
-	    co = geoms[i].coords
-	    l.append(co)
-	    
-
-	#print geoms[0].coords
         scale_factor2 = scaleFactor(geoms)
 	
+
         num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()
         datainfo["num"] = len(num)
         
-        mytask = run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, data = datainfo)
+        mytask = run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, data = datainfo,  indices=b_index)
         return HttpResponseRedirect('/reblock/compute/')
-        
+
+	
     else: # we are asking them to review data
         # get the last upload of this user
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
@@ -421,7 +423,7 @@ def compute(request):
         # We are browsing data
         number = num.number
         
-        ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+        ori_layer = num.definebarriers_set.all().order_by('-date_edited') 
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
         road_layers = num.roadjson4_set.all().order_by('-date_edited') 
@@ -450,8 +452,9 @@ def reload(request):
     num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
 
     number = num.number
-    print num.datasave2_set.all()[0].prjname
-    ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+    print num.datasave2_set.all()[0].prjname 
+    ori_layer = num.definebarriers_set.all().order_by('-date_edited') 
+
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
     road_layers = num.roadjson4_set.all().order_by('-date_edited') 
     road_proj = project_meter2degree(layer = road_layers,num = number)
@@ -523,6 +526,7 @@ def reload_step(request):
     else:
         finish = len(upload.finishsign2_set.all())
 
+
         if finish:
             dic["finish"] = 1
         else:
@@ -535,9 +539,6 @@ def reload_step(request):
     return HttpResponse(json, mimetype='application/json')
 
     
-    
-
-
 
 @login_required
 def final_slut(request, slot_user, project_id, project_name, location):
@@ -550,7 +551,7 @@ def final_slut(request, slot_user, project_id, project_name, location):
         else:
             num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
             number = num.number
-            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+            ori_layer = num.definebarriers_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
             road_layers = num.roadjson4_set.all().order_by('-date_edited') 
@@ -581,7 +582,7 @@ def final_whole(request, slot_user, project_id, project_name, location):
         else:
             num = BloockNUM.objects.order_by('-date_edited').reverse()[int(project_id)]
             number = num.number
-            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+            ori_layer = num.definebarriers_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
             road_layers = num.roadjson4_set.all().order_by('-date_edited') 
@@ -616,7 +617,7 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
             num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
             number = num.number
 
-            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+            ori_layer = num.definebarriers_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
 
     ##################step data######################
@@ -666,7 +667,7 @@ def recent(request):
                 lstprjname.append(str(datt.prjname))
                 lstlocation.append(str(datt.location))
                 lstdes.append(datt.description)
-                ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
+                ori_layer = n.definebarriers_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
                 #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
@@ -721,7 +722,7 @@ def profile(request):
                 lstprjname.append(str(datt.prjname))
                 lstlocation.append(str(datt.location))
                 lstdes.append(datt.description)
-                ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
+                ori_layer = n.definebarriers_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
                 #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
@@ -881,7 +882,7 @@ Given a list of blocks, builds roads to connect all interior parcels and
 plots all blocks in the same figure.
 """
 
-def run_once(original,name=None, user = None, block_index = 0, srs = None):
+def run_once(original,name=None, user = None, block_index = 0, srs = None, barriers=None):
 
     if len(original.interior_parcels) > 0:
         block = original.copy()
@@ -890,7 +891,7 @@ def run_once(original,name=None, user = None, block_index = 0, srs = None):
         block.define_interior_parcels()
 
         # finds roads to connect all interior parcels for a given block(with steps)
-        block_roads = build_all_roads(block, wholepath=True,name = name, user = user, srs = srs)
+        block_roads = build_all_roads(block, wholepath=True,name = name, user = user, srs = srs,barriers=barriers)
     else:
         block = original.copy()
     
@@ -901,14 +902,55 @@ def run_once(original,name=None, user = None, block_index = 0, srs = None):
     return roads
 
 
+#def get_index(b_index):
+#    #graph_indices =[]
+#    if "," in b_index:  
+#	ba= [int(i) for i in b_index.split(",")]
+#	graph_indices = ba
+#	return graph_indices
+
+
+def match_barriers(b_index, original):
+    #graph_indices = get_index(b_index)
+    b_edges = []
+    if "," in b_index:
+	ba= [int(i) for i in b_index.split(",")]
+	#print ba
+	bar_edge = original.myedges()
+	print len(bar_edge)
+     
+	for index in ba:
+	    if index <= len(bar_edge):
+    
+		b_edges.append(bar_edge[index])
+		b = set(b_edges)
+		a = list(b)
+		#print b_edges
+	return a
+
+
 """
 rewrite new_import function from topology
 
 imports the file, plots the original map, and returns
 a list of blocks from the original map.
 """
-def new_import(lst, name=None,scale = 1):
-    original = import_and_setup(lst,scale = scale)#create and clean the graph.
+def new_import(lst, name=None,scale = 1, indices=None):
+    original = import_and_setup(lst,scale = scale, threshold=1)#create and clean the graph.
+    
+    if indices:
+	
+	barriers = match_barriers(indices, original)
+	print len(barriers)
+	mgh.build_barriers(barriers)
+	
+	#print indices
+	# assign theses to a variable called barriers
+	# compute minimal paths with barriers
+    else:
+	print "NO"
+	# compute without 
+
     blocklist = original.connected_components()
 
     # plot the full original map
@@ -926,13 +968,15 @@ def new_import(lst, name=None,scale = 1):
 """
 rewrite topology's import_and_setup function using linestring as input
 """
-def import_and_setup(lst,component = None,threshold=1,rezero=np.array([0, 0]), connected=False, name="",scale = 1):
+def import_and_setup(lst,component = None,threshold=1, byblock=True, name="",scale = 1):
     # check that rezero is an array of len(2)
     # check that threshold is a float
     print "start creating graph based on input geometry"
-    myG = graphFromLineString(lst, name, rezero,scale = scale)#create the graph. can't directly show step
+
+    myG = graphFromLineString(lst, name,scale = scale)#create the graph. can't directly show step
+
     print "start clean up"
-    myG = myG.clean_up_geometry(threshold, connected)#clean the graph. can't directly show step
+    myG = myG.clean_up_geometry(threshold, byblock=byblock)#clean the graph. can't directly show step
     print "Finish cleaning up"
     print myG
     if component is None:
@@ -944,7 +988,7 @@ def import_and_setup(lst,component = None,threshold=1,rezero=np.array([0, 0]), c
 rewrite function in mgh
 """
 
-def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
+def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
                     wholepath=False, original_roads=None, plot_original=False,
                     bisect=False, plot_result=False, barriers=False,
                     quiet=False, vquiet=False, strict_greedy=False,
@@ -958,7 +1002,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
         quiet = True
 
     if plot_original:
-        myG.plot_roads(original_roads, update=False,
+        original.plot_roads(original_roads, update=False,
                        parcel_labels=False, new_road_color="blue")
 
     shortest_only = False
@@ -968,9 +1012,9 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
     added_road_length = 0
     # plotnum = 0
     if plot_intermediate is True and master is None:
-        master = myG.copy()
+        master = original.copy()
 
-    myG.define_interior_parcels()
+    original.define_interior_parcels()
 
     target_mypath = None
     if vquiet is False:
@@ -979,31 +1023,31 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
     md = 100
 
-    while myG.interior_parcels:############extract###########
+    while original.interior_parcels:############extract###########
         #save remaining interior parcel to the database
-        gJson = simplejson.dumps(json.loads(mgh.graphFromMyFaces(myG.interior_parcels).myedges_geoJSON()))
-        roads = simplejson.dumps({"type": "FeatureCollection","features": [e.geoJSON(np.array([0, 0])) for e in myG.myedges() if e.road]})
+        gJson = simplejson.dumps(json.loads(mgh.graphFromMyFaces(original.interior_parcels).myedges_geoJSON()))
+        roads = simplejson.dumps({"type": "FeatureCollection","features": [e.geoJSON(np.array([0, 0])) for e in original.myedges() if e.road]})
         
         number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
         
-        db_json = IntermediateJSON6(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(myG.interior_parcels),block_index = block_index, srs = srs, number = number)
+        db_json = IntermediateJSON6(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(original.interior_parcels),block_index = block_index, srs = srs, number = number)
         db_json.save()
 
-        result, depth = mgh.form_equivalence_classes(myG)
+        result, depth = mgh.form_equivalence_classes(original)
 
         # flist from result!
         flist = []
 
         if md == 3:
-            flist = myG.interior_parcels
+            flist = original.interior_parcels
         elif md > 3:
             if outsidein is False:
-                result, depth = mgh.form_equivalence_classes(myG)
+                result, depth = mgh.form_equivalence_classes(original)
                 while len(flist) < 1:
                     md = max(result.keys())
                     flist = flist + result.pop(md)
             elif outsidein is True:
-                result, depth = form_equivalence_classes(myG)
+                result, depth = form_equivalence_classes(original)
                 md = max(result.keys())
                 if len(result[md]) == 0:
                     md = md - 2
@@ -1013,31 +1057,35 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
             pass
 
         # potential segments from parcels in flist
-
-        all_paths = mgh.find_short_paths_all_parcels(myG, flist, target_mypath,
-                                                 barriers, quiet=quiet,
-                                                 shortest_only=shortest_only)
+	try:
+	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,
+						     barriers, quiet=quiet,
+						     shortest_only=shortest_only)
+	except nx.NetworkXNoPath:
+	    raise IOError("Select less edges!")
+	    
+	    
 
         # choose and build one
-        target_ptup, target_mypath = mgh.choose_path(myG, all_paths, alpha,
+        target_ptup, target_mypath = mgh.choose_path(original, all_paths, alpha,
                                                  strict_greedy=strict_greedy)
 
         if wholepath is False:
             added_road_length += target_mypath[0].length
-            myG.add_road_segment(target_mypath[0])
+            original.add_road_segment(target_mypath[0])
 
         if wholepath is True:
             for e in target_mypath:
                 added_road_length += e.length
-                myG.add_road_segment(e)
+                original.add_road_segment(e)
 
-        myG.define_interior_parcels()
+        original.define_interior_parcels()
         if plot_intermediate:
-            myG.plot_roads(master, update=False)
+            original.plot_roads(master, update=False)
             # plt.savefig("Int_Step"+str(plotnum)+".pdf", format='pdf')
             # plotnum += 1
 
-        remain = len(myG.interior_parcels)
+        remain = len(original.interior_parcels)
         if quiet is False:
             pass #print("\n{} interior parcels left".format(remain))
         if vquiet is False:
@@ -1046,7 +1094,7 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
 
     # update the properties of nodes & edges to reflect new geometry.
 
-    myG.added_roads = added_road_length
+    original.added_roads = added_road_length
     return added_road_length
 
 
@@ -1082,37 +1130,6 @@ def graphFromLineString(lst,name = None,rezero=np.array([0, 0]),scale = 1):
     return myG
     
     
-#def graph_from_segments(lst,name = None,rezero=np.array([0, 0]),scale = 1):
-#    nodedict = dict()
-#    plist = []
-#    
-#    for l in lst:
-#	l = np.array(l.coords)
-#	nodes = []
-#	for i in l:
-#	    if i%2 != 0:
-#		
-#		i = i-rezero
-#		myN = mg.MyNode(i)
-#		if myN not in nodedict:
-#		    nodes.append(myN)
-#		    nodedict[myN] = myN
-#		else:
-#		    nodes.append(nodedict[myN])
-#		edges = [(nodes[i], nodes[i+1]) for i in range(0, len(nodes)-1)]
-#		plist.append(mg.MyFace(edges))
-#		
-#    myG = mg.MyGraph(name=name)
-
-    for p in plist:
-        for e in p.edges:
-            myG.add_edge(mg.MyEdge(e.nodes))
-    if scale != 1:
-        myG = rescale_mygraph(myG,rezero,scale)
-    print("data loaded")
-
-    return myG
-        
     
 """
 The function that check the projection information according to the file uploaded to the database
