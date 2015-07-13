@@ -206,14 +206,20 @@ class UploadEvent(models.Model):
     def __unicode__(self):
         return "UploadEvent: %s" % self.date
 
-class BloockNUM(Named, Authored, Dated):
-    number = models.IntegerField(null=True, blank=True)
 
-class DataSave2(Named, Authored, Dated):
+class StartSign2(Named, Authored, Dated):
+    upload = models.ForeignKey(UploadEvent)
+
+class BloockNUM2(Named, Authored, Dated):
+    number = models.IntegerField(null=True, blank=True)
+    start = models.ForeignKey(StartSign2)
+
+
+class DataSave5(Named, Authored, Dated):
     prjname = models.TextField(null=True, blank=True)
     location = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    number = models.ForeignKey(BloockNUM)
+    start = models.ForeignKey(StartSign2)
     d_id = models.IntegerField(null=True, blank=True)
 
 class SaveJSON3(Named, Authored, Dated):
@@ -224,43 +230,38 @@ class SaveJSON3(Named, Authored, Dated):
     class Meta:
         abstract=True
 
-class FinishSign2(Named, Authored, Dated):
-    upload = models.ForeignKey(UploadEvent)
+class FinishSign3(Named, Authored, Dated):
+    start = models.ForeignKey(StartSign2)
 
-class StartSign2(Named, Authored, Dated):
-    upload = models.ForeignKey(UploadEvent)
+class StepStart2(Named, Authored, Dated):
+    start = models.ForeignKey(StartSign2)
 
-class StepStart(Named, Authored, Dated):
-    upload = models.ForeignKey(UploadEvent)
-
-class BlockJSON4(SaveJSON3):
-    number = models.ForeignKey(BloockNUM)
+class BlockJSON6(SaveJSON3):
+    start = models.ForeignKey(StartSign2)
+    number = models.ForeignKey(BloockNUM2)
     def __unicode__(self):
         return "BlockJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
-class RoadJSON4(SaveJSON3):
-    number = models.ForeignKey(BloockNUM)
+class RoadJSON6(SaveJSON3):
+    start = models.ForeignKey(StartSign2)
+    number = models.ForeignKey(BloockNUM2)
     def __unicode__(self):
         return "RoadJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
-class InteriorJSON4(SaveJSON3):
-    number = models.ForeignKey(BloockNUM)
+class InteriorJSON6(SaveJSON3):
+    start = models.ForeignKey(StartSign2)
+    number = models.ForeignKey(BloockNUM2)
     def __unicode__(self):
         return "InteriorJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
-
-    
-
-
-
-
-class IntermediateJSON6(Named, Authored, Dated):
+class IntermediateJSON7(Named, Authored, Dated):
     step_index = models.IntegerField(null=True, blank=True)
     topo_json = models.TextField(null=True, blank=True)
     road_json = models.TextField(null=True, blank=True)
     block_index = models.IntegerField(null=True, blank=True)
     srs = models.TextField(null=True, blank=True)
-    number = models.ForeignKey(BloockNUM)
+    start = models.ForeignKey(StartSign2)
+    number = models.ForeignKey(BloockNUM2)
     def __unicode__(self):
         return "IntermediateJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 

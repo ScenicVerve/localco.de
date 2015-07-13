@@ -22,46 +22,47 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None):
     start = StartSign2(name=name, upload = upload, author = user)
     start.save()
 
+    proj_id = data["num"]
+    srs = data["srs"]
+    d_id =data["num"]
+    data_save = DataSave5(prjname=data["name"], location = data["location"], author = user,description = data["description"],  d_id = d_id, start = start)
+    data_save.save()
+
+
     prev_message = 'Your calculation is now in progress! We will notify you again once it is completed!'
     email = EmailMultiAlternatives('Open Reblock notification. Calculation started!',prev_message,'openreblock@gmail.com', [user.email])
     email.send()
 
+
     
     blocklist = new_import(lst,name,scale = scale_factor)#make the graph based on input geometry
-    num = BloockNUM(name=name, number = len(blocklist), author = user)
+    num = BloockNUM2(name=name, number = len(blocklist), start = start,author = user)
     num.save()
-    step = StepStart(name=name, upload = upload, author = user)
+    step = StepStart2(name=name, start = start, author = user)
     step.save()
 
-    proj_id = data["num"]
-    srs = data["srs"]
-    d_id =data["num"] 
-    data_save = DataSave2(prjname=data["name"], location = data["location"], author = user,description = data["description"], number = num, d_id = d_id)
-    data_save.save()
     
-    numlst = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
-    print numlst.datasave2_set.all()[0].prjname
     for i,g in enumerate(blocklist):
         #ALL THE PARCELS
         parcels = simplejson.dumps(json.loads(g.myedges_geoJSON()))
-        db_json = BlockJSON4(name=name, topo_json = parcels, author = user,block_index = i, srs = srs, number = num)
+        db_json = BlockJSON6(name=name, topo_json = parcels, author = user,block_index = i, srs = srs, number = num, start = start)
         db_json.save()
 
         #THE INTERIOR PARCELS
         inGragh = mgh.graphFromMyFaces(g.interior_parcels)
         in_parcels = simplejson.dumps(json.loads(inGragh.myedges_geoJSON()))
-        db_json = InteriorJSON4(name=name, topo_json = in_parcels, author = user,block_index = i, srs = srs, number = num)
+        db_json = InteriorJSON6(name=name, topo_json = in_parcels, author = user,block_index = i, srs = srs, number = num, start = start)
         db_json.save()
         
         #THE ROADS GENERATED and save generating process into the database
         road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i, srs = srs)))#calculate the roads to connect interior parcels, can extract steps
-        db_json = RoadJSON4(name=name, topo_json = road, author = user,block_index = i, srs = srs, number = num)
+        db_json = RoadJSON6(name=name, topo_json = road, author = user,block_index = i, srs = srs, number = num, start = start)
         db_json.save()
 
 
     
     
-    finish = FinishSign2(name=name, upload = upload, author = user)
+    finish = FinishSign3(name=name, start = start, author = user)
     finish.save()
     
     print "Calculation Done!!!"

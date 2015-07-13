@@ -7,6 +7,7 @@ import tempfile, zipfile
 import cStringIO
 import datetime
 import numpy as np
+import time 
 
 from celery.result import AsyncResult
 
@@ -342,8 +343,8 @@ def review(request):
 	#print geoms[0].coords
         scale_factor2 = scaleFactor(geoms)
 	
-        num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()
-        datainfo["num"] = len(num)
+        start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
+        datainfo["num"] = len(start)
         
         mytask = run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, data = datainfo)
         return HttpResponseRedirect('/reblock/compute/')
@@ -391,9 +392,9 @@ def compute(request):
     
     user = request.user
     
-    
     if request.method == 'POST': # someone is editing site configuration
-        numlst = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()
+        startlst = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
+
 
         try:
             link = int(request.POST.get("stepindex"))
@@ -402,68 +403,54 @@ def compute(request):
         try:
             pr_id = int(request.POST.get("projindex"))
         except:
-            pr_id = len(numlst)-1
+            pr_id = len(startlst)-1
         
-        num = numlst[pr_id]
-        
-        ###########need raise exception if no data saved for current project id ################
-
-        datt = num.datasave2_set.all().order_by('-date_edited')[0]
+        start = startlst[pr_id]
+        datt = start.datasave5_set.all().order_by('-date_edited')[0]
         
         if link == -1:
             return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(pr_id)+"/")
         else:
             return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(pr_id)+"/"+str(link))
         
-    else:
-        
-        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
-        # We are browsing data
-        number = num.number
-        
-        ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
-        ori_proj = project_meter2degree(layer = ori_layer,num = number)
-        
-        road_layers = num.roadjson4_set.all().order_by('-date_edited') 
-        road_proj = project_meter2degree(layer = road_layers,num = number)
-        
-        inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
-        inter_proj = project_meter2degree(layer = inter_layers,num = number)
-        
-        c = {
-                'ori_proj': ori_proj,
-                'road_proj': road_proj,
-                'inter_proj': inter_proj,        
-                }
-                
-        return render_to_response(
-                'reblock/compute.html',
-                RequestContext(request, c),
-                )
+    else:        
+        startlst = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
+        pr_id = len(startlst)
+        #start = startlst[pr_id]
+        #time.sleep(0.5)
+        #datt = start.datasave5_set.all().order_by('-date_edited')[0]
+        return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str("newproject")+"_"+str("newlocation")+"_"+str(pr_id)+"/")
 
 
 @login_required
 def reload(request):
     user = request.user
+    GET = request.GET
+    pr_id = GET['pr_id']
     
+    print "project:................"+str(pr_id)
     ###############lag between start task and save num object
-    num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
-
+    start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(pr_id)]
+    num = start.bloocknum2_set.all().order_by('-date_edited')[0]
     number = num.number
-    print num.datasave2_set.all()[0].prjname
-    ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+
+    
+    print "final reloading........."
+    ori_layer = start.blockjson6_set.all().order_by('-date_edited') 
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
-    road_layers = num.roadjson4_set.all().order_by('-date_edited') 
+    road_layers = start.roadjson6_set.all().order_by('-date_edited') 
     road_proj = project_meter2degree(layer = road_layers,num = number)
-    inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
+
+    inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
     inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
+
+    
     dic = {}
     dic["ori"] = str(ori_proj)
     dic["rd"] = str(road_proj)
     dic["int"] = str(inter_proj)
     json = simplejson.dumps(dic)
-    print "reload............"
     return HttpResponse(json, mimetype='application/json')
 
 """
@@ -472,12 +459,12 @@ reload the last step of the project
 @login_required
 def reload_step(request):
     user = request.user
-
-    upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
-    print upload
+    GET = request.GET
+    pr_id = GET['pr_id']
+    print "project.........:................"+str(pr_id)
     dic = {}
-
-    start = len(upload.startsign2_set.all())
+    
+    start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(pr_id)]
     
     print "reload step............start = "+str(start)
     
@@ -486,7 +473,7 @@ def reload_step(request):
     else:
         dic["start"] = 0
     
-    step = len(upload.stepstart_set.all())
+    step = len(start.stepstart2_set.all())
     
     print "reload step............step = "+str(step)
     
@@ -495,41 +482,43 @@ def reload_step(request):
     else:
         dic["step"] = 0
     
-    ###############lag between start task and save num object
-    num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
-    number = num.number
+    try:
+        ###############lag between start task and save num object
+        num = start.bloocknum2_set.all().order_by('-date_edited')[0]
+        number = num.number
 
-    ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
-    ori_proj = project_meter2degree(layer = ori_layer,num = number)
-    
-    ##################step data######################
-    step_layers = num.intermediatejson6_set.all().order_by('-date_edited').reverse()   
-    
-    step_index = len(step_layers)/number-1
-
-    if step_index>=0:
-        inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
-        road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+        ori_layer = start.blockjson6_set.all().order_by('-date_edited') 
+        ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
-        dic["ori"] = str(ori_proj)
-        dic["rd"] = str(road_proj)
-        dic["int"] = str(inter_proj)
+        ##################step data######################
+        step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
         
-        finish = len(upload.finishsign2_set.all())
-        if finish:
-            dic["finish"] = 1
-        else:
-            dic["finish"] = 0
-    else:
-        finish = len(upload.finishsign2_set.all())
+        step_index = len(step_layers)/number-1
+        
+        if step_index>=0:
+            
+            inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+            road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
 
-        if finish:
-            dic["finish"] = 1
+            dic["ori"] = str(ori_proj)
+            dic["rd"] = str(road_proj)
+            dic["int"] = str(inter_proj)
+            
+            finish = len(start.finishsign3_set.all())
+            if finish:
+                dic["finish"] = 1
+            else:
+                dic["finish"] = 0
         else:
-            dic["finish"] = 0
+            finish = len(start.finishsign3_set.all())
+            if finish:
+                dic["finish"] = 1
+            else:
+                dic["finish"] = 0
     
-    print "reload step............finish = "+str(finish)
-
+        print "reload step............finish = "+str(finish)
+    except:
+        pass
     json = simplejson.dumps(dic)
 
     return HttpResponse(json, mimetype='application/json')
@@ -547,22 +536,25 @@ def final_slut(request, slot_user, project_id, project_name, location):
     if slugify(str(user))==slot_user:
         if request.method == 'POST': # someone is editing site configuration
             pass
-        else:
-            num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
-            number = num.number
-            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
-            ori_proj = project_meter2degree(layer = ori_layer,num = number)
-            
-            road_layers = num.roadjson4_set.all().order_by('-date_edited') 
-            road_proj = project_meter2degree(layer = road_layers,num = number)
-            
-            inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
-            inter_proj = project_meter2degree(layer = inter_layers,num = number)
+        else:            
+            start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
+            #~ num = start.bloocknum2_set.all().order_by('-date_edited')[0]
+            #~ number = num.number
+            #~ 
+            #~ ori_layer = start.blockjson6_set.all().order_by('-date_edited') 
+            #~ ori_proj = project_meter2degree(layer = ori_layer,num = number)
+            #~ 
+            #~ road_layers = start.roadjson6_set.all().order_by('-date_edited') 
+            #~ road_proj = project_meter2degree(layer = road_layers,num = number)
+            #~ 
+            #~ inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
+            #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
             c = {
-                    'ori_proj': ori_proj,
-                    'road_proj': road_proj,
-                    'inter_proj': inter_proj,
+                    #~ 'ori_proj': ori_proj,
+                    #~ 'road_proj': road_proj,
+                    #~ 'inter_proj': inter_proj,
+                    'project_id': int(project_id),
                     }
                     
             return render_to_response(
@@ -579,15 +571,18 @@ def final_whole(request, slot_user, project_id, project_name, location):
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.order_by('-date_edited').reverse()[int(project_id)]
+            start = StartSign2.objects.order_by('-date_edited').reverse()[int(project_id)]
+            num = start.bloocknum2_set.all().order_by('-date_edited')[0]
             number = num.number
-            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+
+            
+            ori_layer = start.blockjson6_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
-            road_layers = num.roadjson4_set.all().order_by('-date_edited') 
+            road_layers = start.roadjson6_set.all().order_by('-date_edited') 
             road_proj = project_meter2degree(layer = road_layers,num = number)
             
-            inter_layers = num.interiorjson4_set.all().order_by('-date_edited')    
+            inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
             inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
             c = {
@@ -613,14 +608,15 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:
-            num = BloockNUM.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
+            start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
+            num = start.bloocknum2_set.all().order_by('-date_edited')[0]
             number = num.number
-
-            ori_layer = num.blockjson4_set.all().order_by('-date_edited') 
+            
+            ori_layer = start.blockjson6_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
 
     ##################step data######################
-            step_layers = num.intermediatejson6_set.all().order_by('-date_edited').reverse()   
+            step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
             inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
             road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
 
@@ -650,25 +646,24 @@ def recent(request):
     if request.method == 'POST': # someone is editing site configuration
         pass
     else:            
-        num = BloockNUM.objects.order_by('-date_edited')[:4]
+        start = StartSign2.objects.order_by('-date_edited')[:4]
         
-
         lstjson = []
         lstprjname = []
         lstlocation = []
         lstdes = []
-        for i,n in enumerate(num):
-            if len(n.datasave2_set.all())>0:
-                datt = n.datasave2_set.all().order_by('-date_edited')[0]
-                
-                number = n.number
+        for i,n in enumerate(start):
+            if len(n.bloocknum2_set.all())>0:
+                datt = n.datasave5_set.all().order_by('-date_edited')[0]
+                num = n.bloocknum2_set.all().order_by('-date_edited')[0]
+                number = num.number
 
                 lstprjname.append(str(datt.prjname))
                 lstlocation.append(str(datt.location))
                 lstdes.append(datt.description)
-                ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
+                ori_layer = n.blockjson6_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
-            
+
                 #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
                 #~ road_proj = project_meter2degree(layer = road_layers,num = number)
                 #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
@@ -703,25 +698,26 @@ def profile(request):
     if request.method == 'POST': # someone is editing site configuration
         pass
     else:
-        num = BloockNUM.objects.filter(author=user).order_by('-date_edited')[:4]
+        num = BloockNUM2.objects.filter(author=user).order_by('-date_edited')[:4]
+        start = StartSign2.objects.order_by('-date_edited')[:4]
         
         lstlink = []
         lstjson = []
         lstprjname = []
         lstlocation = []
         lstdes = []
-        for i,n in enumerate(num):
-            if len(n.datasave2_set.all())>0:
-                datt = n.datasave2_set.all().order_by('-date_edited')[0]
-                
-                number = n.number
+        for i,n in enumerate(start):
+            if len(n.bloocknum2_set.all())>0:
+                datt = n.datasave5_set.all().order_by('-date_edited')[0]
+                num = n.bloocknum2_set.all().order_by('-date_edited')[0]
+                number = num.number
                 link = '/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(datt.d_id)+"/"
                 lstlink.append(link)
 
                 lstprjname.append(str(datt.prjname))
                 lstlocation.append(str(datt.location))
                 lstdes.append(datt.description)
-                ori_layer = n.blockjson4_set.all().order_by('-date_edited') 
+                ori_layer = n.blockjson6_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
                 #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
@@ -980,15 +976,24 @@ def build_all_roads(myG, master=None, alpha=2, plot_intermediate=False,
     md = 100
 
     while myG.interior_parcels:############extract###########
+        
+        
+        
         #save remaining interior parcel to the database
         gJson = simplejson.dumps(json.loads(mgh.graphFromMyFaces(myG.interior_parcels).myedges_geoJSON()))
         roads = simplejson.dumps({"type": "FeatureCollection","features": [e.geoJSON(np.array([0, 0])) for e in myG.myedges() if e.road]})
         
-        number = BloockNUM.objects.filter(author=user).order_by('-date_edited')[0]
+        start = StartSign2.objects.filter(author=user).order_by('-date_edited')[0]
+        number = start.bloocknum2_set.all().order_by('-date_edited')[0]
         
-        db_json = IntermediateJSON6(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(myG.interior_parcels),block_index = block_index, srs = srs, number = number)
+        db_json = IntermediateJSON7(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(myG.interior_parcels),block_index = block_index, srs = srs, number = number, start = start)
         db_json.save()
-
+        
+        ##############delay to test intermediate steps##############
+        time.sleep(5)
+        ############################################################
+        
+        
         result, depth = mgh.form_equivalence_classes(myG)
 
         # flist from result!
