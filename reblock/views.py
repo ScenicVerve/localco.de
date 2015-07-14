@@ -934,9 +934,8 @@ def new_import(lst, name=None,scale = 1, indices=None):
     if indices:
 	
 
-	barriers = match_barriers(indices, original)
-	print barriers
-	mgh.build_barriers(barriers)
+        barriers = match_barriers(indices, original)
+        mgh.build_barriers(barriers)
 
 	#print indices
 	# assign theses to a variable called barriers
