@@ -84,18 +84,18 @@ def upload(request):
             if form.is_valid() and form.has_changed():
                 data_file = form.save(upload)
         
-        return HttpResponseRedirect('/reblock/review/')
+                return HttpResponseRedirect('/reblock/review/')
         
         
-        elif not form.has_changed():
-        return render_to_response(
-        'reblock/browse_empty.html',
-        {})
-        
-        #print 'no shp found'
-        #return render_to_response(
-        #'reblock/browse_empty.html',
-        #{})
+            elif not form.has_changed():
+                return render_to_response(
+                'reblock/browse_empty.html',
+                {})
+                
+                #print 'no shp found'
+                #return render_to_response(
+                #'reblock/browse_empty.html',
+                #{})
     
         
     #    else:
