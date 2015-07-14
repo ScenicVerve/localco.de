@@ -948,6 +948,7 @@ def new_import(lst, name=None,scale = 1, indices=None):
 
     
     blocklist.sort(key=lambda b: len(b.interior_parcels), reverse=True)
+    print blocklist
 
     return blocklist
     
@@ -1050,6 +1051,7 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
         # potential segments from parcels in flist
 	try:
 	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,
+
 						     barriers, quiet=quiet,
 						     shortest_only=shortest_only)
 	except nx.NetworkXNoPath:
