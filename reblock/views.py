@@ -911,7 +911,6 @@ def match_barriers(b_index, original):
 	ba= [int(i) for i in b_index.split(",")]
 	#print ba
 	bar_edge = original.myedges()
-	print len(bar_edge)
      
 	for index in ba:
 	    if index <= len(bar_edge):
@@ -934,11 +933,11 @@ def new_import(lst, name=None,scale = 1, indices=None):
     
     if indices:
 	
-        barriers = match_barriers(indices, original)
-        print barriers
-	
-    #if barriers: mgh.build_barriers(barriers)
-	
+
+	barriers = match_barriers(indices, original)
+	print barriers
+	mgh.build_barriers(barriers)
+
 	#print indices
 	# assign theses to a variable called barriers
 	# compute minimal paths with barriers
