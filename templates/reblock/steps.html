@@ -34,9 +34,22 @@
 
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+<div id="container"></div>
+
+
+                  <form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ formset.management_form }}
+    <input type="submit" value="Check" />
+    <div> Project Index: <input type="text" name="projindex"/>(default = 0)</div>
+    <div> Intermediate Step Index: <input type="text" name="stepindex"/></div>
+        
+
+              </form>
+              
+{% endblock %}
 
 {% block scripts %}
-
 <script>
 
 
@@ -127,20 +140,12 @@ var inter = 3000;
 var refreshID = null;
 
 var refreshID = setInterval(function(){update();},inter);
-
+console.log("test");
 
 ///
 var update = function(){
-
-    if (run == 0){
-    clearInterval(refreshID);
-}   
-    else{
         reloadstep();
         console.log("second");
-
-    }
-
 }
 
 
@@ -153,6 +158,18 @@ for(var i=0;i<marker.length;i++) {
     }
     marker = new Array();
     loadmap(json["ori"],json["rd"], json["int"]);
+    console.log(5555555555555555);
+    
+var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
+$('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
+
+
+var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
+$('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
+	
+var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
+$('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
+    
   });
 }
 
@@ -177,11 +194,7 @@ function reloadstep(){
 }
             
             if (json["finish"] ){
-                    
-
-                    
-                    
-        run = 0;
+        clearInterval(refreshID);
         reloadall();
     }else{
         for(var i=0;i<marker.length;i++) {
@@ -215,32 +228,9 @@ $("#preload").remove();
 <!--layer from geoJson to overlay on top of map
 
 
-//~ var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interJSONList).replace(/\\/g, ''));
-//~ $('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
-//~ 
-//~ 
-//~ var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(oriJSONList).replace(/\\/g, ''));
-//~ $('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
-	//~ 
-//~ var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadJSONList).replace(/\\/g, ''));
-//~ $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
-
-    </script>
-
-
-
-
+</script>
 {% endblock %}
-                  <form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ formset.management_form }}
-    <input type="submit" value="Check" />
-    <div> Project Index: <input type="text" name="projindex"/>(default = 0)</div>
-    <div> Intermediate Step Index: <input type="text" name="stepindex"/></div>
-        
 
-              </form>
 
-{% endblock %}
 
 

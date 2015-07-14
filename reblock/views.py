@@ -259,7 +259,7 @@ def set_new_password(request):
 #    else:
 #	pass
 
-		
+
 #def retrieve_password(request):
 #    context = RequestContext(request)
 #	    
@@ -932,8 +932,6 @@ def new_import(lst, name=None,scale = 1, indices=None):
     original = import_and_setup(lst,scale = scale, threshold=1)#create and clean the graph.
     
     if indices:
-
-
         barriers = match_barriers(indices, original)
         print barriers
         mgh.build_barriers(barriers)
