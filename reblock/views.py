@@ -452,6 +452,16 @@ def reload(request):
     dic["ori"] = str(ori_proj)
     dic["rd"] = str(road_proj)
     dic["int"] = str(inter_proj)
+    
+    step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
+    step_index = len(step_layers)/number-1
+    
+    if step_index>=0:
+        dic["stepnumber"] = int(step_index+1)
+    else:
+        dic["stepnumber"] = 0
+
+    
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
@@ -465,6 +475,7 @@ def reload_step(request):
     pr_id = GET['pr_id']
     print "project.........:................"+str(pr_id)
     dic = {}
+    
     start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(pr_id)]
     
     print "reload step............start = "+str(start)
@@ -493,7 +504,6 @@ def reload_step(request):
         
         ##################step data######################
         step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
-        
         step_index = len(step_layers)/number-1
         print step_index
         if step_index>=0:
@@ -520,6 +530,12 @@ def reload_step(request):
         print "reload step............finish = "+str(finish)
     except:
         pass
+    
+    if step_index>=0:
+        dic["stepnumber"] = int(step_index+1)
+    else:
+        dic["stepnumber"] = 0
+    
     json = simplejson.dumps(dic)
     
     
@@ -928,12 +944,17 @@ a list of blocks from the original map.
 """
 def new_import(lst, name=None,scale = 1, indices=None):
     original = import_and_setup(lst,scale = scale, threshold=1)#create and clean the graph.
-    
-
-    if isinstance(indices, list):#if indices:
+    print 55555555555555
+    print indices
+    if not indices == "-":
         barriers = match_barriers(indices, original)
         print barriers
         mgh.build_barriers(barriers)
+
+    #~ if isinstance(indices, list):#if indices:
+        #~ barriers = match_barriers(indices, original)
+        #~ print barriers
+        #~ mgh.build_barriers(barriers)
 
     else:
         print "NO"
