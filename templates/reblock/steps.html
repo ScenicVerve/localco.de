@@ -4,6 +4,9 @@
 {% block css %}
         <link rel="stylesheet" href="{% get_static_prefix %}css/home.css" type="text/css"/>
         <link rel="stylesheet" href="{% get_static_prefix %}css/layers.css" type="text/css"/>
+          <link rel="stylesheet" href="/resources/demos/style.css">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+
 {% endblock %}
 
 {% block subtitle %}
@@ -34,6 +37,12 @@
 
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+
+
+
+
 <div id="container"></div>
 
 
@@ -44,6 +53,7 @@
     <div> Project Index: <input type="text" name="projindex"/>(default = 0)</div>
     <div> Intermediate Step Index: <input type="text" name="stepindex"/></div>
         
+<div id="slider"></div>
 
               </form>
               
@@ -226,6 +236,9 @@ $("#preload").remove();
 
 
 <!--layer from geoJson to overlay on top of map
+  $(function() {
+    $( "#slider" ).slider();
+  });
 
 
 </script>
