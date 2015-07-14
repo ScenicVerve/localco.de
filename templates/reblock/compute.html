@@ -143,6 +143,49 @@ var update = function(){
 }
 
 
+function highlightFeature(orilayer) {
+    var layer = orilayer.target;
+
+    layer.setStyle({
+        weight: 3,
+        color: "#FFA500",
+        dashArray: '4',
+        fillOpacity: 0.9
+    });
+
+    if (!L.Browser.ie && !L.Browser.opera) {
+        layer.bringToFront();
+    }
+    info.update(layer.feature.properties);
+}
+
+
+function resetHighlight(orilayer) {
+    geojson.resetStyle(orilayer.target);
+
+    info.update();
+}
+
+
+
+function zoomToFeature(orilayer) {
+    map.fitBounds(ex.target.getBounds());
+}
+
+
+function onEachFeature(feature, layer) {
+    layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: zoomToFeature
+    });
+}
+
+orilayer = L.geoJson(oriData, {
+    style: style,
+    onEachFeature: onEachFeature
+}).addTo(map);
+
 
 
 function reloadall(){
