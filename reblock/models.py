@@ -254,6 +254,13 @@ class InteriorJSON6(SaveJSON3):
     def __unicode__(self):
         return "InteriorJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
+class DefineBarriers(SaveJSON3):
+    barrier_index = models.TextField(null=True, blank=True)
+    start = models.ForeignKey(StartSign2)
+    number = models.ForeignKey(BloockNUM2)
+    def __unicode__(self):
+        return "BlockJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
+
 class IntermediateJSON7(Named, Authored, Dated):
     step_index = models.IntegerField(null=True, blank=True)
     topo_json = models.TextField(null=True, blank=True)
