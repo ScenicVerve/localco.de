@@ -76,39 +76,39 @@ def upload(request):
     if request.method == 'POST':
         upload = UploadEvent(user=user)
         upload.save()
-	
+    
         formset = ZipFormSet(request.POST, request.FILES)
-	
-	
+    
+    
         for form in formset:
             if form.is_valid() and form.has_changed():
                 data_file = form.save(upload)
-		
-		return HttpResponseRedirect('/reblock/review/')
-	    
-		
-	    elif not form.has_changed():
-		return render_to_response(
-		'reblock/browse_empty.html',
-		{})
-		
-		#print 'no shp found'
-		#return render_to_response(
-		#'reblock/browse_empty.html',
-		#{})
-
-	    
-	#    else:
-	#	print 'no prj found'
-	#
-	#	return render_to_response(
-	#	'reblock/browse_empty.html',
-	#	{})
-	#    elif not form.has_changed():
-	#	return render_to_response(
-	#	'reblock/browse_empty.html',
-	#	{})
-			
+        
+                return HttpResponseRedirect('/reblock/review/')
+        
+        
+            elif not form.has_changed():
+                return render_to_response(
+                'reblock/browse_empty.html',
+                {})
+                
+                #print 'no shp found'
+                #return render_to_response(
+                #'reblock/browse_empty.html',
+                #{})
+    
+        
+    #    else:
+    #	print 'no prj found'
+    #
+    #	return render_to_response(
+    #	'reblock/browse_empty.html',
+    #	{})
+    #    elif not form.has_changed():
+    #	return render_to_response(
+    #	'reblock/browse_empty.html',
+    #	{})
+            
     else:
         formset = ZipFormSet()
 
@@ -127,110 +127,110 @@ def register(request):
 
     if request.method == 'POST':
         user_form = UserForm(request.POST)
-	
-	if User.objects.filter(username=request.POST['username']).exists():
-	    return render_to_response(
-		'reblock/username_exists.html',
-		{},
-		context)
-	
-	else:    
-	    #if user_form.is_valid():
-	    # Save the user's form data to the database.
-	    username = request.POST.get("username")
-	    user_email = request.POST.get("email")
-	    user_pwd1 = request.POST.get("password1")
-	    user_pwd2 = request.POST.get("password2")
-	    
-	    if user_pwd1 == user_pwd2:
-		user = User.objects.create_user(username, user_email, user_pwd1)
-		user.save()
-		registered = True
-		message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://127.0.0.1:8000/login/'
-		#message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://openreblock.berkeley.edu/login/'
-		email = EmailMultiAlternatives('Openreblock - Registration confirmation',message,'openreblock@gmail.com', [user_email])
-	    	email.send()
-		return render_to_response(
-		'reblock/registration_complete.html',
-		{},
-		context)
-	    
-	    else:
-		registered = False
-		return render_to_response(
-		'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)
-	    ##    else:
-	    #user = user_form.save()
-	    #password1 =user.set_password(user.password)
-	    #password2 =user.set_password(user.password)
-	    #config_password1 = request.POST.get("password1")
-	    #config_password2 = request.POST.get("password2")
-	    #
-	    
-	    #    if config_password1 and config_password1 == config_password2:
-	    #	final_password = config_password1
-	    #	#print 'password match'
-	    #	user.save()
-	    #	registered = True
-	    #	email = EmailMultiAlternatives('test','You are registered!','eleannapan@gmail.com', ['eleannapan@gmail.com'])
-	    #	email.send()
-	    #	return render_to_response(
-	    #	'reblock/registration_complete.html',
-	    #	{},
-	    #	context)
-	    #    
-	    #    elif config_password1 and config_password1 != config_password2:
-	    #	#password1 != password2:
-	    #	print "password mismatch"
-	    #	#raise forms.ValidationError("Passwords don't match")
-	    #	registered = False
-	    #	#print user_form.errors
-	    #	return render_to_response(
-	    #	 'reblock/register.html',
-	    #	#{'user_form': user_form, 'registered': registered},
-	    #	context)
-	    ##    else:
-	    #	print user_form.errors
-    else:
-	user_form = UserForm()
     
-	return render_to_response(
-		'reblock/register.html',
-		{'user_form': user_form, 'registered': registered},
-		context)
+    if User.objects.filter(username=request.POST['username']).exists():
+        return render_to_response(
+        'reblock/username_exists.html',
+        {},
+        context)
+    
+    else:    
+        #if user_form.is_valid():
+        # Save the user's form data to the database.
+        username = request.POST.get("username")
+        user_email = request.POST.get("email")
+        user_pwd1 = request.POST.get("password1")
+        user_pwd2 = request.POST.get("password2")
+        
+        if user_pwd1 == user_pwd2:
+        user = User.objects.create_user(username, user_email, user_pwd1)
+        user.save()
+        registered = True
+        message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://127.0.0.1:8000/login/'
+        #message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://openreblock.berkeley.edu/login/'
+        email = EmailMultiAlternatives('Openreblock - Registration confirmation',message,'openreblock@gmail.com', [user_email])
+            email.send()
+        return render_to_response(
+        'reblock/registration_complete.html',
+        {},
+        context)
+        
+        else:
+        registered = False
+        return render_to_response(
+        'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)
+        ##    else:
+        #user = user_form.save()
+        #password1 =user.set_password(user.password)
+        #password2 =user.set_password(user.password)
+        #config_password1 = request.POST.get("password1")
+        #config_password2 = request.POST.get("password2")
+        #
+        
+        #    if config_password1 and config_password1 == config_password2:
+        #	final_password = config_password1
+        #	#print 'password match'
+        #	user.save()
+        #	registered = True
+        #	email = EmailMultiAlternatives('test','You are registered!','eleannapan@gmail.com', ['eleannapan@gmail.com'])
+        #	email.send()
+        #	return render_to_response(
+        #	'reblock/registration_complete.html',
+        #	{},
+        #	context)
+        #    
+        #    elif config_password1 and config_password1 != config_password2:
+        #	#password1 != password2:
+        #	print "password mismatch"
+        #	#raise forms.ValidationError("Passwords don't match")
+        #	registered = False
+        #	#print user_form.errors
+        #	return render_to_response(
+        #	 'reblock/register.html',
+        #	#{'user_form': user_form, 'registered': registered},
+        #	context)
+        ##    else:
+        #	print user_form.errors
+    else:
+    user_form = UserForm()
+    
+    return render_to_response(
+        'reblock/register.html',
+        {'user_form': user_form, 'registered': registered},
+        context)
 
-		
+
 def forgot_password(request):
     context = RequestContext(request)
     registered = False
     if request.method == 'POST':
-	#print 1111
+    #print 1111
         user_form = UserForm(request.POST)
-	new = NewPassword(request.POST)
-	if User.objects.filter(username=request.POST['username']).exists():
-	    #print 11111
-	    
-	    config_username = request.POST.get("username")
-	    user = User.objects.get(username__exact=config_username)
-	    new_password1 = request.POST.get("new_password1")
-	    user.set_password(new_password1)
-	    #new_password2 = request.POST.get("new_password2")
-	    user_email = user.email
-	    #print user_email
-	    
-	    user.save()
-	    message = 'Your new password has changed to: '+ new_password1+' '+'Use it to log back in openreblock.berkeley.edu'
-	    email = EmailMultiAlternatives('password change',message ,'openreblock@gmail.com', [user_email])
-	    email.send()
-	    return HttpResponseRedirect('/set_new_password/') #this redirects correct
-
-	else:
-	    #print 2222
-	    return render_to_response(
-	    'reblock/forgot_password.html',
-	    {'user_form': user_form, 'registered': registered},
-	    context)
-	    #go to register
+    new = NewPassword(request.POST)
+    if User.objects.filter(username=request.POST['username']).exists():
+        #print 11111
+        
+        config_username = request.POST.get("username")
+        user = User.objects.get(username__exact=config_username)
+        new_password1 = request.POST.get("new_password1")
+        user.set_password(new_password1)
+        #new_password2 = request.POST.get("new_password2")
+        user_email = user.email
+        #print user_email
+        
+        user.save()
+        message = 'Your new password has changed to: '+ new_password1+' '+'Use it to log back in openreblock.berkeley.edu'
+        email = EmailMultiAlternatives('password change',message ,'openreblock@gmail.com', [user_email])
+        email.send()
+        return HttpResponseRedirect('/set_new_password/') #this redirects correct
+    
+    else:
+        #print 2222
+        return render_to_response(
+        'reblock/forgot_password.html',
+        {'user_form': user_form, 'registered': registered},
+        context)
+        #go to register
 
     return render(request, 'reblock/forgot_password.html', {'new': NewPassword})
 
@@ -240,15 +240,15 @@ def set_new_password(request):
     
     #registered = False
     #if request.method == 'POST':
-	#user_form = UserForm(request.POST)
-	#if User.objects.filter(username=request.POST['username']).exists():
-	#    u = User.objects.get(username__exact = username)
-	#    u.set_password('new password')
-	#    u.save()
+    #user_form = UserForm(request.POST)
+    #if User.objects.filter(username=request.POST['username']).exists():
+    #    u = User.objects.get(username__exact = username)
+    #    u.set_password('new password')
+    #    u.save()
     return render_to_response(
-	'reblock/set_new_password.html',
-	{},
-	context)
+    'reblock/set_new_password.html',
+    {},
+    context)
 
 
 #def password_change(request):
@@ -259,7 +259,7 @@ def set_new_password(request):
 #    else:
 #	pass
 
-		
+
 #def retrieve_password(request):
 #    context = RequestContext(request)
 #	    
@@ -303,7 +303,7 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
-	
+
         
         #########get the information filled by user#########
         if len(str(request.POST.get("name")))>0 :
@@ -320,18 +320,18 @@ def review(request):
             desc = request.POST.get("description")
         else:
             desc = "-"
-	if len(str(request.POST.get("barrier_index")))>0 :
-	    b_index = request.POST.get("barrier_index")  
-	else:
+    if len(str(request.POST.get("barrier_index")))>0 :
+        b_index = request.POST.get("barrier_index")  
+    else:
             b_index = "-"    
-	#print b_index
+    #print b_index
         
         datainfo = {}
         datainfo["name"] = slugify(name)
         datainfo["location"] = slugify(location)
         datainfo["description"] = desc
         datainfo["srs"] = checkedPrj(layer_data[0]['srs'])
-	#print datainfo["srs"]
+    #print datainfo["srs"]
         
         # For every layer in the layer form, write a PostGIS object to the DB
         ds = DataSource(layer_data[0]['file_location'])
@@ -339,17 +339,17 @@ def review(request):
                 
 
         geoms = checkGeometryType(layer)
-	#graph_indices = get_index(b_index)
-	
+    #graph_indices = get_index(b_index)
+    
         scale_factor2 = scaleFactor(geoms)
-	
+    
         start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
         datainfo["num"] = len(start)
         
         mytask = run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, data = datainfo,  indices=b_index)
         return HttpResponseRedirect('/reblock/compute/')
 
-	
+
     else: # we are asking them to review data
         # get the last upload of this user
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
@@ -375,7 +375,7 @@ def review(request):
         reviewjson = json.dumps(reviewdic)
         
         formset = LayerReviewFormSet( initial=layer_data )
-	
+
         c = {
                 'test_layers': reviewjson,
                 'formset':formset,
@@ -860,7 +860,7 @@ def checkGeometryType(gdal_layer, srs=None):
     
     if len(lst)>0 and len(lst)<=6000:
         return lst
-	
+
     
     elif len(lst)>6000:
         raise IOError(str(len(lst))+" too many polygons to process, maximum number of Polygons is 1,200")
@@ -908,18 +908,18 @@ def match_barriers(b_index, original):
     #graph_indices = get_index(b_index)
     b_edges = []
     if "," in b_index:
-	ba= [int(i) for i in b_index.split(",")]
-	#print ba
-	bar_edge = original.myedges()
+    ba= [int(i) for i in b_index.split(",")]
+    #print ba
+    bar_edge = original.myedges()
      
-	for index in ba:
-	    if index <= len(bar_edge):
+    for index in ba:
+        if index <= len(bar_edge):
     
-		b_edges.append(bar_edge[index])
-		b = set(b_edges)
-		a = list(b)
-		#print b_edges
-	return a
+        b_edges.append(bar_edge[index])
+        b = set(b_edges)
+        a = list(b)
+        #print b_edges
+    return a
 
 
 """
@@ -932,14 +932,10 @@ def new_import(lst, name=None,scale = 1, indices=None):
     original = import_and_setup(lst,scale = scale, threshold=1)#create and clean the graph.
     
     if indices:
-	
-
         barriers = match_barriers(indices, original)
+        print barriers
         mgh.build_barriers(barriers)
 
-	#print indices
-	# assign theses to a variable called barriers
-	# compute minimal paths with barriers
     else:
         print "NO"
         # compute without 
@@ -1054,14 +1050,13 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
             pass
 
         # potential segments from parcels in flist
-	try:
-	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,
-						     barriers, quiet=quiet,
-						     shortest_only=shortest_only)
-	except nx.NetworkXNoPath:
-	    raise IOError("Select less edges!")
-	    
-	    
+    try:
+        all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,
+                             barriers, quiet=quiet,
+                             shortest_only=shortest_only)
+    except nx.NetworkXNoPath:
+        raise IOError("Select less edges!")
+ 
 
         # choose and build one
         target_ptup, target_mypath = mgh.choose_path(original, all_paths, alpha,
@@ -1202,7 +1197,7 @@ def aveArea(geoms):
 return the unit of the input gdal data source layer
 """
 def getUnit(gdal_layer):
-	uni = {}
-	uni['UNIT'] = gdal_layer.srs['UNIT']
-	uni['PRJUnit'] = gdal_layer.srs['PROJCS'][3]
-	return gdal_layer.srs
+    uni = {}
+    uni['UNIT'] = gdal_layer.srs['UNIT']
+    uni['PRJUnit'] = gdal_layer.srs['PROJCS'][3]
+    return gdal_layer.srs
