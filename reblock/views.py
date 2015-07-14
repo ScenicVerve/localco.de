@@ -128,71 +128,71 @@ def register(request):
     if request.method == 'POST':
         user_form = UserForm(request.POST)
     
-    if User.objects.filter(username=request.POST['username']).exists():
-        return render_to_response(
-        'reblock/username_exists.html',
-        {},
-        context)
-    
-    else:    
-        #if user_form.is_valid():
-        # Save the user's form data to the database.
-        username = request.POST.get("username")
-        user_email = request.POST.get("email")
-        user_pwd1 = request.POST.get("password1")
-        user_pwd2 = request.POST.get("password2")
+        if User.objects.filter(username=request.POST['username']).exists():
+            return render_to_response(
+            'reblock/username_exists.html',
+            {},
+            context)
         
-        if user_pwd1 == user_pwd2:
-        user = User.objects.create_user(username, user_email, user_pwd1)
-        user.save()
-        registered = True
-        message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://127.0.0.1:8000/login/'
-        #message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://openreblock.berkeley.edu/login/'
-        email = EmailMultiAlternatives('Openreblock - Registration confirmation',message,'openreblock@gmail.com', [user_email])
-            email.send()
-        return render_to_response(
-        'reblock/registration_complete.html',
-        {},
-        context)
+        else:    
+            #if user_form.is_valid():
+            # Save the user's form data to the database.
+            username = request.POST.get("username")
+            user_email = request.POST.get("email")
+            user_pwd1 = request.POST.get("password1")
+            user_pwd2 = request.POST.get("password2")
         
-        else:
-        registered = False
-        return render_to_response(
-        'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)
-        ##    else:
-        #user = user_form.save()
-        #password1 =user.set_password(user.password)
-        #password2 =user.set_password(user.password)
-        #config_password1 = request.POST.get("password1")
-        #config_password2 = request.POST.get("password2")
-        #
-        
-        #    if config_password1 and config_password1 == config_password2:
-        #	final_password = config_password1
-        #	#print 'password match'
-        #	user.save()
-        #	registered = True
-        #	email = EmailMultiAlternatives('test','You are registered!','eleannapan@gmail.com', ['eleannapan@gmail.com'])
-        #	email.send()
-        #	return render_to_response(
-        #	'reblock/registration_complete.html',
-        #	{},
-        #	context)
-        #    
-        #    elif config_password1 and config_password1 != config_password2:
-        #	#password1 != password2:
-        #	print "password mismatch"
-        #	#raise forms.ValidationError("Passwords don't match")
-        #	registered = False
-        #	#print user_form.errors
-        #	return render_to_response(
-        #	 'reblock/register.html',
-        #	#{'user_form': user_form, 'registered': registered},
-        #	context)
-        ##    else:
-        #	print user_form.errors
+            if user_pwd1 == user_pwd2:
+                user = User.objects.create_user(username, user_email, user_pwd1)
+                user.save()
+                registered = True
+                message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://127.0.0.1:8000/login/'
+                #message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://openreblock.berkeley.edu/login/'
+                email = EmailMultiAlternatives('Openreblock - Registration confirmation',message,'openreblock@gmail.com', [user_email])
+                email.send()
+                return render_to_response(
+                'reblock/registration_complete.html',
+                {},
+                context)
+            
+            else:
+                registered = False
+                return render_to_response(
+                'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)
+            ##    else:
+            #user = user_form.save()
+            #password1 =user.set_password(user.password)
+            #password2 =user.set_password(user.password)
+            #config_password1 = request.POST.get("password1")
+            #config_password2 = request.POST.get("password2")
+            #
+            
+            #    if config_password1 and config_password1 == config_password2:
+            #	final_password = config_password1
+            #	#print 'password match'
+            #	user.save()
+            #	registered = True
+            #	email = EmailMultiAlternatives('test','You are registered!','eleannapan@gmail.com', ['eleannapan@gmail.com'])
+            #	email.send()
+            #	return render_to_response(
+            #	'reblock/registration_complete.html',
+            #	{},
+            #	context)
+            #    
+            #    elif config_password1 and config_password1 != config_password2:
+            #	#password1 != password2:
+            #	print "password mismatch"
+            #	#raise forms.ValidationError("Passwords don't match")
+            #	registered = False
+            #	#print user_form.errors
+            #	return render_to_response(
+            #	 'reblock/register.html',
+            #	#{'user_form': user_form, 'registered': registered},
+            #	context)
+            ##    else:
+            #	print user_form.errors
     else:
-    user_form = UserForm()
+        user_form = UserForm()
     
     return render_to_response(
         'reblock/register.html',
@@ -320,11 +320,11 @@ def review(request):
             desc = request.POST.get("description")
         else:
             desc = "-"
-    if len(str(request.POST.get("barrier_index")))>0 :
-        b_index = request.POST.get("barrier_index")  
-    else:
-            b_index = "-"    
-    #print b_index
+        if len(str(request.POST.get("barrier_index")))>0 :
+            b_index = request.POST.get("barrier_index")  
+        else:
+                b_index = "-"    
+            #print b_index
         
         datainfo = {}
         datainfo["name"] = slugify(name)
@@ -908,18 +908,18 @@ def match_barriers(b_index, original):
     #graph_indices = get_index(b_index)
     b_edges = []
     if "," in b_index:
-    ba= [int(i) for i in b_index.split(",")]
-    #print ba
-    bar_edge = original.myedges()
-     
-    for index in ba:
-        if index <= len(bar_edge):
-    
-        b_edges.append(bar_edge[index])
-        b = set(b_edges)
-        a = list(b)
-        #print b_edges
-    return a
+        ba= [int(i) for i in b_index.split(",")]
+        #print ba
+        bar_edge = original.myedges()
+         
+        for index in ba:
+            if index <= len(bar_edge):
+        
+                b_edges.append(bar_edge[index])
+                b = set(b_edges)
+                a = list(b)
+                #print b_edges
+        return a
 
 
 """
