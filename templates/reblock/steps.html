@@ -62,6 +62,10 @@
     <option>4</option>
     <option>5</option>
     <option>6</option>
+    <option>7</option>
+    <option>8</option>
+    <option>9</option>
+    <option>10</option>
   </select>
 </form>
 
@@ -172,7 +176,9 @@ var refreshID = null;
 var refreshID = setInterval(function(){update();},inter);
 console.log("test");
 
-///
+var steps = null;
+
+
 var update = function(){
         reloadstep();
         console.log("second");
@@ -188,8 +194,9 @@ for(var i=0;i<marker.length;i++) {
     }
     marker = new Array();
     loadmap(json["ori"],json["rd"], json["int"]);
-    console.log(5555555555555555);
-    
+    steps = json["stepnumber"]
+    console.log(steps);
+
 var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
 $('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
 
@@ -202,6 +209,31 @@ $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').append
     
   });
 }
+
+function checkstep(step_index){
+    
+    $.getJSON("/reblock/check_step/", {pr_id: "{{project_id}}", step: step_index}, function(json){
+for(var i=0;i<marker.length;i++) {
+    map.removeLayer(marker[i]);
+    }
+    marker = new Array();
+    loadmap(json["ori"],json["rd"], json["int"]);
+    steps = json["stepnumber"]
+    console.log(steps);
+
+var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
+$('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
+
+
+var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
+$('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
+	
+var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
+$('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
+    
+  });
+}
+
 
 function reloadstep(){
     $.getJSON("/reblock/reload_step/", {pr_id: "{{project_id}}"}, function(json){
@@ -254,22 +286,35 @@ $("#preload").remove();
 
 
 
-
 <!--layer from geoJson to overlay on top of map
   $(function() {
     var select = $( "#minbeds" );
     var slider = $( "<div id='slider'></div>" ).insertAfter( select ).slider({
       min: 1,
-      max: 6,
+      max: 20,
       range: "min",
       value: select[ 0 ].selectedIndex + 1,
       slide: function( event, ui ) {
         select[ 0 ].selectedIndex = ui.value - 1;
+        
+        
+        checkstep(select[ 0 ].selectedIndex);
+        
+        
+        
+        
+        
+        
+
       }
     });
     $( "#minbeds" ).change(function() {
       slider.slider( "value", this.selectedIndex + 1 );
+
     });
+  
+  
+  
   });
 
 

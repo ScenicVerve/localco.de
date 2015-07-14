@@ -465,6 +465,55 @@ def reload(request):
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
+
+@login_required
+def check_step(request):
+    user = request.user
+    GET = request.GET
+    pr_id = GET['pr_id']
+    step = GET['step']
+    
+    
+    print "project:................"+str(pr_id)
+    ###############lag between start task and save num object
+    start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(pr_id)]
+    num = start.bloocknum2_set.all().order_by('-date_edited')[0]
+    number = num.number
+
+    step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
+
+    print "final reloading........."
+    ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
+    
+    ori_proj = project_meter2degree(layer = ori_layer,num = number)
+    road_layers = start.roadjson6_set.all().order_by('-date_edited') 
+    road_proj = project_meter2degree(layer = road_layers,num = number)
+    
+    print step
+    inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step))
+    print inter_proj
+    road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step))
+    dic = {}
+    dic["ori"] = str(ori_proj)
+    dic["rd"] = str(road_proj)
+    dic["int"] = str(inter_proj)
+
+    
+    
+    
+    step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
+    step_index = len(step_layers)/number-1
+    
+    if step_index>=0:
+        dic["stepnumber"] = int(step_index+1)
+    else:
+        dic["stepnumber"] = 0
+
+    print dic
+    json = simplejson.dumps(dic)
+    return HttpResponse(json, mimetype='application/json')
+
+
 """
 reload the last step of the project
 """
@@ -542,7 +591,7 @@ def reload_step(request):
 
     return HttpResponse(json, mimetype='application/json')
 
-    
+
 
 @login_required
 def final_slut(request, slot_user, project_id, project_name, location):
@@ -944,7 +993,6 @@ a list of blocks from the original map.
 """
 def new_import(lst, name=None,scale = 1, indices=None):
     original = import_and_setup(lst,scale = scale, threshold=1)#create and clean the graph.
-    print 55555555555555
     print indices
     if not indices == "-":
         barriers = match_barriers(indices, original)

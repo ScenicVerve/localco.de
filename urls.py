@@ -71,7 +71,8 @@ urlpatterns = patterns('',
     #reload page
     (r'^reblock/reload/$', 'reblock.views.reload'),
     (r'^reblock/reload_step/$', 'reblock.views.reload_step'),
-    
+    (r'^reblock/check_step/$', 'reblock.views.check_step'),
+
     
     
     # Login / logout.
