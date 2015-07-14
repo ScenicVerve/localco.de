@@ -15,8 +15,6 @@ app = Celery('tasks', broker='amqp://guest@localhost//')
 rewrite topology, using linestring list as input, save data to the database
 """
 @app.task
-
-
 def run_topology(lst, name=None, user = None, scale_factor=1, data=None, indices=None):
     upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
     start = StartSign2(name=name, upload = upload, author = user)
@@ -49,7 +47,7 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None, indices
         if indices != None:
             barriers = True
         parcels = simplejson.dumps(json.loads(g.myedges_geoJSON()))
-        db_json = DefineBarriers(name=name, topo_json = parcels, author = user,block_index = i, srs = srs, number = num, barrier_index=indices, start = start)
+        db_json = DefineBarriers2(name=name, topo_json = parcels, author = user,block_index = i, srs = srs, number = num, barrier_index=indices, start = start)
         db_json.save()
 
         #THE INTERIOR PARCELS
