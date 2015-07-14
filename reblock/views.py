@@ -437,7 +437,7 @@ def reload(request):
 
     
     print "final reloading........."
-    ori_layer = start.definebarriers_set.all().order_by('-date_edited') 
+    ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
 
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
     road_layers = start.roadjson6_set.all().order_by('-date_edited') 
@@ -488,7 +488,7 @@ def reload_step(request):
         num = start.bloocknum2_set.all().order_by('-date_edited')[0]
         number = num.number
 
-        ori_layer = start.definebarriers_set.all().order_by('-date_edited') 
+        ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
         
         ##################step data######################
@@ -574,7 +574,7 @@ def final_whole(request, slot_user, project_id, project_name, location):
             start = StartSign2.objects.order_by('-date_edited').reverse()[int(project_id)]
             num = start.bloocknum2_set.all().order_by('-date_edited')[0]
             number = num.number
-            ori_layer = start.definebarriers_set.all().order_by('-date_edited') 
+            ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
             road_layers = start.roadjson6_set.all().order_by('-date_edited') 
@@ -609,7 +609,7 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
             start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
             num = start.bloocknum2_set.all().order_by('-date_edited')[0]
             number = num.number
-            ori_layer = start.definebarriers_set.all().order_by('-date_edited') 
+            ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
 
     ##################step data######################
@@ -659,7 +659,7 @@ def recent(request):
                 lstlocation.append(str(datt.location))
                 lstdes.append(datt.description)
                 
-                ori_layer = n.definebarriers_set.all().order_by('-date_edited') 
+                ori_layer = n.definebarriers2_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
 
                 #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
@@ -716,7 +716,7 @@ def profile(request):
                 lstlocation.append(str(datt.location))
                 lstdes.append(datt.description)
 
-                ori_layer = n.definebarriers_set.all().order_by('-date_edited') 
+                ori_layer = n.definebarriers2_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
             
                 #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
@@ -854,9 +854,6 @@ def checkGeometryType(gdal_layer, srs=None):
         else:#not supported geometry type, raise exception
             raise IOError(geom.geom_type+"is the wrong type of geometry to process")
 
-
-    
-    
     
     if len(lst)>0 and len(lst)<=6000:
         return lst
@@ -932,8 +929,6 @@ def new_import(lst, name=None,scale = 1, indices=None):
     original = import_and_setup(lst,scale = scale, threshold=1)#create and clean the graph.
     
     if indices:
-	
-
 	barriers = match_barriers(indices, original)
 	print barriers
 	mgh.build_barriers(barriers)

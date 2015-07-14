@@ -254,7 +254,7 @@ class InteriorJSON6(SaveJSON3):
     def __unicode__(self):
         return "InteriorJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
-class DefineBarriers(SaveJSON3):
+class DefineBarriers2(SaveJSON3):
     barrier_index = models.TextField(null=True, blank=True)
     start = models.ForeignKey(StartSign2)
     number = models.ForeignKey(BloockNUM2)

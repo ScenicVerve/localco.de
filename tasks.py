@@ -15,8 +15,6 @@ app = Celery('tasks', broker='amqp://guest@localhost//')
 rewrite topology, using linestring list as input, save data to the database
 """
 @app.task
-
-
 def run_topology(lst, name=None, user = None, scale_factor=1, data=None, indices=None):
     upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
     start = StartSign2(name=name, upload = upload, author = user)
