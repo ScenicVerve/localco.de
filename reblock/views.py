@@ -931,7 +931,7 @@ a list of blocks from the original map.
 def new_import(lst, name=None,scale = 1, indices=None):
     original = import_and_setup(lst,scale = scale, threshold=1)#create and clean the graph.
     
-    if indices:
+    if isinstance(indices, list):#if indices:
         barriers = match_barriers(indices, original)
         print barriers
         mgh.build_barriers(barriers)
