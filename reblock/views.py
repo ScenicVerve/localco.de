@@ -943,7 +943,6 @@ def new_import(lst, name=None,scale = 1, indices=None):
     # plot the full original map
     for b in blocklist:
         # defines original geometery as a side effect,
-        pass
         b.plot_roads(master=b, new_plot=False, update=True)
 
     
