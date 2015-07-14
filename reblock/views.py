@@ -323,7 +323,7 @@ def review(request):
         if len(str(request.POST.get("barrier_index")))>0 :
             b_index = request.POST.get("barrier_index")  
         else:
-                b_index = "-"    
+            b_index = "-"    
             #print b_index
         
         datainfo = {}
@@ -331,7 +331,7 @@ def review(request):
         datainfo["location"] = slugify(location)
         datainfo["description"] = desc
         datainfo["srs"] = checkedPrj(layer_data[0]['srs'])
-    #print datainfo["srs"]
+        #print datainfo["srs"]
         
         # For every layer in the layer form, write a PostGIS object to the DB
         ds = DataSource(layer_data[0]['file_location'])
@@ -339,7 +339,7 @@ def review(request):
                 
 
         geoms = checkGeometryType(layer)
-    #graph_indices = get_index(b_index)
+        #graph_indices = get_index(b_index)
     
         scale_factor2 = scaleFactor(geoms)
     
@@ -928,16 +928,11 @@ a list of blocks from the original map.
 def new_import(lst, name=None,scale = 1, indices=None):
     original = import_and_setup(lst,scale = scale, threshold=1)#create and clean the graph.
     
-    if indices:
 
+    if isinstance(indices, list):#if indices:
         barriers = match_barriers(indices, original)
         print barriers
         mgh.build_barriers(barriers)
-
-
-	#print indices
-	# assign theses to a variable called barriers
-	# compute minimal paths with barriers
 
     else:
         print "NO"
