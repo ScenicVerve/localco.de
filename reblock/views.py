@@ -877,12 +877,13 @@ def run_once(original,name=None, user = None, block_index = 0, srs = None, barri
 
     if len(original.interior_parcels) > 0:
         block = original.copy()
-
+        
         # define interior parcels in the block based on existing roads
         block.define_interior_parcels()
-
+        
         # finds roads to connect all interior parcels for a given block(with steps)
         block_roads = build_all_roads(block, wholepath=True,name = name, user = user, srs = srs,barriers=barriers)
+        
     else:
         block = original.copy()
     
@@ -1048,13 +1049,14 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
             pass
 
         # potential segments from parcels in flist
-    try:
-        all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,
-                             barriers, quiet=quiet,
-                             shortest_only=shortest_only)
-    except nx.NetworkXNoPath:
-        raise IOError("Select less edges!")
- 
+	try:
+	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,
+						     barriers, quiet=quiet,
+						     shortest_only=shortest_only)
+	except nx.NetworkXNoPath:
+	    raise IOError("Select less edges!")
+	    
+	    
 
         # choose and build one
         target_ptup, target_mypath = mgh.choose_path(original, all_paths, alpha,
