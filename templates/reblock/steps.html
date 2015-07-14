@@ -76,7 +76,9 @@
     <p>
 
 </p>
+<div id = "update2">
 <div id="container"></div>
+</div>
 </form>
 
               </form>
@@ -220,16 +222,17 @@ for(var i=0;i<marker.length;i++) {
     loadmap(json["ori"],json["rd"], json["int"]);
     steps = json["stepnumber"]
     console.log(steps);
-
+/////////remove previous button
+$("#update2").remove();
 var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
-$('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
+$('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#update2');
 
 
 var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
-$('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
+$('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#update2');
 	
 var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
-$('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
+$('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#update2');
     
   });
 }

@@ -489,9 +489,7 @@ def check_step(request):
     road_layers = start.roadjson6_set.all().order_by('-date_edited') 
     road_proj = project_meter2degree(layer = road_layers,num = number)
     
-    print step
     inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step))
-    print inter_proj
     road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step))
     dic = {}
     dic["ori"] = str(ori_proj)
@@ -509,7 +507,6 @@ def check_step(request):
     else:
         dic["stepnumber"] = 0
 
-    print dic
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
