@@ -323,7 +323,7 @@ def review(request):
         if len(str(request.POST.get("barrier_index")))>0 :
             b_index = request.POST.get("barrier_index")  
         else:
-                b_index = "-"    
+            b_index = "-"    
             #print b_index
         
         datainfo = {}
@@ -953,6 +953,7 @@ def new_import(lst, name=None,scale = 1, indices=None):
 
     
     blocklist.sort(key=lambda b: len(b.interior_parcels), reverse=True)
+    print blocklist
 
     return blocklist
     
@@ -1053,13 +1054,15 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
             pass
 
         # potential segments from parcels in flist
-    try:
-        all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,
-                             barriers, quiet=quiet,
-                             shortest_only=shortest_only)
-    except nx.NetworkXNoPath:
-        raise IOError("Select less edges!")
- 
+	try:
+	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,
+				 barriers, quiet=quiet,
+				 shortest_only=shortest_only)
+	    
+	except nx.NetworkXNoPath:
+	    
+	    raise IOError("Select less edges!")
+     
 
         # choose and build one
         target_ptup, target_mypath = mgh.choose_path(original, all_paths, alpha,
