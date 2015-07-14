@@ -101,22 +101,23 @@ class DataFile(Dated):
     
     def _get_folder(self, directory, ext):
         directory_content = os.listdir(directory)
-        print directory_content
+        #print directory_content
         for name in directory_content:
-            new_dir = os.path.join( self.extract_path(), name )
-            if os.path.isdir(new_dir):
-                self._get_folder(new_dir, ext)
+            new_dir = os.path.join(directory, name )
+            if not os.path.isdir(new_dir):
+                print 12345, directory
+                return directory
+                break
+            
+                '''
+                print 'yayyyyyyyy', name, 'nammmmmmmmmmme'
+                if ext in name:
+                    print 'DID ITTTTTTTTTT', directory
+                    return new_dir
+                    #break'''
             else:
-                #print new_dir, ext, #directory
-                for file_name in directory_content:
-                    #print str(ext) in str(new_dir)
-                    #new_dir = directory
-                    if  ext in file_name:
-                        print 77777777, directory
-                        return directory
-                        #return 
-                        #break
-            #return new_dir
+                self._get_folder(new_dir, ext)
+        #return directory
     
     def get_upload_path(self, filename):
         return 'uploads/%s/%s' % (self.upload.user.username, filename)
@@ -136,7 +137,8 @@ class DataFile(Dated):
         Returns `None` if the file can't be found
         """
         path_to_part = self._get_folder(self.extract_path(), ext)
-        print path_to_part, 111111111111
+        #print path_to_part, 111111111111
+        #print 23232323232323, ext in path_to_part
         if ext in path_to_part:
             return path_to_part
         else:
