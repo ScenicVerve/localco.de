@@ -82,42 +82,6 @@ class DataFile(Dated):
     """
     file = models.FileField(upload_to=get_upload_path)
     upload = models.ForeignKey('UploadEvent', null=True, blank=True)
-        
-    # def _get_folder(self, directory, ext):
-    #     directory_content = os.listdir(directory)
-    #     print directory_content
-    #     for name in directory_content:
-    #         new_dir = os.path.join( self.extract_path(), name )
-    #         if os.path.isdir(new_dir):
-    #             self._get_folder(new_dir, ext)
-    #         else:
-    #             print new_dir, ext
-    #             print str(ext) in str(new_dir)
-    #             new_dir = directory
-    #             if  ext in new_dir:
-    #                 print new_dir
-    #                 break
-    #         return new_dir
-    
-    def _get_folder(self, directory, ext):
-        directory_content = os.listdir(directory)
-        #print directory_content
-        for name in directory_content:
-            new_dir = os.path.join(directory, name )
-            if not os.path.isdir(new_dir):
-                print 12345, directory
-                return directory
-                break
-            
-                '''
-                print 'yayyyyyyyy', name, 'nammmmmmmmmmme'
-                if ext in name:
-                    print 'DID ITTTTTTTTTT', directory
-                    return new_dir
-                    #break'''
-            else:
-                self._get_folder(new_dir, ext)
-        #return directory
     
     def get_upload_path(self, filename):
         return 'uploads/%s/%s' % (self.upload.user.username, filename)
@@ -136,16 +100,16 @@ class DataFile(Dated):
         Assumes that the contents have been extracted.
         Returns `None` if the file can't be found
         """
-        path_to_part = self._get_folder(self.extract_path(), ext)
-        #print path_to_part, 111111111111
-        #print 23232323232323, ext in path_to_part
-        if ext in path_to_part:
-            return path_to_part
-        else:
-            new_pieces = os.listdir(path_to_part)
-            for piece in new_pieces:
-                if ext in piece:
-                    return path_to_part 
+        path_to_part = None
+        all_paths = os.walk(self.extract_path())
+        for tree in all_paths:
+            if len(tree[2]) > 0:
+                for file_name in tree[2]:
+                    if file_name.endswith(ext) and not file_name.startswith('.'):
+                        path_to_part = tree[0]
+                        break
+                
+        return path_to_part
             
     def __unicode__(self):
         return "DataFile: %s" % self.file.url
@@ -169,7 +133,7 @@ class DataFile(Dated):
 
         # get shape type
         shape_path = self.path_of_part('.shp')
-        #print shape_path
+        print shape_path, 'this is the shp path'
         ds = DataSource( shape_path )
         layer = ds[0]
         'Here we add a check for geometry types???'
