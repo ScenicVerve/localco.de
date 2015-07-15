@@ -12,9 +12,9 @@ POSTGIS_VERSION = (2, 0, 3)
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 
-#my_path = '/Users/carlos/projects/open-reblock' # Change this to the local path
+my_path = '/Users/carlos/projects/open-reblock' # Change this to the local path
 #my_path = '/Users/eleannapanagoulia/Documents/open-reblock' # Change this to the local path
-my_path = '/home/pwz/open-reblock' # Change this to the local path
+#my_path = '/home/pwz/open-reblock' # Change this to the local path
 
 
 
@@ -34,6 +34,8 @@ else: # If i'm running it on the server
     ADMINS = (
             ('Nicholas de Monchaux', 'demonchaux@berkeley.edu'),
             ('Carlos Sandoval', 'ce.sandoval@berkeley.edu'),
+            ('Wenzhe Peng', 'p.panthersuper@gmail.com'),
+            ('Eleanna Panagoulia', 'eleannapan@gmail.com'),
     )  
     
     MANAGERS = ADMINS
@@ -182,17 +184,12 @@ else: # If i'm running it on the server
         
     )
     
-    #AUTH_PROFILE_MODULE = 'reblock.UserProfile'
-    #ACCOUNT_ACTIVATION_DAYS = 2 # Any value. 
-    #EMAIL_HOST='localhost' #'smtp.gmail.com'
-    #EMAIL_PORT=587
-    #EMAIL_HOST_USER='user@example.com'
-    #EMAIL_HOST_PASSWORD='secret'
     
+    from pwe import PWE
     EMAIL_HOST='smtp.gmail.com'
     EMAIL_PORT=587
     EMAIL_HOST_USER='openreblock@gmail.com'
-    EMAIL_HOST_PASSWORD='knnjxvhsoaxyohny'
+    EMAIL_HOST_PASSWORD=PWE
     EMAIL_USE_TLS = True
     
     # A sample logging configuration. The only tangible logging
@@ -218,4 +215,3 @@ else: # If i'm running it on the server
         }
     }
 
-# strace /usr/sbin/httpd
