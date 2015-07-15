@@ -453,21 +453,26 @@ def reload(request):
     #print ori_shp
     l= []
     for feat in ori_shp:
-	
-	geom = feat.geom
-	c_geom = geom.coords
-	print c_geom
-	l.append(c_geom)
-    #print l
+        geom = feat.geom
+        c_geom = geom.coords
+        print c_geom
+        l.append(c_geom)
+        #print l
     points = [[[pt.X,pt.Y,pt.Z] for pt in l]]
     #print points
     
     w = shapefile.Writer(shapefile.POLYLINE)
     
     w.poly(points)
+    # this is pesudo-code
+    # get the media root (check models.py)
+    # (this is the path) make a directory on media with the name of the url
+    # w.save('path')
+    # zip the contents of the folder into a zipfile
+    # pass the zipfile file path to the html
+    # from html add button for download
     
     
-	
     
 
     dic = {}
