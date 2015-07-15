@@ -475,32 +475,42 @@ def check_step(request):
     
     
     print "project:................"+str(pr_id)
-    ###############lag between start task and save num object
+    dic = {}
+
     start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(pr_id)]
     num = start.bloocknum2_set.all().order_by('-date_edited')[0]
     number = num.number
-
-    step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
-
-    print "final reloading........."
-    ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
-    
-    ori_proj = project_meter2degree(layer = ori_layer,num = number)
-    road_layers = start.roadjson6_set.all().order_by('-date_edited') 
-    road_proj = project_meter2degree(layer = road_layers,num = number)
-    
-    inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step))
-    road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step))
-    dic = {}
-    dic["ori"] = str(ori_proj)
-    dic["rd"] = str(road_proj)
-    dic["int"] = str(inter_proj)
-
-    
-    
-    
     step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
     step_index = len(step_layers)/number-1
+
+    ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
+    ori_proj = project_meter2degree(layer = ori_layer,num = number)
+
+    dic["ori"] = str(ori_proj)
+    if int(step)<int(step_index+1):
+
+        step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
+
+        print "final reloading........."
+        road_layers = start.roadjson6_set.all().order_by('-date_edited') 
+        road_proj = project_meter2degree(layer = road_layers,num = number)
+        
+        inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step))
+        road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step))
+        
+        dic["rd"] = str(road_proj)
+        dic["int"] = str(inter_proj)
+    else:
+        road_layers = start.roadjson6_set.all().order_by('-date_edited') 
+        road_proj = project_meter2degree(layer = road_layers,num = number)
+
+        inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
+        inter_proj = project_meter2degree(layer = inter_layers,num = number)
+        dic["rd"] = str(road_proj)
+        dic["int"] = str(inter_proj)
+    
+    
+    
     
     if step_index>=0:
         dic["stepnumber"] = int(step_index+1)

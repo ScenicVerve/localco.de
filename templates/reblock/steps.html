@@ -52,34 +52,18 @@
     <div> Intermediate Step Index: <input type="text" name="stepindex"/></div>
         
 
-
-<form id="reservation">
-  <label for="minbeds">Step Selected</label>
-  <select name="minbeds" id="minbeds">
-    <option>1</option>
-    <option>2</option>
-    <option>3</option>
-    <option>4</option>
-    <option>5</option>
-    <option>6</option>
-    <option>7</option>
-    <option>8</option>
-    <option>9</option>
-    <option>10</option>
-  </select>
-</form>
-
-
-
-
-<form>
-    <p>
-
-</p>
-<div id = "update2">
-<div id="container"></div>
+<div id = "update3">
+    
 </div>
-</form>
+
+
+<div id = 'bt1'>
+</div>
+<div id = 'bt2'>
+</div>
+<div id = 'bt3'>
+</div>
+
 
               </form>
               
@@ -174,6 +158,8 @@ var map = null;
 var setup = 1;
 var inter = 3000;
 var refreshID = null;
+var slider_A = '<form id="reservation"><label for="minbeds">Step Selected</label><select name="minbeds" id="minbeds">'
+var slider_B = '</select></form>'
 
 var refreshID = setInterval(function(){update();},inter);
 console.log("test");
@@ -196,20 +182,75 @@ for(var i=0;i<marker.length;i++) {
     }
     marker = new Array();
     loadmap(json["ori"],json["rd"], json["int"]);
-    steps = json["stepnumber"]
+    steps = json["stepnumber"]+1;
+    
     console.log(steps);
-
+    
 var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
-$('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
-
-
 var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
-$('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
-	
 var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
-$('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
+
+var bt1_link= '"data:' + innerdata + '" download="data.json"'
+var bt1stri = '<form action='+bt1_link+' id = "removebt1"><input type="submit" value="Interial parcels"></form>'
+var bt2_link= '"data:' + oridata + '" download="data.json"'
+var bt2stri = '<form action='+bt2_link+' id = "removebt2"><input type="submit" value="Original parcels"></form>'
+var bt3_link= '"data:' + rddata + '" download="data.json"'
+var bt3stri = '<form action='+bt3_link+' id = "removebt3"><input type="submit" value="Roads"></form>'
+
+
+$("#bt1").append(bt1stri);
+$("#bt2").append(bt2stri);
+$("#bt3").append(bt3stri);
+
+    
+    
+            //function for sliders, remove previous, and update option according to steos
+        $(function() {
+      console.log("2222222222222333333 "+steps);
+    console.log(44444444444444444444);
+    $( "#minbeds" ).remove();
+    var slider = slider_A;
+    for (var i = 0;i<steps.valueOf();i++){
+    slider += '<option>' + i + '</option>';
+}
+    slider += slider_B;
+    console.log(slider);
+    
+    $("#update3").append(slider);
+      
+    var select = $( "#minbeds" );
+
+    var slider = $( "<div id='slider'></div>" ).insertAfter( select ).slider({
+      min: 1,
+      max: steps,
+      range: "min",
+      value: select[ 0 ].selectedIndex + 1,
+      slide: function( event, ui ) {
+        select[ 0 ].selectedIndex = ui.value - 1;
+        
+        
+        checkstep(select[ 0 ].selectedIndex);
+        
+
+      }
+    });
+    $( "#minbeds" ).change(function() {
+      slider.slider( "value", this.selectedIndex + 1 );
+
+    });
+
+  });
+    
+    
+    
+    
     
   });
+  
+  
+  
+  
+  
 }
 
 function checkstep(step_index){
@@ -220,20 +261,30 @@ for(var i=0;i<marker.length;i++) {
     }
     marker = new Array();
     loadmap(json["ori"],json["rd"], json["int"]);
-    steps = json["stepnumber"]
-    console.log(steps);
-/////////remove previous button
-$("#update2").remove();
-var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
-$('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#update2');
-
-
-var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
-$('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#update2');
-	
-var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
-$('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#update2');
+    steps = json["stepnumber"];
     
+/////////remove previous button
+$("#removebt1").remove();
+$("#removebt2").remove();
+$("#removebt3").remove();
+
+var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
+var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
+var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
+
+var bt1_link= '"data:' + innerdata + '" download="data.json"'
+var bt1stri = '<form action='+bt1_link+' id = "removebt1"><input type="submit" value="Interial parcels"></form>'
+var bt2_link= '"data:' + oridata + '" download="data.json"'
+var bt2stri = '<form action='+bt2_link+' id = "removebt2"><input type="submit" value="Original parcels"></form>'
+var bt3_link= '"data:' + rddata + '" download="data.json"'
+var bt3stri = '<form action='+bt3_link+' id = "removebt3"><input type="submit" value="Roads"></form>'
+
+$("#bt1").append(bt1stri);
+$("#bt2").append(bt2stri);
+$("#bt3").append(bt3stri);
+
+
+
   });
 }
 
@@ -261,6 +312,16 @@ function reloadstep(){
             if (json["finish"] ){
         clearInterval(refreshID);
         reloadall();
+        
+        console.log("33333344444 "+steps);
+        
+
+        
+        
+        
+        
+        
+        
     }else{
         for(var i=0;i<marker.length;i++) {
     map.removeLayer(marker[i]);
@@ -290,35 +351,7 @@ $("#preload").remove();
 
 
 <!--layer from geoJson to overlay on top of map
-  $(function() {
-    var select = $( "#minbeds" );
-    var slider = $( "<div id='slider'></div>" ).insertAfter( select ).slider({
-      min: 1,
-      max: 20,
-      range: "min",
-      value: select[ 0 ].selectedIndex + 1,
-      slide: function( event, ui ) {
-        select[ 0 ].selectedIndex = ui.value - 1;
-        
-        
-        checkstep(select[ 0 ].selectedIndex);
-        
-        
-        
-        
-        
-        
 
-      }
-    });
-    $( "#minbeds" ).change(function() {
-      slider.slider( "value", this.selectedIndex + 1 );
-
-    });
-  
-  
-  
-  });
 
 
 
