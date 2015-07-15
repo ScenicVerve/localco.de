@@ -8,7 +8,8 @@ import cStringIO
 import datetime
 import numpy as np
 import networkx as nx
-import time 
+import time
+import shapefile
 
 from celery.result import AsyncResult
 
@@ -440,14 +441,26 @@ def reload(request):
     ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
 
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
+    
     road_layers = start.roadjson6_set.all().order_by('-date_edited') 
     road_proj = project_meter2degree(layer = road_layers,num = number)
-
+    
     inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
     inter_proj = project_meter2degree(layer = inter_layers,num = number)
-
-
     
+    #ori_shp = shapefile.Writer(shapefile.POLYLINE)
+    ori_shp = json_gdal(ori_layer, num =number)
+    print ori_shp
+    l= []
+    for feat in ori_shp:
+	
+	geom = feat.geom
+	l.append(geom)
+    print l
+
+	
+    
+
     dic = {}
     dic["ori"] = str(ori_proj)
     dic["rd"] = str(road_proj)
@@ -465,6 +478,14 @@ def reload(request):
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
+
+def json_gdal(layer = None, num =1, offset=0):
+    for la in layer[offset*num:num+offset*num]:
+        myjson = la.topo_json
+        new_layer= DataSource(myjson)[0]
+        return new_layer
+	
+	
 
 @login_required
 def check_step(request):
@@ -486,19 +507,21 @@ def check_step(request):
     ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
     
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
+   
     road_layers = start.roadjson6_set.all().order_by('-date_edited') 
     road_proj = project_meter2degree(layer = road_layers,num = number)
+  
     
     inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step))
+    
+    
     road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step))
     dic = {}
     dic["ori"] = str(ori_proj)
     dic["rd"] = str(road_proj)
     dic["int"] = str(inter_proj)
 
-    
-    
-    
+   
     step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
     step_index = len(step_layers)/number-1
     
@@ -547,7 +570,7 @@ def reload_step(request):
 
         ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
-        
+	
         ##################step data######################
         step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
         step_index = len(step_layers)/number-1
@@ -555,6 +578,7 @@ def reload_step(request):
         if step_index>=0:
             
             inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+	    
             road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
             
             dic["ori"] = str(ori_proj)
@@ -638,12 +662,14 @@ def final_whole(request, slot_user, project_id, project_name, location):
             number = num.number
             ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
+	    
             
             road_layers = start.roadjson6_set.all().order_by('-date_edited') 
             road_proj = project_meter2degree(layer = road_layers,num = number)
-            
+	    
             inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
             inter_proj = project_meter2degree(layer = inter_layers,num = number)
+	    
 
             c = {
                     'ori_proj': ori_proj,
@@ -673,10 +699,13 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
             number = num.number
             ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
+	    
 
     ##################step data######################
             step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
             inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+	    
+	    
             road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
 
             c = {
@@ -723,6 +752,7 @@ def recent(request):
                 
                 ori_layer = n.definebarriers2_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
+		
 
                 #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
                 #~ road_proj = project_meter2degree(layer = road_layers,num = number)
@@ -780,6 +810,7 @@ def profile(request):
 
                 ori_layer = n.definebarriers2_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
+		
             
                 #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
                 #~ road_proj = project_meter2degree(layer = road_layers,num = number)
@@ -822,11 +853,15 @@ def isnumber(s):
             return False
 
 
+def json_to_gdal(layer = None, num = 1, offset = 0):
+    pass
 
 """
 function to reproject gdal layer(in meters) to degree, and output geojson file
 num is the amount of block to keep from the layer
 """
+
+
 def project_meter2degree(layer = None, num = 1, offset = 0):
     layer_json = []
     for la in layer[offset*num:num+offset*num]:
@@ -846,6 +881,7 @@ def project_meter2degree(layer = None, num = 1, offset = 0):
             new_proj.append(json.loads(geom.json))
         layer_json.extend(new_proj)
     layer_json = json.dumps(layer_json)
+    #print layer_json
     
     return layer_json
 

@@ -196,6 +196,7 @@ for(var i=0;i<marker.length;i++) {
     }
     marker = new Array();
     loadmap(json["ori"],json["rd"], json["int"]);
+  
     steps = json["stepnumber"]
     console.log(steps);
 
@@ -208,7 +209,8 @@ $('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>')
 	
 var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
 $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
-    
+
+
   });
 }
 
