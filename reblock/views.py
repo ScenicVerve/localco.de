@@ -450,14 +450,23 @@ def reload(request):
     
     #ori_shp = shapefile.Writer(shapefile.POLYLINE)
     ori_shp = json_gdal(ori_layer, num =number)
-    print ori_shp
+    #print ori_shp
     l= []
     for feat in ori_shp:
 	
 	geom = feat.geom
-	l.append(geom)
-    print l
-
+	c_geom = geom.coords
+	print c_geom
+	l.append(c_geom)
+    #print l
+    points = [[[pt.X,pt.Y,pt.Z] for pt in l]]
+    #print points
+    
+    w = shapefile.Writer(shapefile.POLYLINE)
+    
+    w.poly(points)
+    
+    
 	
     
 
