@@ -36,6 +36,7 @@ from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.gis.geos import fromstr
+from django.utils.encoding import smart_str
 
 from tasks import *
 from reblock.forms import *
@@ -57,6 +58,9 @@ from django.core.mail import send_mail
 
 from django.views.generic.list import ListView
 from django.utils import timezone
+
+import mimetypes
+from django.core.servers.basehttp import FileWrapper
 
 center_lat = None
 center_lng = None
@@ -211,7 +215,6 @@ def user_logout(request):
 
 """
 review function, trigger when file is uploaded
-
 will visualize the uploaded shp file by overlay to the map after projection
 """
 @login_required
@@ -324,7 +327,6 @@ def review(request):
 
 """
 compute function, trigger after pressing compute button in preview
-
 will show to computation process and result
 """
 
@@ -399,11 +401,11 @@ def reload(request):
     inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
     inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
-
-    saveshp(start = start, user = user,prid =pr_id,  layer = ori_layer,num = number, name = "original");
-    saveshp(start = start, user = user,prid =pr_id,  layer = road_layers,num = number, name = "road");
-    saveshp(start = start, user = user,prid =pr_id,  layer = inter_layers,num = number, name = "interior");
-
+    saveshp(start = start, user = user,prid =pr_id,  layer = ori_layer,num = number, name = "original")
+    saveshp(start = start, user = user,prid =pr_id,  layer = road_layers,num = number, name = "road")
+    saveshp(start = start, user = user,prid =pr_id,  layer = inter_layers,num = number, name = "interior")
+    zippath = zipSave(name = "shp_file.zip", start = start, user = user, prid = pr_id)
+    
     #save the geometries to a dictionary
     dic = {}
     dic["ori"] = str(ori_proj)
@@ -417,11 +419,35 @@ def reload(request):
         dic["stepnumber"] = int(step_index+1)
     else:
         dic["stepnumber"] = 0
-    
+    dic["zip"] = zippath
     #return the geojson to html page
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
+"""
+reload function, called to reload map in steps.html
+will return geojson of related project
+"""
+@login_required
+def download(request):
+    user = request.user
+    GET = request.GET
+    mypath = GET['path']
+    print mypath
+    the_file = str(mypath)
+    filename = os.path.basename(the_file)
+    fileContent = "Your name is %s" % request.GET['path']
+    res = HttpResponse(fileContent)
+    res['Content-Disposition'] = 'attachment; filename=yourname.txt'
+    
+    
+    response = HttpResponse(mimetype='application/force-download')
+    response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(filename)
+    response['X-Sendfile'] = smart_str(GET['path'])
+
+    return response
+
+    
 
 
 @login_required
@@ -907,40 +933,4 @@ def profile_index(request):
 
 
 
-def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = None, prid = None):
-        #ori_shp = shapefile.Writer(shapefile.POLYLINE)
-    ori_shp = json_gdal(layer = layer, num = num, offset = offset)
-    l= []
-    for feat in ori_shp:
-        geom = feat.geom
-        c_geom = geom.coords
-        #print c_geom
-        l.append(c_geom)
-    points = [[[pt[0],pt[1]]for pt in poly]for poly in l]
-
-    w = shapefile.Writer(shapefile.POLYLINE)
-    
-    w.poly(points)
-    # this is pesudo-code
-    # get the media root (check models.py)
-    # (this is the path) make a directory on media with the name of the url
-    
-    datt = start.datasave5_set.all().order_by('-date_edited')[0]
-    #redirect link
-    mypath = str(user)+"/"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(prid)+"/"
-    path = MEDIA_ROOT+mypath
-    try:
-        w.save(path+name)
-        print name+" save successfull!!!!!!!!!!!!"
-    except:
-        pass
-    #~ # zip the contents of the folder into a zipfile
-
-    #~ # pass the zipfile file path to the html
-
-def json_gdal(layer = None, num =1, offset=0):
-    for la in layer[offset*num:num+offset*num]:
-        myjson = la.topo_json
-        new_layer= DataSource(myjson)[0]
-        return new_layer
 

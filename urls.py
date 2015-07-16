@@ -75,6 +75,7 @@ urlpatterns = patterns('',
 
     (r'^reblock/recent_index/$', 'reblock.views.recent_index'),
     (r'^reblock/profile_index/$', 'reblock.views.profile_index'),
+    (r'^reblock/download', 'reblock.views.download'),
 
     
     # Login / logout.

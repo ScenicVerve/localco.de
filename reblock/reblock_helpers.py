@@ -42,7 +42,7 @@ center_lat = None
 center_lng = None
 default_srs = 24373
 	
-	
+
 def isnumber(s):
     s = str(s)
     try:
@@ -54,6 +54,69 @@ def isnumber(s):
             return True
         except ValueError: 
             return False
+
+def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = None, prid = None):
+        #ori_shp = shapefile.Writer(shapefile.POLYLINE)
+    ori_shp = json_gdal(layer = layer, num = num, offset = offset)
+    l= []
+    for feat in ori_shp:
+        geom = feat.geom
+        c_geom = geom.coords
+        #print c_geom
+        l.append(c_geom)
+    points = [[[pt[0],pt[1]]for pt in poly]for poly in l]
+
+    w = shapefile.Writer(shapefile.POLYLINE)
+    
+    w.poly(points)
+    # this is pesudo-code
+    # get the media root (check models.py)
+    # (this is the path) make a directory on media with the name of the url
+    
+    datt = start.datasave5_set.all().order_by('-date_edited')[0]
+    #redirect link
+    mypath = str(user)+"/"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(prid)+"/"
+    path = MEDIA_ROOT+mypath+"source/"
+    
+    
+    
+    
+    
+    try:
+        w.save(path+name)
+        print name+" save successfull!!!!!!!!!!!!"
+    except:
+        pass
+    #~ # zip the contents of the folder into a zipfile
+    #~ # pass the zipfile file path to the html
+
+def zipSave(name = "Python.zip", start = None, user = None, prid = None):
+    datt = start.datasave5_set.all().order_by('-date_edited')[0]
+    #redirect link
+    mypath = str(user)+"/"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(prid)+"/"
+    path = MEDIA_ROOT+mypath
+    filename = path+str(prid)+"_"+name
+    zipf = zipfile.ZipFile(filename, 'w')
+    zipdir(path+"source/", zipf)
+    zipf.close()
+    return filename
+    
+
+
+
+def zipdir(path, ziph):
+    # ziph is zipfile handle
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            ziph.write(os.path.join(root, file))
+
+
+def json_gdal(layer = None, num =1, offset=0):
+    for la in layer[offset*num:num+offset*num]:
+        myjson = la.topo_json
+        new_layer= DataSource(myjson)[0]
+        return new_layer
+
 
 """
 function to reproject gdal layer(in meters) to degree, and output geojson file
