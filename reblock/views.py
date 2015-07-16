@@ -9,7 +9,6 @@ import datetime
 import numpy as np
 import networkx as nx
 import time
-import shapefile
 import StringIO
 
 from celery.result import AsyncResult
@@ -47,7 +46,6 @@ from django.utils import text
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
 from django.utils import simplejson
-from fractions import Fraction
 from slugify import slugify
 
 import datetime, random
@@ -125,30 +123,33 @@ def register(request):
             context)
 	
         else:    
-            #if user_form.is_valid():
-            #########get the information filled by user#########
+            if user_form.is_valid():
+		#########get the information filled by user#########
+		
+		username = request.POST.get("username")
+		user_email = request.POST.get("email")
+		user_pwd1 = request.POST.get("password1")
+		user_pwd2 = request.POST.get("password2")
 	    
-            username = request.POST.get("username")
-            user_email = request.POST.get("email")
-            user_pwd1 = request.POST.get("password1")
-            user_pwd2 = request.POST.get("password2")
-        
-            if user_pwd1 == user_pwd2:
-                user = User.objects.create_user(username, user_email, user_pwd1)
-                user.save()
-                registered = True
-                message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://openreblock.berkeley.edu/login/'
-                email = EmailMultiAlternatives('Openreblock - Registration confirmation',message,'openreblock@gmail.com', [user_email])
-                email.send()
-                return render_to_response(
-                'reblock/registration_complete.html',
-                {},
-                context)
-            
-            else:
-                registered = False
-                return render_to_response(
-                'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)          
+		if user_pwd1 == user_pwd2:
+		    user = User.objects.create_user(username, user_email, user_pwd1)
+		    user.save()
+		    registered = True
+		    message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://openreblock.berkeley.edu/login/'
+		    email = EmailMultiAlternatives('Openreblock - Registration confirmation',message,'openreblock@gmail.com', [user_email])
+		    email.send()
+		    return render_to_response(
+		    'reblock/registration_complete.html',
+		    {},
+		    context)
+		
+		else:
+		    registered = False
+		    return render_to_response(
+		    'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)
+		
+	    else:
+		pass
     else:
         user_form = UserForm()
     
