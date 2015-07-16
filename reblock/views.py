@@ -161,7 +161,7 @@ def register(request):
         {'user_form': user_form, 'registered': registered},
         context)
 
-
+######
 def forgot_password(request):
     context = RequestContext(request)
     registered = False
@@ -227,7 +227,8 @@ def review(request):
         
         #get the latest uploadevent and datafile from database
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
-        data_files = DataFile.objects.filter(upload=upload)
+        data_filesCONFLICT (content): Merge conflict in reblock/views.py
+ = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
 
         
@@ -515,7 +516,7 @@ def check_step(request):
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
-
+############
 """
 reload the last step of the project
 """
