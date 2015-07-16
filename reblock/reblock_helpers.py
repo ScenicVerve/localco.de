@@ -41,7 +41,7 @@ center_lat = None
 center_lng = None
 default_srs = 24373
 	
-	
+
 def isnumber(s):
     s = str(s)
     try:
@@ -62,12 +62,13 @@ def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = 
     Out: shapefile : 
     """
     #convert json to OGRGeojson
+
     ori_shp = json_gdal(layer = layer, num = num, offset = offset)
     l= []
     for feat in ori_shp:
         geom = feat.geom
-        c_geom = geom.coord
-	#create a list with the coordinates of the polygons
+        c_geom = geom.coords
+        #create a list with the coordinates of the polygons
         l.append(c_geom)
     #create a list of lists of the points	
     points = [[[pt[0],pt[1]]for pt in poly]for poly in l]
@@ -75,22 +76,43 @@ def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = 
     w = shapefile.Writer(shapefile.POLYLINE)
     #write the points of the polygons as a shapefile  
     w.poly(points)
+
     # get the media root (check models.py)
     # (this is the path) make a directory on media with the name of the url
     
     datt = start.datasave5_set.all().order_by('-date_edited')[0]
     #redirect link
     mypath = str(user)+"/"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(prid)+"/"
-    path = MEDIA_ROOT+mypath
+
+    path = MEDIA_ROOT+mypath+"source/"
+    print path
     try:
         w.save(path+name)
         print name+" save successfull!!!!!!!!!!!!"
     except:
         pass
-    #~ # zip the contents of the folder into a zipfile
 
-    #~ # pass the zipfile file path to the html
+
+def zipSave(name = "Python.zip", start = None, user = None, prid = None):
+    datt = start.datasave5_set.all().order_by('-date_edited')[0]
+    #redirect link
+    mypath = str(user)+"/"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(prid)+"/"
+    path = MEDIA_ROOT+mypath
+    filename = path+str(prid)+"_"+name
+    zipf = zipfile.ZipFile(filename, 'w')
+    zipdir(path+"source/", zipf)
+    zipf.close()
+    return filename
     
+
+
+
+def zipdir(path, ziph):
+    # ziph is zipfile handle
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            ziph.write(os.path.join(root, file))
+
 
 def json_gdal(layer = None, num =1, offset=0):
     """
@@ -101,9 +123,9 @@ def json_gdal(layer = None, num =1, offset=0):
     for la in layer[offset*num:num+offset*num]:
         myjson = la.topo_json
         new_layer= DataSource(myjson)[0]
-        return new_layer    
-    
-    
+        return new_layer
+
+
 """
 function to reproject gdal layer(in meters) to degree, and output geojson file
 num is the amount of block to keep from the layer

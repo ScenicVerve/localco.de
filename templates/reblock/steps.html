@@ -63,7 +63,8 @@
 </div>
 <div id = 'bt3'>
 </div>
-
+<div id = 'zipbt'>
+</div>
 
               </form>
               
@@ -183,8 +184,9 @@ for(var i=0;i<marker.length;i++) {
     marker = new Array();
     loadmap(json["ori"],json["rd"], json["int"]);
     steps = json["stepnumber"]+1;
-    
-    
+    var zippath = json["zip"];
+    console.log(3333333333333333)
+    console.log(zippath);
 var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
 var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
 var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
@@ -196,10 +198,20 @@ var bt2stri = '<form action='+bt2_link+' id = "removebt2"><input type="submit" v
 var bt3_link= '"data:' + rddata + '" download="data.json"'
 var bt3stri = '<form action='+bt3_link+' id = "removebt3"><input type="submit" value="Roads"></form>'
 
+data = {path : zippath}
+var zipstr = '<form id = "removezip" action = "/reblock/download?'+$.param(data)+'" method="POST"><div><input type="submit" value="download"></div><div style="display:none"><input type="hidden" name="csrfmiddlewaretoken" value="QVR4PCN5q2I6NNyQ2MGJlI1Pkr4Bt0O4" /></div></form>'
 
 $("#bt1").append(bt1stri);
 $("#bt2").append(bt2stri);
 $("#bt3").append(bt3stri);
+$("#zipbt").append(zipstr);
+
+
+
+
+
+
+
 
     
     
@@ -266,6 +278,8 @@ for(var i=0;i<marker.length;i++) {
 $("#removebt1").remove();
 $("#removebt2").remove();
 $("#removebt3").remove();
+$("#removezip").remove();
+
 
 var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
 var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));

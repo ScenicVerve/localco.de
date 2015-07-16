@@ -34,6 +34,8 @@ from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
+from django.contrib.gis.geos import fromstr
+from django.utils.encoding import smart_str
 
 from tasks import *
 from reblock.forms import *
@@ -54,6 +56,9 @@ from django.core.mail import send_mail
 
 from django.views.generic.list import ListView
 from django.utils import timezone
+
+import mimetypes
+from django.core.servers.basehttp import FileWrapper
 
 center_lat = None
 center_lng = None
@@ -171,7 +176,7 @@ def register(request):
         {'user_form': user_form, 'registered': registered},
         context)
 
-
+######
 def forgot_password(request):
     """
     A view for forgot password case.
@@ -336,7 +341,6 @@ def review(request):
 
 """
 compute function, trigger after pressing compute button in preview
-
 will show to computation process and result
 """
 
@@ -410,12 +414,12 @@ def reload(request):
     #get interior_parcel geometry for this project
     inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
     inter_proj = project_meter2degree(layer = inter_layers,num = number)
-
-
-    saveshp(start = start, user = user,prid =pr_id,  layer = ori_layer,num = number, name = "original");
-    saveshp(start = start, user = user,prid =pr_id,  layer = road_layers,num = number, name = "road");
-    saveshp(start = start, user = user,prid =pr_id,  layer = inter_layers,num = number, name = "interior");
-
+    print 4444444444444444
+    saveshp(start = start, user = user,prid =pr_id,  layer = ori_layer,num = number, name = "original")
+    saveshp(start = start, user = user,prid =pr_id,  layer = road_layers,num = number, name = "road")
+    saveshp(start = start, user = user,prid =pr_id,  layer = inter_layers,num = number, name = "interior")
+    zippath = zipSave(name = "shp_file.zip", start = start, user = user, prid = pr_id)
+    print 555555555555555
     #save the geometries to a dictionary
     dic = {}
     dic["ori"] = str(ori_proj)
@@ -429,11 +433,31 @@ def reload(request):
         dic["stepnumber"] = int(step_index+1)
     else:
         dic["stepnumber"] = 0
-    
+    dic["zip"] = zippath
     #return the geojson to html page
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
+"""
+reload function, called to reload map in steps.html
+will return geojson of related project
+"""
+@login_required
+def download(request):
+    user = request.user
+    GET = request.GET
+    mypath = GET['path']
+    print mypath
+    the_file = str(mypath)
+    filename = os.path.basename(the_file)
+    f = open(mypath, 'r')
+    #myfile = file(f)
+    response = HttpResponse(f, content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + filename
+
+    return response
+
+    
 
 
 @login_required
@@ -468,6 +492,9 @@ def check_step(request):
 
     dic["ori"] = str(ori_proj)
     
+
+    
+    
     #if all step is 
     if int(step)<int(step_index+1):
 
@@ -490,6 +517,7 @@ def check_step(request):
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
         dic["rd"] = str(road_proj)
         dic["int"] = str(inter_proj)  
+
     
     if step_index>=0:
         dic["stepnumber"] = int(step_index+1)
@@ -499,7 +527,7 @@ def check_step(request):
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
-
+############
 """
 reload the last step of the project
 """

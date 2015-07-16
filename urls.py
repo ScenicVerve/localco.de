@@ -52,7 +52,9 @@ urlpatterns = patterns('',
     (r'^reblock/check_step/$', 'reblock.views.check_step'),
     (r'^reblock/recent_index/$', 'reblock.views.recent_index'),
     (r'^reblock/profile_index/$', 'reblock.views.profile_index'),
- 
+    (r'^reblock/download', 'reblock.views.download'),
+
+    
     # Login / logout.
     (r'^login/$', login, {'template_name': 'registration/login.html'}),
     (r'^logout/$', 'django.contrib.auth.views.logout' ),
