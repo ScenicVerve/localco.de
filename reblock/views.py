@@ -470,12 +470,36 @@ def reload(request):
     saveshp(start = start, user = user,prid =pr_id,  layer = inter_layers,num = number, name = "interior");
 
     
+<<<<<<< HEAD
     
     #~ # from html add button for download
+=======
+    #ori_shp = shapefile.Writer(shapefile.POLYLINE)
+    #~ ori_shp = json_gdal(ori_layer, num =number)
+    #~ #print ori_shp
+    #~ l= []
+    #~ for feat in ori_shp:
+        #~ geom = feat.geom
+        #~ c_geom = geom.coords
+        #~ #print c_geom
+        #~ l.append(c_geom)
+        #~ #print l
+    #~ points = [[[pt.X,pt.Y,pt.Z] for pt in l]]
+    #print points
     
+    #w = shapefile.Writer(shapefile.POLYLINE)
     
+    #w.poly(points)
     
-
+    # this is pesudo-code
+    # get the media root (check models.py)
+    # (this is the path) make a directory on media with the name of the url
+    # w.save('path')
+    # zip the contents of the folder into a zipfile
+    # pass the zipfile file path to the html
+    # from html add button for download
+>>>>>>> 0e06ba3455414f50dafe65c2b88d05a1a3e68340
+    
     #save the geometries to a dictionary
     dic = {}
     dic["ori"] = str(ori_proj)
@@ -1341,16 +1365,13 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
             pass
 
         # potential segments from parcels in flist
-	try:
-	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,
-
-						     barriers, quiet=quiet,
-						     shortest_only=shortest_only)
+	try: 
+	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,barriers, quiet=quiet,shortest_only=shortest_only)
+	    
 	except nx.NetworkXNoPath:
+	    
 	    raise IOError("Select less edges!")
 	    
-	    
-
         # choose and build one
         target_ptup, target_mypath = mgh.choose_path(original, all_paths, alpha,
                                                  strict_greedy=strict_greedy)
