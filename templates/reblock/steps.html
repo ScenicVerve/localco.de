@@ -182,19 +182,12 @@ for(var i=0;i<marker.length;i++) {
     }
     marker = new Array();
     loadmap(json["ori"],json["rd"], json["int"]);
-<<<<<<< HEAD
     steps = json["stepnumber"]+1;
     
-=======
-  
-    steps = json["stepnumber"]
->>>>>>> peng_save
-    console.log(steps);
     
 var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
 var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
 var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
-<<<<<<< HEAD
 
 var bt1_link= '"data:' + innerdata + '" download="data.json"'
 var bt1stri = '<form action='+bt1_link+' id = "removebt1"><input type="submit" value="Interial parcels"></form>'
@@ -251,11 +244,6 @@ $("#bt3").append(bt3stri);
     
     
     
-=======
-$('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
-
-
->>>>>>> peng_save
   });
   
   

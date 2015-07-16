@@ -12,14 +12,9 @@ POSTGIS_VERSION = (2, 0, 3)
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 
-<<<<<<< HEAD
-my_path = '/Users/carlos/projects/open-reblock' # Change this to the local path
-#my_path = '/Users/eleannapanagoulia/Documents/open-reblock' # Change this to the local path
-=======
 #my_path = '/Users/carlos/projects/open-reblock' # Change this to the local path
-my_path = '/Users/eleannapanagoulia/Documents/open-reblock' # Change this to the local path
->>>>>>> peng_save
-#my_path = '/home/pwz/open-reblock' # Change this to the local path
+#my_path = '/Users/eleannapanagoulia/Documents/open-reblock' # Change this to the local path
+my_path = '/home/pwz/open-reblock' # Change this to the local path
 
 
 

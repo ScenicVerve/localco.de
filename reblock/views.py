@@ -453,7 +453,6 @@ def reload(request):
     ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
     
-<<<<<<< HEAD
     #get road geometry for this project
     road_layers = start.roadjson6_set.all().order_by('-date_edited') 
     road_proj = project_meter2degree(layer = road_layers,num = number)
@@ -462,30 +461,25 @@ def reload(request):
     inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
     inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
-    #save the geometries to a dictionary
-=======
-    road_layers = start.roadjson6_set.all().order_by('-date_edited') 
-    road_proj = project_meter2degree(layer = road_layers,num = number)
     
-    inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
-    inter_proj = project_meter2degree(layer = inter_layers,num = number)
     
     #ori_shp = shapefile.Writer(shapefile.POLYLINE)
-    ori_shp = json_gdal(ori_layer, num =number)
-    #print ori_shp
-    l= []
-    for feat in ori_shp:
-        geom = feat.geom
-        c_geom = geom.coords
-        print c_geom
-        l.append(c_geom)
-        #print l
-    points = [[[pt.X,pt.Y,pt.Z] for pt in l]]
+    #~ ori_shp = json_gdal(ori_layer, num =number)
+    #~ #print ori_shp
+    #~ l= []
+    #~ for feat in ori_shp:
+        #~ geom = feat.geom
+        #~ c_geom = geom.coords
+        #~ #print c_geom
+        #~ l.append(c_geom)
+        #~ #print l
+    #~ points = [[[pt.X,pt.Y,pt.Z] for pt in l]]
     #print points
     
-    w = shapefile.Writer(shapefile.POLYLINE)
+    #w = shapefile.Writer(shapefile.POLYLINE)
     
-    w.poly(points)
+    #w.poly(points)
+    
     # this is pesudo-code
     # get the media root (check models.py)
     # (this is the path) make a directory on media with the name of the url
@@ -497,7 +491,7 @@ def reload(request):
     
     
 
->>>>>>> peng_save
+    #save the geometries to a dictionary
     dic = {}
     dic["ori"] = str(ori_proj)
     dic["rd"] = str(road_proj)
@@ -515,12 +509,6 @@ def reload(request):
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
-<<<<<<< HEAD
-"""
-reload map for specific project and step
-return new geojson to the html page
-"""
-=======
 
 def json_gdal(layer = None, num =1, offset=0):
     for la in layer[offset*num:num+offset*num]:
@@ -530,7 +518,6 @@ def json_gdal(layer = None, num =1, offset=0):
 	
 	
 
->>>>>>> peng_save
 @login_required
 def check_step(request):
     user = request.user
@@ -558,20 +545,7 @@ def check_step(request):
     #get original geometry
     ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
-<<<<<<< HEAD
 
-=======
-   
-    road_layers = start.roadjson6_set.all().order_by('-date_edited') 
-    road_proj = project_meter2degree(layer = road_layers,num = number)
-  
-    
-    inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step))
-    
-    
-    road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step))
-    dic = {}
->>>>>>> peng_save
     dic["ori"] = str(ori_proj)
     
     #if all step is 
@@ -592,7 +566,6 @@ def check_step(request):
         road_layers = start.roadjson6_set.all().order_by('-date_edited') 
         road_proj = project_meter2degree(layer = road_layers,num = number)
 
-<<<<<<< HEAD
         inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
         dic["rd"] = str(road_proj)
@@ -600,11 +573,6 @@ def check_step(request):
     
     
     
-=======
-   
-    step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
-    step_index = len(step_layers)/number-1
->>>>>>> peng_save
     
     if step_index>=0:
         dic["stepnumber"] = int(step_index+1)
@@ -951,15 +919,6 @@ def profile(request):
 
                 ori_layer = n.definebarriers2_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
-<<<<<<< HEAD
-=======
-		
-            
-                #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
-                #~ road_proj = project_meter2degree(layer = road_layers,num = number)
-                #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
-                #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
->>>>>>> peng_save
                 
                 lstjson.append(simplejson.loads(ori_proj))
             
@@ -1065,12 +1024,9 @@ def isnumber(s):
             return False
 
 
-<<<<<<< HEAD
-=======
 def json_to_gdal(layer = None, num = 1, offset = 0):
     pass
 
->>>>>>> peng_save
 """
 function to reproject gdal layer(in meters) to degree, and output geojson file
 num is the amount of block to keep from the layer
