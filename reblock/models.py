@@ -93,7 +93,8 @@ class DataFile(Dated):
     def extract_path(self):
         """returns a directory path for extracting zip files to"""
         return os.path.splitext( self.abs_path() )[0]
-    ###############
+    #
+    #
     def path_of_part(self, ext):
         """give an file extension of a specific file within the zip file, and
         get an absolute path to the extracted file with that extension.
