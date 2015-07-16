@@ -16,21 +16,6 @@
 
     <center>
 <div id = 'update'>
-            <a  style = "float:left;margin: 0 0 10px 10px;" id = "0">
-            <div style="width:300px; height:300px;" id="map0" class="map" ></div>
-            <div id = "prj0"> 
-            </div>
-            </a>
-            <a  style = "float:left; margin: 0 0 10px 10px;" id = "1">
-            <div style="width:300px; height:300px;" id="map1" class="map"></div>
-            <div id = "prj1">
-            </div>
-            </a>
-            <a  style = "float:left; margin: 0 0 10px 10px;" id = "2">
-            <div style="width:300px; height:300px;" id="map2" class="map"></div>
-            <div id = "prj2">
-            </div>
-            </a>
 
 </div>
 
@@ -46,16 +31,6 @@
 </center>
 
 
-
-
-    
-
-    
-    
-    
-
-
-
 {% endblock %}
      
      
@@ -64,8 +39,9 @@
      {% block scripts %}
 
       <script type='text/javascript'>
-var currentNum = 2;//current number of loaded map
-
+var currentNum = 3;//current number of loaded map
+var loadnum = 3;
+var totalNum = {{ allnum|safe }};
 var testjson = {{ lstjson|safe }};
 var testprj = {{ lstprjname|safe }};
 var testloc = {{ lstlocation|safe }};
@@ -107,31 +83,46 @@ var testloc = {{ lstlocation|safe }};
             
         }
 
-
         
-        addmap("0", testjson[0]);
-        addmap("1",testjson[1]);
-        addmap("2",testjson[2]);
-        
+        if (totalNum>3){
+            for (var i=0;i<3;i++){
+        $("#update").append(mapframe(i));
+        addmap((i).toString(), testjson[i]);    
+        }
+    }else{
+        for (var i=0;i<totalNum;i++){
+        $("#update").append(mapframe(i));
+        addmap((i).toString(), testjson[i]);    
+        }
+    }
 
         
 $(document).ready(function(){
     $("#loadmore").click(function(){
-        
-        
-    $.getJSON("/reblock/recent_index/", {index: currentNum}, function(json){
+        var toload = null;
+        if (currentNum<totalNum-3){//if there will be 3 new projects to load
+            toload = 3;
+         }else{
+            toload = totalNum-currentNum;
+         }
+    
+    $.getJSON("/reblock/recent_index/", {index: (currentNum), loadnum : toload}, function(json){
     
     var listjson = json["lstjson"];
     var jsondata = JSON.parse(listjson);
-    $("#update").append(mapframe(currentNum+1));
     
-    addmap((currentNum+1).toString(), jsondata[0]);
-    currentNum +=1;
+    for (var i=0;i<loadnum;i++){
+    $("#update").append(mapframe(currentNum+i));
+    addmap((currentNum+i).toString(), jsondata[i]);
 
+    }
+        currentNum +=loadnum;
 
   });
+
+
+
         
-        //$("#div1").remove();
     });
 });
         

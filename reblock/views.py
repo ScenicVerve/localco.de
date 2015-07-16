@@ -533,7 +533,7 @@ def reload_step(request):
     dic = {}
     
     start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(pr_id)]
-    
+    print "fix"
     print "reload step............start = "+str(start)
     
     if start:
@@ -714,7 +714,11 @@ def recent(request):
     if request.method == 'POST': # someone is editing site configuration
         pass
     else:            
-        start = StartSign2.objects.order_by('-date_edited')[:3]
+        startlst = StartSign2.objects.order_by('-date_edited')
+        if len(startlst)<3:
+            start = startlst
+        else:
+            start = startlst[:3]
         
         lstjson = []
         lstprjname = []
@@ -749,7 +753,8 @@ def recent(request):
         "lstjson" : lstjson,
         "lstprjname": lstprjname,
         "lstlocation": lstlocation,
-        "lstdes": lstdes,       
+        "lstdes": lstdes,    
+        "allnum" :   len(startlst),
         }
                     
         return render_to_response(
@@ -764,8 +769,10 @@ def recent_index(request):
 
     GET = request.GET
 
-    loadnum = 1;
+    loadnum = int(GET['loadnum']);
     loadstart = int(GET['index'])
+    
+    
     loadend = loadstart+loadnum
     print "load start :"+str(loadstart)
     print "load end :"+str(loadend)
@@ -773,12 +780,14 @@ def recent_index(request):
     if request.method == 'POST': # someone is editing site configuration
         pass
     else:            
-        start = StartSign2.objects.order_by('-date_edited')[loadstart:loadend]
+        startlst = StartSign2.objects.order_by('-date_edited')
+        start = startlst[loadstart:loadend]
         
         lstjson = []
         lstprjname = []
         lstlocation = []
         lstdes = []
+        
         
         for i,n in enumerate(start):
             if len(n.bloocknum2_set.all())>0:
@@ -807,7 +816,7 @@ def recent_index(request):
         "lstjson" : lstjson,
         "lstprjname": lstprjname,
         "lstlocation": lstlocation,
-        "lstdes": lstdes,       
+        "lstdes": lstdes,     
         }
         
         
