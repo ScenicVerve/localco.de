@@ -82,18 +82,6 @@ class DataFile(Dated):
     """
     file = models.FileField(upload_to=get_upload_path)
     upload = models.ForeignKey('UploadEvent', null=True, blank=True)
-        
-    def _get_folder(self, directory, ext):
-        directory_content = os.listdir(directory)
-        for name in directory_content:
-            new_dir = os.path.join( self.extract_path(), name )
-            if os.path.isdir(new_dir):
-                self._get_folder(new_dir, ext)
-            else:
-                new_dir = directory
-                if  ext in new_dir:
-                    break
-            return new_dir
     
     def get_upload_path(self, filename):
         return 'uploads/%s/%s' % (self.upload.user.username, filename)
@@ -105,21 +93,23 @@ class DataFile(Dated):
     def extract_path(self):
         """returns a directory path for extracting zip files to"""
         return os.path.splitext( self.abs_path() )[0]
-    
-    def path_of_part(self, ext): #
+    ###############
+    def path_of_part(self, ext):
         """give an file extension of a specific file within the zip file, and
         get an absolute path to the extracted file with that extension.
         Assumes that the contents have been extracted.
         Returns `None` if the file can't be found
         """
-        path_to_part = self._get_folder(self.extract_path(), ext)
-        if ext in path_to_part:
-            return path_to_part
-        else:
-            new_pieces = os.listdir(path_to_part)
-            for piece in new_pieces:
-                if ext in piece:
-                    return path_to_part #os.path.join(path_to_part, piece)
+        path_to_part = None
+        all_paths = os.walk(self.extract_path())
+        for tree in all_paths:
+            if len(tree[2]) > 0:
+                for file_name in tree[2]:
+                    if file_name.endswith(ext) and not file_name.startswith('.'):
+                        path_to_part = tree[0]
+                        break
+                
+        return path_to_part
             
     def __unicode__(self):
         return "DataFile: %s" % self.file.url
@@ -143,7 +133,7 @@ class DataFile(Dated):
 
         # get shape type
         shape_path = self.path_of_part('.shp')
-        #print shape_path
+        print shape_path, 'this is the shp path'
         ds = DataSource( shape_path )
         layer = ds[0]
         'Here we add a check for geometry types???'
@@ -260,7 +250,8 @@ class DefineBarriers2(SaveJSON3):
     number = models.ForeignKey(BloockNUM2)
     def __unicode__(self):
         return "BlockJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
-
+    
+    
 class IntermediateJSON7(Named, Authored, Dated):
     step_index = models.IntegerField(null=True, blank=True)
     topo_json = models.TextField(null=True, blank=True)
@@ -330,5 +321,3 @@ def create_from_shapefile(self, path):
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
     activation_key = models.CharField(max_length=30)
-    
-    
