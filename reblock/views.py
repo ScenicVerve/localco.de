@@ -75,19 +75,21 @@ def upload(request):
     """
     A view for uploading new data.
     In: Zip file : a zip file that contains all the necessary file formats
-    Out: reblock.model.UploadEvent: Description
+    Out: reblock.model.UploadEvent
     """
     user = request.user
+    #if the user provides data
     if request.method == 'POST':
         upload = UploadEvent(user=user)
         upload.save()
         
         formset = ZipFormSet(request.POST, request.FILES)
         for form in formset:
+	    #check if the file is in the correct format or if a file has been uploaded
             if form.is_valid() and form.has_changed():
                 data_file = form.save(upload)
                 return HttpResponseRedirect('/reblock/review/')
-
+	    #if nothing has been uploaded notify user that no zip is uploaded
             elif not form.has_changed():
                 return render_to_response(
                 'reblock/browse_empty.html',
@@ -107,7 +109,7 @@ def upload(request):
 def register(request):
     """
     A view for user registration.
-    In: - : -
+    In: html post : user provides: username, email, password1, password2(confirm)
     Out:reblock.form.UserForm : A form model that is based in django User built-in form model
     """
     context = RequestContext(request)
@@ -173,7 +175,7 @@ def register(request):
 def forgot_password(request):
     """
     A view for forgot password case.
-    In: - : -
+    In: html post : user provides: username in order to set a new password
     Out:reblock.form.NewPassword : A form model that is based in django User built-in form model 
     """
     context = RequestContext(request)
@@ -241,7 +243,7 @@ def review(request):
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
         
-        #########get the information filled by user#########
+        #########get the information filled by the user#########
         if len(str(request.POST.get("name")))>0 :
             name = request.POST.get("name")
         elif len(str(layer_data[0]['name']))>0:
