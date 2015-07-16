@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # localco.de
 
 A Local Code Web Application for managing and serving GIS data and using the [topology](https://github.com/open-reblock/topology) library to calculate shortest paths connecting aggregated parcels.
@@ -158,4 +157,3 @@ a variety of categories:
 4. importing and setting up a mygraph from a shapefile or list of existing faces
 5. test functions and test graphs. 
 
->>>>>>> eac4ba37483918a753749488b1791d706db2a2c6
