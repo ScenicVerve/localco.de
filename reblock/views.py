@@ -10,9 +10,10 @@ import numpy as np
 import networkx as nx
 import time
 import shapefile
+import StringIO
 
 from celery.result import AsyncResult
-
+from settings import MEDIA_ROOT
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponseRedirect
@@ -78,7 +79,7 @@ def upload(request):
     if request.method == 'POST':
         upload = UploadEvent(user=user)
         upload.save()
-    
+        
         formset = ZipFormSet(request.POST, request.FILES)
     
     
@@ -291,7 +292,6 @@ def review(request):
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
 
-        print layer_data[0]['name']
         
         #########get the information filled by user#########
         if len(str(request.POST.get("name")))>0 :
@@ -345,7 +345,8 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
-
+        
+        print upload
         file_path = layer_data[0]['file_location']
         ds = DataSource( file_path )
         layer = ds[0]
@@ -464,32 +465,13 @@ def reload(request):
     inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
     inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
+    saveshp(start = start, user = user,prid =pr_id,  layer = ori_layer,num = number, name = "original");
+    saveshp(start = start, user = user,prid =pr_id,  layer = road_layers,num = number, name = "road");
+    saveshp(start = start, user = user,prid =pr_id,  layer = inter_layers,num = number, name = "interior");
+
     
     
-    #ori_shp = shapefile.Writer(shapefile.POLYLINE)
-    #~ ori_shp = json_gdal(ori_layer, num =number)
-    #~ #print ori_shp
-    #~ l= []
-    #~ for feat in ori_shp:
-        #~ geom = feat.geom
-        #~ c_geom = geom.coords
-        #~ #print c_geom
-        #~ l.append(c_geom)
-        #~ #print l
-    #~ points = [[[pt.X,pt.Y,pt.Z] for pt in l]]
-    #print points
-    
-    #w = shapefile.Writer(shapefile.POLYLINE)
-    
-    #w.poly(points)
-    
-    # this is pesudo-code
-    # get the media root (check models.py)
-    # (this is the path) make a directory on media with the name of the url
-    # w.save('path')
-    # zip the contents of the folder into a zipfile
-    # pass the zipfile file path to the html
-    # from html add button for download
+    #~ # from html add button for download
     
     
     
@@ -512,6 +494,38 @@ def reload(request):
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
+
+
+def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = None, prid = None):
+        #ori_shp = shapefile.Writer(shapefile.POLYLINE)
+    ori_shp = json_gdal(layer = layer, num = num, offset = offset)
+    l= []
+    for feat in ori_shp:
+        geom = feat.geom
+        c_geom = geom.coords
+        #print c_geom
+        l.append(c_geom)
+    points = [[[pt[0],pt[1]]for pt in poly]for poly in l]
+
+    w = shapefile.Writer(shapefile.POLYLINE)
+    
+    w.poly(points)
+    # this is pesudo-code
+    # get the media root (check models.py)
+    # (this is the path) make a directory on media with the name of the url
+    
+    datt = start.datasave5_set.all().order_by('-date_edited')[0]
+    #redirect link
+    mypath = str(user)+"/"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(prid)+"/"
+    path = MEDIA_ROOT+mypath
+    try:
+        w.save(path+name)
+        print name+" save successfull!!!!!!!!!!!!"
+    except:
+        pass
+    #~ # zip the contents of the folder into a zipfile
+
+    #~ # pass the zipfile file path to the html
 
 def json_gdal(layer = None, num =1, offset=0):
     for la in layer[offset*num:num+offset*num]:
