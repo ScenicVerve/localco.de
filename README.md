@@ -49,6 +49,7 @@ Set `my_path` in `settings.py` to the parent directory of your working copy. Cre
 
 ```bash
 echo PW='postgrespass' > pw.py
+echo PWE='knnjxvhsoaxyohny' > pwe.py
 sudo -u postgres createuser -P localcode
 sudo -u postgres createuser -O localcode open_reblock
 
