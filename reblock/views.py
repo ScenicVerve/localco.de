@@ -26,7 +26,7 @@ from django.contrib.auth.views import login
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from django.contrib.auth.models import User, UserManager
+from django.contrib.auth.models import User
 
 import django.contrib.gis
 from django.contrib.gis.geos import *
@@ -48,7 +48,6 @@ import topology.my_graph_helpers as mgh
 from django.utils import simplejson
 from fractions import Fraction
 from slugify import slugify
-
 
 import datetime, random
 from django.shortcuts import render_to_response, get_object_or_404
@@ -144,38 +143,7 @@ def register(request):
                 registered = False
                 return render_to_response(
                 'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)
-            ##    else:
-            #user = user_form.save()
-            #password1 =user.set_password(user.password)
-            #password2 =user.set_password(user.password)
-            #config_password1 = request.POST.get("password1")
-            #config_password2 = request.POST.get("password2")
-            #
-            
-            #    if config_password1 and config_password1 == config_password2:
-            #	final_password = config_password1
-            #	#print 'password match'
-            #	user.save()
-            #	registered = True
-            #	email = EmailMultiAlternatives('test','You are registered!','eleannapan@gmail.com', ['eleannapan@gmail.com'])
-            #	email.send()
-            #	return render_to_response(
-            #	'reblock/registration_complete.html',
-            #	{},
-            #	context)
-            #    
-            #    elif config_password1 and config_password1 != config_password2:
-            #	#password1 != password2:
-            #	print "password mismatch"
-            #	#raise forms.ValidationError("Passwords don't match")
-            #	registered = False
-            #	#print user_form.errors
-            #	return render_to_response(
-            #	 'reblock/register.html',
-            #	#{'user_form': user_form, 'registered': registered},
-            #	context)
-            ##    else:
-            #	print user_form.errors
+           
     else:
         user_form = UserForm()
     
@@ -191,79 +159,42 @@ def forgot_password(request):
     if request.method == 'POST':
     #print 1111
         user_form = UserForm(request.POST)
-    new = NewPassword(request.POST)
-    if User.objects.filter(username=request.POST['username']).exists():
-        
-        config_username = request.POST.get("username")
-        user = User.objects.get(username__exact=config_username)
-        new_password1 = request.POST.get("new_password1")
-        user.set_password(new_password1)
-        #new_password2 = request.POST.get("new_password2")
-        user_email = user.email
-        #print user_email
-        
-        user.save()
-        message = 'Your new password has changed to: '+ new_password1+' '+'Use it to log back in openreblock.berkeley.edu'
-        email = EmailMultiAlternatives('password change',message ,'openreblock@gmail.com', [user_email])
-        email.send()
-        return HttpResponseRedirect('/set_new_password/') #this redirects correct
-    
-    else:
-        return render_to_response(
-        'reblock/forgot_password.html',
-        {'user_form': user_form, 'registered': registered},
-        context)
-        #go to register
+	new = NewPassword(request.POST)
+	if User.objects.filter(username=request.POST["username"]).exists():
+	    
+	    config_username = request.POST.get("username")
+	    user = User.objects.get(username__exact=config_username)
+	    new_password1 = request.POST.get("new_password1")
+	    user.set_password(new_password1)
+	    #new_password2 = request.POST.get("new_password2")
+	    user_email = user.email
+	    #print user_email
+	    
+	    user.save()
+	    message = 'Your new password has changed to: '+ new_password1+' '+'Use it to log back in openreblock.berkeley.edu'
+	    email = EmailMultiAlternatives('password change',message ,'openreblock@gmail.com', [user_email])
+	    email.send()
+	    return HttpResponseRedirect('/set_new_password/') #this redirects correct
+	
+	else:
+	    return render_to_response(
+	    'reblock/forgot_password.html',
+	    {'user_form': user_form, 'registered': registered},
+	    context)
+	    #go to register
 
     return render(request, 'reblock/forgot_password.html', {'new': NewPassword})
 
 
+
 def set_new_password(request):
     context = RequestContext(request)
-    
-    #registered = False
-    #if request.method == 'POST':
-    #user_form = UserForm(request.POST)
-    #if User.objects.filter(username=request.POST['username']).exists():
-    #    u = User.objects.get(username__exact = username)
-    #    u.set_password('new password')
-    #    u.save()
+
     return render_to_response(
     'reblock/set_new_password.html',
     {},
     context)
 
-
-#def password_change(request):
-#    if request.method == 'POST':
-#        form = PasswordChangeForm(user=request.user, data=request.POST)
-#        if form.is_valid():
-#            form.save()   
-#    else:
-#	pass
-
-
-#def retrieve_password(request):
-#    context = RequestContext(request)
-#	    
-#		
-#
-#    #form = UserForgotPasswordForm(None, request.POST)
-#
-#    #if form.is_valid():
-#	
-#	#form.save(from_email='eleannapan@gmail.com', email_template_name='/reblock/forgot_password/')
-#	#form.save()
-#    config_password1 = User.objects.filter(user_pwd1=request.POST['password1'])
-#    email = EmailMultiAlternatives('test',config_password1,'eleannapan@gmail.com', ['eleannapan@gmail.com'])
-#    email.send()
-#	
-#    return render_to_response(
-#	'reblock/retrieve_password.html',
-#	{}, context)
-
-    #return HttpResponseRedirect('/login/')
-    
 
 @login_required
 def user_logout(request):
@@ -321,7 +252,6 @@ def review(request):
                 
         #check geometry type and flatten geometry collection, save as linestring list
         geoms = checkGeometryType(layer)
-        #graph_indices = get_index(b_index)
     
     
         start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
@@ -463,31 +393,23 @@ def reload(request):
     inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
     inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
+    ori_shp = shapefile.Writer(shapefile.POLYLINE)
+    ori_shp = json_gdal(ori_layer, num =number)
+    #print ori_shp
+    l= []
+    for feat in ori_shp:
+        geom = feat.geom
+        c_geom = geom.coords
+        #print c_geom
+        l.append(c_geom)
+        #print l
+	points = [[[pt[0],pt[1]] for pt in l]]
+	print points
     
-    #ori_shp = shapefile.Writer(shapefile.POLYLINE)
-    #~ ori_shp = json_gdal(ori_layer, num =number)
-    #~ #print ori_shp
-    #~ l= []
-    #~ for feat in ori_shp:
-        #~ geom = feat.geom
-        #~ c_geom = geom.coords
-        #~ #print c_geom
-        #~ l.append(c_geom)
-        #~ #print l
-    #~ points = [[[pt.X,pt.Y,pt.Z] for pt in l]]
-    #print points
+    w = shapefile.Writer(shapefile.POLYLINE)
     
-    #w = shapefile.Writer(shapefile.POLYLINE)
-    
-    #w.poly(points)
-    
-    # this is pesudo-code
-    # get the media root (check models.py)
-    # (this is the path) make a directory on media with the name of the url
-    # w.save('path')
-    # zip the contents of the folder into a zipfile
-    # pass the zipfile file path to the html
-    # from html add button for download
+    w.poly(points)
+
     
     #save the geometries to a dictionary
     dic = {}
@@ -655,8 +577,6 @@ def reload_step(request):
         dic["stepnumber"] = 0
     
     json = simplejson.dumps(dic)
-    
-    
 
     return HttpResponse(json, mimetype='application/json')
 
@@ -716,8 +636,6 @@ def final_whole(request, slot_user, project_id, project_name, location):
                 )
 
 
-
-
 @login_required
 def steps_slut(request, step_index, slot_user, project_id, project_name, location):
     user = request.user
@@ -751,10 +669,6 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
                 'reblock/steps.html',
                 RequestContext(request, c),
                 )
-
-    
-
-
 
 
 """
@@ -879,9 +793,6 @@ def recent_index(request):
 
 
 
-
-
-
 """
 redirect to a page showing the recent reblocks created by the same user
 """
@@ -952,9 +863,7 @@ def profile_index(request):
     GET = request.GET
     user = request.user
     loadnum = int(GET['loadnum']);
-    loadstart = int(GET['index'])
-    
-    
+    loadstart = int(GET['index']) 
     loadend = loadstart+loadnum
     print "load start :"+str(loadstart)
     print "load end :"+str(loadend)
@@ -1005,8 +914,7 @@ def profile_index(request):
         "lstlocation": lstlocation,
         "lstdes": lstdes,     
         }
-        
-        
+               
         json = simplejson.dumps(c)
         print "json loaded"
         return HttpResponse(json, mimetype='application/json')
@@ -1024,8 +932,6 @@ def isnumber(s):
             return False
 
 
-def json_to_gdal(layer = None, num = 1, offset = 0):
-    pass
 
 """
 function to reproject gdal layer(in meters) to degree, and output geojson file
@@ -1161,14 +1067,6 @@ def run_once(original,name=None, user = None, block_index = 0, srs = None, barri
         
     block.plot_roads(master=original, new_plot=False)
     return roads
-
-
-#def get_index(b_index):
-#    #graph_indices =[]
-#    if "," in b_index:  
-#	ba= [int(i) for i in b_index.split(",")]
-#	graph_indices = ba
-#	return graph_indices
 
 
 def match_barriers(b_index, original):
@@ -1322,11 +1220,12 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
             pass
 
         # potential segments from parcels in flist
-	try: 
+	try:
+	    print 11111
 	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,barriers, quiet=quiet,shortest_only=shortest_only)
 	    
 	except nx.NetworkXNoPath:
-	    
+	    print 2222
 	    raise IOError("Select less edges!")
 	    
         # choose and build one
