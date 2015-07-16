@@ -65,6 +65,8 @@ default_srs = 24373
 
 def index(request):
     """A view for browsing the existing webfinches.
+	In:
+	Out: 
     """
     return render_to_response(
             'reblock/index.html',
@@ -75,7 +77,7 @@ def index(request):
 def upload(request):
     """
     A view for uploading new data.
-    In: Int, list, : integers for indeces
+    In: Zip file : a zip file that contains all the necessary file formats
     Out: reblock.model.UploadEvent: Description
     """
     user = request.user
@@ -84,24 +86,18 @@ def upload(request):
         upload.save()
         
         formset = ZipFormSet(request.POST, request.FILES)
-    
-    
         for form in formset:
             if form.is_valid() and form.has_changed():
                 data_file = form.save(upload)
-        
                 return HttpResponseRedirect('/reblock/review/')
-        
-        
+
             elif not form.has_changed():
                 return render_to_response(
                 'reblock/browse_empty.html',
-                {})
-
-            
+                {})           
     else:
         formset = ZipFormSet()
-
+	
     c = {
             'formset':formset,
             }
@@ -112,6 +108,11 @@ def upload(request):
 
 
 def register(request):
+    """
+    A view for user registration.
+    In: - : -
+    Out:reblock.form.UserForm : A form model that is based in django User built-in form model
+    """
     context = RequestContext(request)
     registered = False
 
@@ -123,10 +124,11 @@ def register(request):
             'reblock/username_exists.html',
             {},
             context)
-        
+	
         else:    
             #if user_form.is_valid():
-            # Save the user's form data to the database.
+            #########get the information filled by user#########
+	    
             username = request.POST.get("username")
             user_email = request.POST.get("email")
             user_pwd1 = request.POST.get("password1")
@@ -147,8 +149,7 @@ def register(request):
             else:
                 registered = False
                 return render_to_response(
-                'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)
-           
+                'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)          
     else:
         user_form = UserForm()
     
@@ -159,6 +160,11 @@ def register(request):
 
 
 def forgot_password(request):
+    """
+    A view for forgot password case.
+    In: - : -
+    Out:reblock.form.NewPassword : A form model that is based in django User built-in form model 
+    """
     context = RequestContext(request)
     registered = False
     if request.method == 'POST':
@@ -171,10 +177,7 @@ def forgot_password(request):
 	    user = User.objects.get(username__exact=config_username)
 	    new_password1 = request.POST.get("new_password1")
 	    user.set_password(new_password1)
-	    #new_password2 = request.POST.get("new_password2")
 	    user_email = user.email
-	    #print user_email
-	    
 	    user.save()
 	    message = 'Your new password has changed to: '+ new_password1+' '+'Use it to log back in openreblock.berkeley.edu'
 	    email = EmailMultiAlternatives('password change',message ,'openreblock@gmail.com', [user_email])
@@ -186,15 +189,18 @@ def forgot_password(request):
 	    'reblock/forgot_password.html',
 	    {'user_form': user_form, 'registered': registered},
 	    context)
-	    #go to register
 
     return render(request, 'reblock/forgot_password.html', {'new': NewPassword})
 
 
 
 def set_new_password(request):
+    """
+    A view when new password is set.
+    In: - : -
+    Out:redirect page : Redirects to set-new password.html where the user can log in with the new password 
+    """
     context = RequestContext(request)
-
     return render_to_response(
     'reblock/set_new_password.html',
     {},
@@ -202,22 +208,10 @@ def set_new_password(request):
 
 
 @login_required
-def user_logout(request):
-    # Since we know the user is logged in, we can now just log them out.
-    logout(request)
-
-    # Take the user back to the homepage.
-    return HttpResponseRedirect('/logout/')  
-
-"""
-review function, trigger when file is uploaded
-
-will visualize the uploaded shp file by overlay to the map after projection
-"""
-@login_required
 def review(request):
     """
-    A view for uploading new data.
+    review function, triggered when file is uploaded
+    will visualize the uploaded shp file by overlay it to the map after projection
     """
     user = request.user
     if request.method == 'POST': # if compute button is pressed, will lead to the computation in celery, and redirect to compute page     
@@ -226,7 +220,6 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
-
         
         #########get the information filled by user#########
         if len(str(request.POST.get("name")))>0 :
@@ -249,7 +242,6 @@ def review(request):
             b_index = "-"    
         
         datainfo = {}
-
         
         # get the geometry(shapefile)
         ds = DataSource(layer_data[0]['file_location'])
@@ -257,8 +249,6 @@ def review(request):
                 
         #check geometry type and flatten geometry collection, save as linestring list
         geoms = checkGeometryType(layer)
-    
-    
         start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
         
         #save data that will be passed to tasks
@@ -273,8 +263,8 @@ def review(request):
         print mytask, 'checking whatsup', type(mytask)
         return HttpResponseRedirect('/reblock/compute/')
 
-
-    else: # we are asking them to review data
+    else:
+	# we are asking them to review data
         # get the last upload of this user
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
@@ -905,42 +895,4 @@ def profile_index(request):
         print "json loaded"
         return HttpResponse(json, mimetype='application/json')
 
-
-
-def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = None, prid = None):
-        #ori_shp = shapefile.Writer(shapefile.POLYLINE)
-    ori_shp = json_gdal(layer = layer, num = num, offset = offset)
-    l= []
-    for feat in ori_shp:
-        geom = feat.geom
-        c_geom = geom.coords
-        #print c_geom
-        l.append(c_geom)
-    points = [[[pt[0],pt[1]]for pt in poly]for poly in l]
-
-    w = shapefile.Writer(shapefile.POLYLINE)
-    
-    w.poly(points)
-    # this is pesudo-code
-    # get the media root (check models.py)
-    # (this is the path) make a directory on media with the name of the url
-    
-    datt = start.datasave5_set.all().order_by('-date_edited')[0]
-    #redirect link
-    mypath = str(user)+"/"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(prid)+"/"
-    path = MEDIA_ROOT+mypath
-    try:
-        w.save(path+name)
-        print name+" save successfull!!!!!!!!!!!!"
-    except:
-        pass
-    #~ # zip the contents of the folder into a zipfile
-
-    #~ # pass the zipfile file path to the html
-
-def json_gdal(layer = None, num =1, offset=0):
-    for la in layer[offset*num:num+offset*num]:
-        myjson = la.topo_json
-        new_layer= DataSource(myjson)[0]
-        return new_layer
 

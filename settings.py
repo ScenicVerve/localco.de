@@ -185,7 +185,7 @@ else: # If i'm running it on the server
     )
     
     
-    from pwe import PWE
+    #from pwe import PWE
     EMAIL_HOST='smtp.gmail.com'
     EMAIL_PORT=587
     EMAIL_HOST_USER='openreblock@gmail.com'
