@@ -291,6 +291,7 @@ def review(request):
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
 
+        print layer_data[0]['name']
         
         #########get the information filled by user#########
         if len(str(request.POST.get("name")))>0 :
