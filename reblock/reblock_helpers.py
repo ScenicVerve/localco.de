@@ -56,18 +56,24 @@ def isnumber(s):
 	
 
 def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = None, prid = None):
-        #ori_shp = shapefile.Writer(shapefile.POLYLINE)
+    """
+    Function that saves a json layer as a shape file and compresses it in a zip format.
+    In: layer : A json layer
+    Out: shapefile : 
+    """
+    #convert json to OGRGeojson
     ori_shp = json_gdal(layer = layer, num = num, offset = offset)
     l= []
     for feat in ori_shp:
         geom = feat.geom
-        c_geom = geom.coords
-        #print c_geom
+        c_geom = geom.coord
+	#create a list with the coordinates of the polygons
         l.append(c_geom)
+    #create a list of lists of the points	
     points = [[[pt[0],pt[1]]for pt in poly]for poly in l]
-
+    #create a shapefile writer
     w = shapefile.Writer(shapefile.POLYLINE)
-    
+    #write the points of the polygons as a shapefile  
     w.poly(points)
     # get the media root (check models.py)
     # (this is the path) make a directory on media with the name of the url
@@ -231,15 +237,20 @@ def match_barriers(b_index, original):
     Out: barrier_edges: a list of edges : a list of edges that are the barriers the user selected
     """
     b_edges = []
+    #split the string based on commas to get the integers as a list
     if "," in b_index:
         bar_indices= [int(i) for i in b_index.split(",")]
+	#get the edges of the original graph
         bar_edge = original.myedges()
          
         for index in bar_indices:
+	    #check if the user indices exist in the indices of the graph
             if index <= len(bar_edge):
-        
+		#create a list of the edges that the user selected
                 b_edges.append(bar_edge[index])
+		#create a set of the edges to remove duplicate barriers
                 b = set(b_edges)
+		#create a list of the final barriers
                 barrier_edges = list(b)
         return barrier_edges
 
@@ -272,11 +283,8 @@ def new_import(lst, name=None,scale = 1, indices=None):
     for b in blocklist:
         # defines original geometery as a side effect,
         b.plot_roads(master=b, new_plot=False, update=True)
-
     
     blocklist.sort(key=lambda b: len(b.interior_parcels), reverse=True)
-    print blocklist
-
     return blocklist
     
 
@@ -369,12 +377,13 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
         if quiet is False:
             pass
 
-        # potential segments from parcels in flist
+        #try create minimal paths
 	try:
 	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,barriers, quiet=quiet,shortest_only=shortest_only)
 	    
+	#if user has selected too many barriers raise error
 	except nx.NetworkXNoPath:
-	    
+	    #send email to notify the user that the calculation failed because too many barriers are selected
 	    message = "You selected too many barriers! Try selecting less."
 	    email = EmailMultiAlternatives('Open Reblock notification. Calculation Failed!',message,'openreblock@gmail.com', [user.email])
 	    email.send()
