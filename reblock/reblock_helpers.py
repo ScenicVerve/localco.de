@@ -37,7 +37,6 @@ from fractions import Fraction
 import datetime, random
 from django.views.generic.list import ListView
 
-
 center_lat = None
 center_lng = None
 default_srs = 24373
@@ -55,8 +54,7 @@ def isnumber(s):
         except ValueError: 
             return False
 	
-    
-    
+
 def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = None, prid = None):
         #ori_shp = shapefile.Writer(shapefile.POLYLINE)
     ori_shp = json_gdal(layer = layer, num = num, offset = offset)
@@ -86,15 +84,20 @@ def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = 
     #~ # zip the contents of the folder into a zipfile
 
     #~ # pass the zipfile file path to the html
+    
 
 def json_gdal(layer = None, num =1, offset=0):
+    """
+    Function to convert a json into a OGRGeojson
+    In: A json layer 
+    Out: An OGRGeojson : a gdal object from datasource
+    """
     for la in layer[offset*num:num+offset*num]:
         myjson = la.topo_json
         new_layer= DataSource(myjson)[0]
         return new_layer    
     
     
-
 """
 function to reproject gdal layer(in meters) to degree, and output geojson file
 num is the amount of block to keep from the layer
@@ -222,21 +225,23 @@ def run_once(original,name=None, user = None, block_index = 0, srs = None, barri
 
 
 def match_barriers(b_index, original):
-    #graph_indices = get_index(b_index)
+    """
+    Function to match the indices that the user inputs with the equivalent indices of the graph.
+    In: b_index (string with the user indices) : A string of integers that the user types in review.html
+    Out: barrier_edges: a list of edges : a list of edges that are the barriers the user selected
+    """
     b_edges = []
     if "," in b_index:
-        ba= [int(i) for i in b_index.split(",")]
-        #print ba
+        bar_indices= [int(i) for i in b_index.split(",")]
         bar_edge = original.myedges()
          
-        for index in ba:
+        for index in bar_indices:
             if index <= len(bar_edge):
         
                 b_edges.append(bar_edge[index])
                 b = set(b_edges)
-                a = list(b)
-                #print b_edges
-        return a
+                barrier_edges = list(b)
+        return barrier_edges
 
 
 """
@@ -335,7 +340,7 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
         number = start.bloocknum2_set.all().order_by('-date_edited')[0]
                 
         ##############delay to test intermediate steps##############
-        time.sleep(1)
+        time.sleep(3)
         ############################################################
 
         db_json = IntermediateJSON7(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(original.interior_parcels),block_index = block_index, srs = srs, number = number, start = start)

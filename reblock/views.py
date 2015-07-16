@@ -35,7 +35,6 @@ from django.contrib.gis.db import models
 from django.contrib.gis.measure import D
 from django.contrib.gis.gdal import *
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
-from django.contrib.gis.geos import fromstr
 
 from tasks import *
 from reblock.forms import *
