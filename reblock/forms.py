@@ -26,9 +26,7 @@ class ZipUploadForm(forms.ModelForm):
 
     def clean_file(self):
         zip_file = self.cleaned_data['file']
-
-        if not zipfile.is_zipfile(zip_file):
-            print "1"
+        if not zipfile: #not zipfile.is_zipfile(zip_file):
             raise forms.ValidationError('The file is not a zip format. Please zip the file and upload again.')
             
         else:    
