@@ -436,14 +436,10 @@ def download(request):
     print mypath
     the_file = str(mypath)
     filename = os.path.basename(the_file)
-    fileContent = "Your name is %s" % request.GET['path']
-    res = HttpResponse(fileContent)
-    res['Content-Disposition'] = 'attachment; filename=yourname.txt'
-    
-    
-    response = HttpResponse(mimetype='application/force-download')
-    response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(filename)
-    response['X-Sendfile'] = smart_str(GET['path'])
+    f = open(mypath, 'r')
+    #myfile = file(f)
+    response = HttpResponse(f, content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + filename
 
     return response
 
@@ -482,6 +478,9 @@ def check_step(request):
 
     dic["ori"] = str(ori_proj)
     
+
+    
+    
     #if all step is 
     if int(step)<int(step_index+1):
 
@@ -505,7 +504,7 @@ def check_step(request):
         dic["rd"] = str(road_proj)
         dic["int"] = str(inter_proj)
     
-    
+
     
     
     if step_index>=0:
