@@ -10,9 +10,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
-    <!--<script src="http://www.html5marketplace.com/slideshow/jquery-1.4.2.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="http://www.html5marketplace.com/slideshow/direct/cssstyles.css" />-->
-            
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+
             
             
 <h1 id="name"></h1>
@@ -28,192 +27,167 @@
 
 
 
+        
+
+        
     <center>
-        
+<div id = 'update'>
 
-        
-            <a  style = "float:left;margin: 0 0 10px 10px;" id = "0">
-            <div style="width:300px; height:300px;" id="map0" class="map" ></div>
-            <div id = "prj0"> 
-            </div>
-            </a>
-            <a  style = "float:left; margin: 0 0 10px 10px;" id = "1">
-            <div style="width:300px; height:300px;" id="map1" class="map"></div>
-            <div id = "prj1">
-            </div>
-            </a>
-            <a  style = "float:left; margin: 0 0 10px 10px;" id = "2">
-            <div style="width:300px; height:300px;" id="map2" class="map"></div>
-            <div id = "prj2">
-            </div>
-            </a>
-            <a  style = "float:left; margin: 0 0 10px 10px;" id = "3">
-            <div style="width:300px; height:300px;" id="map3" class="map"></div>
-            <div id = "prj3">
-            </div>
-            </a>
-
-<!--
-<div id="container">
-	<ul>
-        <li>
-            <a id = "0">
-                <div style="width:604px; height:453px" id="map0" class="map"></div>
-            </a>
-        </li>
-        <li>
-            <a id = "1">
-            <div style="width:604px; height:453px" id="map1" class="map"></div>
-            </a>
-        </li>
-        <li>
-            <a id = "2">
-            <div style="width:604px; height:453px" id="map2" class="map"></div>
-            </a>
-        </li>
-        <li>
-            <a id = "3">
-            <div style="width:604px; height:453px" id="map3" class="map"></div>
-            </a>
-        </li>
-        
-        
-      </ul>
-      <span class="button prevButton"></span>
-      <span class="button nextButton"></span>
 </div>
--->
 
+<body>
+    <form id = "loadmore" style="clear:both;">
+        <input type="button" value="Load More...">
+    </form>
+
+</body>
 
 </center>
+
+
     {% endblock %}
 
 
 {% block scripts %}
 
  <script type='text/javascript'>
-		var map0 = L.map('map0');
-        		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-			maxZoom: 18,
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			id: 'examples.map-20v6611k'
-		}).addTo(map0);
-        
-		var map1 = L.map('map1');
-        		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-			maxZoom: 18,
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			id: 'examples.map-20v6611k'
-		}).addTo(map1);
-        
-        var map2 = L.map('map2');
-        		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-			maxZoom: 18,
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			id: 'examples.map-20v6611k'
-		}).addTo(map2);
-		var map3 = L.map('map3');
-        		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-			maxZoom: 18,
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			id: 'examples.map-20v6611k'
-		}).addTo(map3);
-        
-var test = {{ lstlink|safe }};
+var currentNum = 3;//current number of loaded map
+var loadnum = 3;
+var totalNum = {{ allnum|safe }};
 var testjson = {{ lstjson|safe }};
-var name = "{{ username|safe }}";
 var testprj = {{ lstprjname|safe }};
 var testloc = {{ lstlocation|safe }};
-var testde = {{ lstdes|safe }};
+
+var test = {{ lstlink|safe }};
 var name = "{{ username|safe }}";
-document.getElementById("name").innerHTML = name + " 's profile page";
-var mygeo0 = L.geoJson(testjson[0], {
+var testde = {{ lstdes|safe }};
+
+        function addmap(index, json){
+            var map = L.map('map'+index);
+            L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'examples.map-20v6611k'
+		}).addTo(map);
+            
+            
+            
+            
+            var mygeo = L.geoJson(json, {
             weight: 1,
             color: "#2F4F4F",
             opacity: 1,
             fillColor: "#B0DE5C",
             fillOpacity: 0.4
-		})
-var mygeo1 = L.geoJson(testjson[1], {
-            weight: 1,
-            color: "#2F4F4F",
-            opacity: 1,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.4
-		})
-var mygeo2 = L.geoJson(testjson[2], {
-            weight: 1,
-            color: "#2F4F4F",
-            opacity: 1,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.4
-		})
-var mygeo3 = L.geoJson(testjson[3], {
-            weight: 1,
-            color: "#2F4F4F",
-            opacity: 1,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.4
-		})
+
+		});
+         map.fitBounds(mygeo.getBounds());
+        mygeo.addTo(map);
+         
+         
+            
+        }
         
-map0.fitBounds(mygeo0.getBounds());
-mygeo0.addTo(map0);
-map1.fitBounds(mygeo1.getBounds());
-mygeo1.addTo(map1);
-map2.fitBounds(mygeo2.getBounds());
-mygeo2.addTo(map2);
-map3.fitBounds(mygeo3.getBounds());
-mygeo3.addTo(map3);
-for(var i = 0;i<test.length;i++){
+                function mapframe(index){
+            frame = '<a  style = "float:left;margin: 0 0 10px 10px;" id = "'+index+'"><div style="width:300px; height:300px;" id="map'+index+'" class="map" ></div><div id = "prj'+index+'"> </div></a>';
+
+            return frame;
+            
+            
+        }
+        
+                if (totalNum>3){
+            for (var i=0;i<3;i++){
+        $("#update").append(mapframe(i));
+        addmap((i).toString(), testjson[i]);    
+        
 a = document.getElementById(String(i));
 a.setAttribute("href", test[i]);
 document.getElementById("prj"+String(i)).innerHTML = testprj[i];
-}
+
+        
+        }
+    }else{
+        for (var i=0;i<totalNum;i++){
+        $("#update").append(mapframe(i));
+        addmap((i).toString(), testjson[i]);   
+        
+a = document.getElementById(String(i));
+a.setAttribute("href", test[i]);
+document.getElementById("prj"+String(i)).innerHTML = testprj[i];
+ 
+        }
+    }
         
         
+        
+        
+        
+        
+
+
+document.getElementById("name").innerHTML = name + " 's profile page";
+
+
+
+    
+    
+    
+    
+    
+        
+$(document).ready(function(){
+    $("#loadmore").click(function(){
+        var toload = null;
+        if (currentNum<totalNum-3){//if there will be 3 new projects to load
+            toload = 3;
+         }else{
+            toload = totalNum-currentNum;
+         }
+    
+    $.getJSON("/reblock/profile_index/", {index: (currentNum), loadnum : toload}, function(json){
+    
+    var listjson = json["lstjson"];
+    var links = JSON.parse(json["lstlink"]);
+    var prjnames = JSON.parse(json["lstprjname"]);
+    var locations = json["lstlocation"];
+    var des = json["lstdes"];
+    
+    
+    var jsondata = JSON.parse(listjson);
+    
+    for (var i=0;i<loadnum;i++){
+    $("#update").append(mapframe(currentNum+i));
+    addmap((currentNum+i).toString(), jsondata[i]);
+    
+a = document.getElementById(String(currentNum+i));
+a.setAttribute("href", links[i]);
+document.getElementById("prj"+String(currentNum+i)).innerHTML = prjnames[i];
+
+    }
+    
+
+    
+    
+    
+        currentNum +=loadnum;
+
+  });
+
+
+
+        
+    });
+});
         
         
         
         
 	</script>
     
-<!--
-    <script>
-$(window).load(function(){
-		var pages = $('#container li'), current=0;
-		var currentPage,nextPage;
-		$('#container .button').click(function(){
-			currentPage= pages.eq(current);
-			if($(this).hasClass('prevButton'))
-			{
-				if (current <= 0)
-					current=pages.length-1;
-				else
-					current=current-1;
-			}
-			else
-			{
-				if (current >= pages.length-1)
-					current=0;
-				else
-					current=current+1;
-			}
-			nextPage = pages.eq(current);	
-			currentPage.hide();	
-			nextPage.show();		
-		});
-});
-</script>
--->
-    
+
     
     
 

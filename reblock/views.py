@@ -839,9 +839,14 @@ def profile(request):
     if request.method == 'POST': # someone is editing site configuration
         pass
     else:
-        num = BloockNUM2.objects.filter(author=user).order_by('-date_edited')[:4]
-        start = StartSign2.objects.order_by('-date_edited')[:4]
         
+        startlst = StartSign2.objects.filter(author=user).order_by('-date_edited')
+        if len(startlst)<3:
+            start = startlst
+        else:
+            start = startlst[:3]
+
+
         lstlink = []
         lstjson = []
         lstprjname = []
@@ -861,13 +866,8 @@ def profile(request):
 
                 ori_layer = n.definebarriers2_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
-            
-                #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
-                #~ road_proj = project_meter2degree(layer = road_layers,num = number)
-                #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
-                #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
                 
-                lstjson.append(json.loads(ori_proj))
+                lstjson.append(simplejson.loads(ori_proj))
             
         lstjson = simplejson.dumps(lstjson)
         lstlink = simplejson.dumps(lstlink)
@@ -881,7 +881,8 @@ def profile(request):
         "username": str(user),
         "lstprjname": lstprjname,
         "lstlocation": lstlocation,
-        "lstdes": lstdes,       
+        "lstdes": lstdes, 
+        "allnum" :   len(startlst),      
         }
                     
         return render_to_response(
@@ -889,6 +890,73 @@ def profile(request):
             RequestContext(request, c),
             )
 
+"""
+redirect to a page showing the recent reblocks created by the same user
+"""
+@login_required
+def profile_index(request):
+
+    GET = request.GET
+    user = request.user
+    loadnum = int(GET['loadnum']);
+    loadstart = int(GET['index'])
+    
+    
+    loadend = loadstart+loadnum
+    print "load start :"+str(loadstart)
+    print "load end :"+str(loadend)
+    ##########should be slotified user
+    if request.method == 'POST': # someone is editing site configuration
+        pass
+    else:            
+        startlst = StartSign2.objects.order_by('-date_edited')
+        start = startlst[loadstart:loadend]
+        
+        lstjson = []
+        lstprjname = []
+        lstlocation = []
+        lstdes = []
+        lstlink = []
+        
+        for i,n in enumerate(start):
+            if len(n.bloocknum2_set.all())>0:
+                datt = n.datasave5_set.all().order_by('-date_edited')[0]
+                num = n.bloocknum2_set.all().order_by('-date_edited')[0]
+                number = num.number
+                link = '/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(datt.d_id)+"/"
+                lstlink.append(link)
+
+                lstprjname.append(str(datt.prjname))
+                lstlocation.append(str(datt.location))
+                lstdes.append(datt.description)
+                
+                ori_layer = n.definebarriers2_set.all().order_by('-date_edited') 
+                ori_proj = project_meter2degree(layer = ori_layer,num = number)
+
+                #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
+                #~ road_proj = project_meter2degree(layer = road_layers,num = number)
+                #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
+                #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
+                lstjson.append(simplejson.loads(ori_proj))
+
+        lstjson = simplejson.dumps(lstjson)
+        lstprjname = simplejson.dumps(lstprjname)
+        lstlocation = simplejson.dumps(lstlocation)
+        lstdes = simplejson.dumps(lstdes)
+        lstlink = simplejson.dumps(lstlink)
+        
+        c = {
+        "lstlink" : lstlink,
+        "lstjson" : lstjson,
+        "lstprjname": lstprjname,
+        "lstlocation": lstlocation,
+        "lstdes": lstdes,     
+        }
+        
+        
+        json = simplejson.dumps(c)
+        print "json loaded"
+        return HttpResponse(json, mimetype='application/json')
 
 def isnumber(s):
     s = str(s)
