@@ -448,26 +448,22 @@ def reload(request):
     inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
     inter_proj = project_meter2degree(layer = inter_layers,num = number)
     
-    #ori_shp = shapefile.Writer(shapefile.POLYLINE)
+   
     ori_shp = json_gdal(ori_layer, num =number)
-    #print ori_shp
     l= []
+    w = shapefile.Writer(shapefile.POLYLINE)
     for feat in ori_shp:
-	
 	geom = feat.geom
 	c_geom = geom.coords
-	print c_geom
+	#print c_geom
 	l.append(c_geom)
-    #print l
-    points = [[[pt.X,pt.Y,pt.Z] for pt in l]]
-    #print points
-    
-    w = shapefile.Writer(shapefile.POLYLINE)
-    
-    w.poly(points)
-    
-    
 	
+	
+    #if len(l)>1:
+    #    points = [[[pt.X,pt.Y,pt.Z] for pt in l]]
+    #    print points
+    #    #w.poly(parts = points)
+
     
 
     dic = {}
@@ -1160,16 +1156,13 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
             pass
 
         # potential segments from parcels in flist
-	try:
-	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,
-
-						     barriers, quiet=quiet,
-						     shortest_only=shortest_only)
+	try: 
+	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,barriers, quiet=quiet,shortest_only=shortest_only)
+	    
 	except nx.NetworkXNoPath:
+	    
 	    raise IOError("Select less edges!")
 	    
-	    
-
         # choose and build one
         target_ptup, target_mypath = mgh.choose_path(original, all_paths, alpha,
                                                  strict_greedy=strict_greedy)
