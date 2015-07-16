@@ -60,6 +60,7 @@ center_lat = None
 center_lng = None
 default_srs = 24373
 
+
 def index(request):
     """A view for browsing the existing webfinches.
     """
@@ -91,23 +92,7 @@ def upload(request):
                 return render_to_response(
                 'reblock/browse_empty.html',
                 {})
-                
-                #print 'no shp found'
-                #return render_to_response(
-                #'reblock/browse_empty.html',
-                #{})
-    
-        
-    #    else:
-    #	print 'no prj found'
-    #
-    #	return render_to_response(
-    #	'reblock/browse_empty.html',
-    #	{})
-    #    elif not form.has_changed():
-    #	return render_to_response(
-    #	'reblock/browse_empty.html',
-    #	{})
+
             
     else:
         formset = ZipFormSet()
@@ -146,8 +131,7 @@ def register(request):
                 user = User.objects.create_user(username, user_email, user_pwd1)
                 user.save()
                 registered = True
-                message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://127.0.0.1:8000/login/'
-                #message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://openreblock.berkeley.edu/login/'
+                message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://openreblock.berkeley.edu/login/'
                 email = EmailMultiAlternatives('Openreblock - Registration confirmation',message,'openreblock@gmail.com', [user_email])
                 email.send()
                 return render_to_response(
@@ -208,7 +192,6 @@ def forgot_password(request):
         user_form = UserForm(request.POST)
     new = NewPassword(request.POST)
     if User.objects.filter(username=request.POST['username']).exists():
-        #print 11111
         
         config_username = request.POST.get("username")
         user = User.objects.get(username__exact=config_username)
@@ -225,7 +208,6 @@ def forgot_password(request):
         return HttpResponseRedirect('/set_new_password/') #this redirects correct
     
     else:
-        #print 2222
         return render_to_response(
         'reblock/forgot_password.html',
         {'user_form': user_form, 'registered': registered},
@@ -290,16 +272,20 @@ def user_logout(request):
     # Take the user back to the homepage.
     return HttpResponseRedirect('/logout/')  
 
+"""
+review function, trigger when file is uploaded
 
+will visualize the uploaded shp file by overlay to the map after projection
+"""
 @login_required
 def review(request):
     """
     A view for uploading new data.
     """
     user = request.user
-    if request.method == 'POST': # someone is giving us data
-        #formset = LayerReviewFormSet(request.POST)
+    if request.method == 'POST': # if compute button is pressed, will lead to the computation in celery, and redirect to compute page     
         
+        #get the latest uploadevent and datafile from database
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
@@ -324,29 +310,31 @@ def review(request):
             b_index = request.POST.get("barrier_index")  
         else:
             b_index = "-"    
-            #print b_index
         
         datainfo = {}
+
+        
+        # get the geometry(shapefile)
+        ds = DataSource(layer_data[0]['file_location'])
+        layer = ds[0]
+                
+        #check geometry type and flatten geometry collection, save as linestring list
+        geoms = checkGeometryType(layer)
+        #graph_indices = get_index(b_index)
+    
+    
+        start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
+        
+        #save data that will be passed to tasks
+        datainfo["num"] = len(start)
         datainfo["name"] = slugify(name)
         datainfo["location"] = slugify(location)
         datainfo["description"] = desc
         datainfo["srs"] = checkedPrj(layer_data[0]['srs'])
-        #print datainfo["srs"]
         
-        # For every layer in the layer form, write a PostGIS object to the DB
-        ds = DataSource(layer_data[0]['file_location'])
-        layer = ds[0]
-                
-
-        geoms = checkGeometryType(layer)
-        #graph_indices = get_index(b_index)
-    
-        scale_factor2 = scaleFactor(geoms)
-    
-        start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
-        datainfo["num"] = len(start)
+        #run tasks for the computation
+        mytask = run_topology.delay(geoms, name = layer.name, user = user,scale_factor = 1, data = datainfo,  indices=b_index)
         
-        mytask = run_topology.delay(geoms, name = layer.name, user = user,scale_factor = scale_factor2, data = datainfo,  indices=b_index)
         return HttpResponseRedirect('/reblock/compute/')
 
 
@@ -360,18 +348,27 @@ def review(request):
         ds = DataSource( file_path )
         layer = ds[0]
         srs = layer_data[0]['srs']
+        
+        #check if srs exist, if not, use the default srs to do the projection process
         if not isnumber(srs):
             srs = default_srs
+        
+        #set up projection method for current srs
         ct = CoordTransform(SpatialReference(srs), SpatialReference(4326))
         
+        #holder for input geometry as geojson after projection
         reviewdic = []
-
+        
         for feat in layer:
-            geom = feat.geom # getting clone of feature geometry
+            # getting clone of feature geometry
+            geom = feat.geom 
+            
+            #projection for the input geometry(just converted from .shp to gdal object)
             geom.transform(ct) # transforming
+            
+            #save the projected gdal object, save as geojson
             reviewdic.append(json.loads(geom.json))
 
-        
         reviewjson = json.dumps(reviewdic)
         
         formset = LayerReviewFormSet( initial=layer_data )
@@ -388,12 +385,18 @@ def review(request):
                 )
 
 
+"""
+compute function, trigger after pressing compute button in preview
+
+will show to computation process and result
+"""
+
 @login_required
 def compute(request):
     
     user = request.user
     
-    if request.method == 'POST': # someone is editing site configuration
+    if request.method == 'POST': # the user is checking a specific project or step
         startlst = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
 
 
@@ -409,84 +412,107 @@ def compute(request):
         start = startlst[pr_id]
         datt = start.datasave5_set.all().order_by('-date_edited')[0]
         
-        if link == -1:
+        #redirect link
+        if link == -1:#redirect to a specific project
             return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(pr_id)+"/")
-        else:
+        else:#redirect to a specific step of a given project
             return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(pr_id)+"/"+str(link))
         
-    else:        
+    else: #redirect to a temp url for the current project, that will show the computation process/result
         startlst = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
+        
+        #use the length of startlist as current id
         pr_id = len(startlst)
-        #start = startlst[pr_id]
-        #time.sleep(0.5)
-        #datt = start.datasave5_set.all().order_by('-date_edited')[0]
         return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str("newproject")+"_"+str("newlocation")+"_"+str(pr_id)+"/")
 
 
+"""
+reload function, called to reload map in steps.html
+will return geojson of related project
+"""
 @login_required
 def reload(request):
     user = request.user
     GET = request.GET
+    
+    #get the requested project id
     pr_id = GET['pr_id']
     
     print "project:................"+str(pr_id)
-    ###############lag between start task and save num object
+    
+    #locate the project according to project id
     start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(pr_id)]
     num = start.bloocknum2_set.all().order_by('-date_edited')[0]
-    number = num.number
-
     
+    #block number for this project
+    number = num.number
     print "final reloading........."
+    
+    #get original geometry for this project
     ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
-
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
+    
+    #get road geometry for this project
     road_layers = start.roadjson6_set.all().order_by('-date_edited') 
     road_proj = project_meter2degree(layer = road_layers,num = number)
-
+    
+    #get interior_parcel geometry for this project
     inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
     inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
-
-    
+    #save the geometries to a dictionary
     dic = {}
     dic["ori"] = str(ori_proj)
     dic["rd"] = str(road_proj)
     dic["int"] = str(inter_proj)
     
+    #save the current step amount(step_index) to the dictionary
     step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
     step_index = len(step_layers)/number-1
-    
     if step_index>=0:
         dic["stepnumber"] = int(step_index+1)
     else:
         dic["stepnumber"] = 0
-
     
+    #return the geojson to html page
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
-
+"""
+reload map for specific project and step
+return new geojson to the html page
+"""
 @login_required
 def check_step(request):
     user = request.user
     GET = request.GET
-    pr_id = GET['pr_id']
-    step = GET['step']
     
+    #get the requested project id
+    pr_id = GET['pr_id']
+    #get the requested project step
+    step = GET['step']
     
     print "project:................"+str(pr_id)
     dic = {}
-
+    
+    #locate the project according to project id
     start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(pr_id)]
     num = start.bloocknum2_set.all().order_by('-date_edited')[0]
+    
+    #block number for this project
     number = num.number
+    
+    #get all steps(model) list for this project
     step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
     step_index = len(step_layers)/number-1
-
+    
+    #get original geometry
     ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
 
     dic["ori"] = str(ori_proj)
+    
+    #if all step is 
     if int(step)<int(step_index+1):
 
         step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
@@ -551,7 +577,6 @@ def reload_step(request):
         dic["step"] = 0
     
     try:
-        ###############lag between start task and save num object
         num = start.bloocknum2_set.all().order_by('-date_edited')[0]
         number = num.number
 
@@ -609,23 +634,8 @@ def final_slut(request, slot_user, project_id, project_name, location):
         if request.method == 'POST': # someone is editing site configuration
             pass
         else:            
-            #start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
-            #~ num = start.bloocknum2_set.all().order_by('-date_edited')[0]
-            #~ number = num.number
-            #~ 
-            #~ ori_layer = start.blockjson6_set.all().order_by('-date_edited') 
-            #~ ori_proj = project_meter2degree(layer = ori_layer,num = number)
-            #~ 
-            #~ road_layers = start.roadjson6_set.all().order_by('-date_edited') 
-            #~ road_proj = project_meter2degree(layer = road_layers,num = number)
-            #~ 
-            #~ inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
-            #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
             c = {
-                    #~ 'ori_proj': ori_proj,
-                    #~ 'road_proj': road_proj,
-                    #~ 'inter_proj': inter_proj,
                     'project_id': int(project_id),
                     }
                     
@@ -969,7 +979,6 @@ def isnumber(s):
             return True
         except ValueError: 
             return False
-
 
 
 """
