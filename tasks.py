@@ -44,7 +44,7 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None, indices
         if indices != None:
             barriers = True
             
-        #ALL THE PARCELS    
+        #ALL THE PARCELS
         parcels = simplejson.dumps(json.loads(g.myedges_geoJSON()))
         db_json = DefineBarriers2(name=name, topo_json = parcels, author = user,block_index = i, srs = srs, number = num, barrier_index=indices, start = start)
         db_json.save()
@@ -55,14 +55,12 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None, indices
         db_json = InteriorJSON6(name=name, topo_json = in_parcels, author = user,block_index = i, srs = srs, number = num, start = start)
         db_json.save()
         
+        
         #THE ROADS GENERATED and save generating process into the database
         road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i, srs = srs)))#calculate the roads to connect interior parcels, can extract steps
         db_json = RoadJSON6(name=name, topo_json = road, author = user,block_index = i, srs = srs, number = num, start = start)
         db_json.save()
-        
 
-
-    
     
     finish = FinishSign3(name=name, start = start, author = user)
     finish.save()

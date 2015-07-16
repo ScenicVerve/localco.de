@@ -464,7 +464,6 @@ def reload(request):
     inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
     
-    
     #ori_shp = shapefile.Writer(shapefile.POLYLINE)
     #~ ori_shp = json_gdal(ori_layer, num =number)
     #~ #print ori_shp
@@ -490,9 +489,6 @@ def reload(request):
     # pass the zipfile file path to the html
     # from html add button for download
     
-    
-    
-
     #save the geometries to a dictionary
     dic = {}
     dic["ori"] = str(ori_proj)
@@ -1326,16 +1322,13 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
             pass
 
         # potential segments from parcels in flist
-	try:
-	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,
-
-						     barriers, quiet=quiet,
-						     shortest_only=shortest_only)
+	try: 
+	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,barriers, quiet=quiet,shortest_only=shortest_only)
+	    
 	except nx.NetworkXNoPath:
+	    
 	    raise IOError("Select less edges!")
 	    
-	    
-
         # choose and build one
         target_ptup, target_mypath = mgh.choose_path(original, all_paths, alpha,
                                                  strict_greedy=strict_greedy)
