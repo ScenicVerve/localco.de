@@ -266,7 +266,7 @@ def review(request):
         
         #run tasks for the computation
         mytask = run_topology.delay(geoms, name = layer.name, user = user,scale_factor = 1, data = datainfo,  indices=b_index)
-        
+        print mytask, 'checking whatsup', type(mytask)
         return HttpResponseRedirect('/reblock/compute/')
 
 
@@ -1069,7 +1069,7 @@ Given a list of blocks, builds roads to connect all interior parcels and
 plots all blocks in the same figure.
 """
 
-def run_once(original,name=None, user = None, block_index = 0, srs = None, barriers=None):
+def run_once(original,name=None, user = None, block_index = 0, srs = None, barriers=False):
 
     if len(original.interior_parcels) > 0:
         block = original.copy()
@@ -1119,7 +1119,6 @@ def new_import(lst, name=None,scale = 1, indices=None):
     print indices
     if not indices == "-":
         barriers = match_barriers(indices, original)
-        print barriers
         mgh.build_barriers(barriers)
 
     #~ if isinstance(indices, list):#if indices:
@@ -1178,8 +1177,7 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
     interior parcels are connected, and returns the total length of
     road built. """
 
-    if vquiet is True:
-        quiet = True
+    quiet = vquiet
 
     if plot_original:
         original.plot_roads(original_roads, update=False,
@@ -1197,9 +1195,6 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
     original.define_interior_parcels()
 
     target_mypath = None
-    if vquiet is False:
-        pass
-        #print("Begin w {} Interior Parcels".format(len(myG.interior_parcels)))
 
     md = 100
     while original.interior_parcels:############extract###########
@@ -1211,7 +1206,7 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
         number = start.bloocknum2_set.all().order_by('-date_edited')[0]
                 
         ##############delay to test intermediate steps##############
-        time.sleep(5)
+        time.sleep(1)
         ############################################################
 
         db_json = IntermediateJSON7(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(original.interior_parcels),block_index = block_index, srs = srs, number = number, start = start)
@@ -1242,11 +1237,13 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
 
         # potential segments from parcels in flist
 	try:
-	    print 11111
 	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,barriers, quiet=quiet,shortest_only=shortest_only)
 	    
 	except nx.NetworkXNoPath:
-	    print 2222
+	    
+	    message = "You selected too many barriers! Try selecting less."
+	    email = EmailMultiAlternatives('Open Reblock notification. Calculation Failed!',message,'openreblock@gmail.com', [user.email])
+	    email.send()
 	    raise IOError("Select less edges!")
 	    
         # choose and build one

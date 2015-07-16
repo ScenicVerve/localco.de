@@ -57,7 +57,7 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None, indices
         
         
         #THE ROADS GENERATED and save generating process into the database
-        road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i, srs = srs)))#calculate the roads to connect interior parcels, can extract steps
+        road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i, srs = srs, barriers=barriers)))#calculate the roads to connect interior parcels, can extract steps
         db_json = RoadJSON6(name=name, topo_json = road, author = user,block_index = i, srs = srs, number = num, start = start)
         db_json.save()
 
@@ -70,5 +70,3 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None, indices
     message = 'Your reblock is ready! Check it out here:'+' '+'http://openreblock.berkeley.edu/reblock/compute/'+str(user)+'_' +str(data["name"])+'_' +str(data["location"])+'_'+str(proj_id)+'/'+' '+'You can always find your past reblocks on your profile page'+' '+'http://openreblock.berkeley.edu/reblock/profile'+' '+'Thanks!'
     email = EmailMultiAlternatives('Open Reblock notification. Calculation done!',message,'openreblock@gmail.com', [user.email])
     email.send()
-
-
