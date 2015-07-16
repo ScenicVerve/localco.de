@@ -250,7 +250,8 @@ class DefineBarriers2(SaveJSON3):
     number = models.ForeignKey(BloockNUM2)
     def __unicode__(self):
         return "BlockJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
-
+    
+    
 class IntermediateJSON7(Named, Authored, Dated):
     step_index = models.IntegerField(null=True, blank=True)
     topo_json = models.TextField(null=True, blank=True)

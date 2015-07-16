@@ -31,8 +31,6 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None, indices
     prev_message = 'Your calculation is now in progress! We will notify you again once it is completed!'
     email = EmailMultiAlternatives('Open Reblock notification. Calculation started!',prev_message,'openreblock@gmail.com', [user.email])
     email.send()
-
-    
     
     blocklist = new_import(lst,name,scale = scale_factor, indices=indices)#make the graph based on input geometry
     num = BloockNUM2(name=name, number = len(blocklist), start = start,author = user)
@@ -41,10 +39,12 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None, indices
     step.save()
     
     for i,g in enumerate(blocklist):
-        #ALL THE PARCELS
+        
         barriers = None
         if indices != None:
             barriers = True
+            
+        #ALL THE PARCELS    
         parcels = simplejson.dumps(json.loads(g.myedges_geoJSON()))
         db_json = DefineBarriers2(name=name, topo_json = parcels, author = user,block_index = i, srs = srs, number = num, barrier_index=indices, start = start)
         db_json.save()
@@ -54,12 +54,10 @@ def run_topology(lst, name=None, user = None, scale_factor=1, data=None, indices
         in_parcels = simplejson.dumps(json.loads(inGragh.myedges_geoJSON()))
         db_json = InteriorJSON6(name=name, topo_json = in_parcels, author = user,block_index = i, srs = srs, number = num, start = start)
         db_json.save()
+        
         #THE ROADS GENERATED and save generating process into the database
         road = simplejson.dumps(json.loads(run_once(g,name = name,user = user,block_index = i, srs = srs)))#calculate the roads to connect interior parcels, can extract steps
         db_json = RoadJSON6(name=name, topo_json = road, author = user,block_index = i, srs = srs, number = num, start = start)
-        #barriers = None
-        #if indices != None:
-        #    barriers = True
         db_json.save()
         
 
