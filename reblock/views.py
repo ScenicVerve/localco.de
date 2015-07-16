@@ -112,29 +112,36 @@ def register(request):
     """
     context = RequestContext(request)
     registered = False
-
+    
+    #if the user provides data
     if request.method == 'POST':
         user_form = UserForm(request.POST)
-    
+	
+	#check if the username already exists in the database
+	#redirects to an html page that notifies the user that the username is already in use and allows user to register again
         if User.objects.filter(username=request.POST['username']).exists():
             return render_to_response(
             'reblock/username_exists.html',
             {},
             context)
 	
-        else:    
+        else:
+	    #check if username does not already exist get the input user data from the website
+	    #check if the user data is valid
             if user_form.is_valid():
-		#########get the information filled by user#########
-		
 		username = request.POST.get("username")
 		user_email = request.POST.get("email")
 		user_pwd1 = request.POST.get("password1")
 		user_pwd2 = request.POST.get("password2")
-	    
+		
+		#check if he passwords match
 		if user_pwd1 == user_pwd2:
+		    #create user
 		    user = User.objects.create_user(username, user_email, user_pwd1)
+		    #save user in the database
 		    user.save()
 		    registered = True
+		    #send email to the user to confirm the registration
 		    message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://openreblock.berkeley.edu/login/'
 		    email = EmailMultiAlternatives('Openreblock - Registration confirmation',message,'openreblock@gmail.com', [user_email])
 		    email.send()
@@ -144,12 +151,16 @@ def register(request):
 		    context)
 		
 		else:
+		    #if passwords do not match notify user accordingly
 		    registered = False
 		    return render_to_response(
-		    'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)
-		
+		    'reblock/register.html',{'user_form': user_form, 'registered': registered}, context)		
 	    else:
-		pass
+		#if user data is not valid notify user and allow to register again
+		registered = False
+		return render_to_response(
+		'reblock/registration_failed.html',{'user_form': user_form, 'registered': registered}, context)
+		
     else:
         user_form = UserForm()
     
@@ -167,18 +178,26 @@ def forgot_password(request):
     """
     context = RequestContext(request)
     registered = False
+    
+    #if the user provides data
     if request.method == 'POST':
-    #print 1111
         user_form = UserForm(request.POST)
 	new = NewPassword(request.POST)
+	
+	#check if username does not already exist get the input user data from the website
 	if User.objects.filter(username=request.POST["username"]).exists():
-	    
+	    #based on the username retrieve the email and allow user to set new password
 	    config_username = request.POST.get("username")
 	    user = User.objects.get(username__exact=config_username)
+	    #user new password input
 	    new_password1 = request.POST.get("new_password1")
+	    #ste new password
 	    user.set_password(new_password1)
+	    #get user email based on the username
 	    user_email = user.email
+	    #save user
 	    user.save()
+	    #email the user with the new password
 	    message = 'Your new password has changed to: '+ new_password1+' '+'Use it to log back in openreblock.berkeley.edu'
 	    email = EmailMultiAlternatives('password change',message ,'openreblock@gmail.com', [user_email])
 	    email.send()
@@ -200,6 +219,7 @@ def set_new_password(request):
     In: - : -
     Out:redirect page : Redirects to set-new password.html where the user can log in with the new password 
     """
+    #redirects to login
     context = RequestContext(request)
     return render_to_response(
     'reblock/set_new_password.html',
@@ -467,10 +487,7 @@ def check_step(request):
         inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
         dic["rd"] = str(road_proj)
-        dic["int"] = str(inter_proj)
-    
-    
-    
+        dic["int"] = str(inter_proj)  
     
     if step_index>=0:
         dic["stepnumber"] = int(step_index+1)

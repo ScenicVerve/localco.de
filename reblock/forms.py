@@ -79,6 +79,7 @@ class SiteConfigurationForm(forms.ModelForm):
         
         
 class UserForm(forms.ModelForm):
+    """User model for user registration"""
     password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
     password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
     email = forms.CharField(widget=forms.TextInput(attrs=dict(required=True, max_length=100)))
@@ -88,6 +89,7 @@ class UserForm(forms.ModelForm):
         fields = ('username', 'email', 'password1', 'password2')
         
 class NewPassword(forms.ModelForm):
+    """User model for setting new password"""
     new_password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
     #new_password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
     email = forms.CharField(widget=forms.TextInput(attrs=dict(required=False, max_length=100)))
@@ -96,8 +98,6 @@ class NewPassword(forms.ModelForm):
         model = User
         fields = ('username', 'email', 'new_password1',)
                 
-
-
 
 ZipFormSet = formset_factory(ZipUploadForm, extra=1)
 LayerReviewFormSet = formset_factory(LayerReviewForm, extra=0)
