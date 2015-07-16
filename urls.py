@@ -73,7 +73,8 @@ urlpatterns = patterns('',
     (r'^reblock/reload_step/$', 'reblock.views.reload_step'),
     (r'^reblock/check_step/$', 'reblock.views.check_step'),
 
-    
+    (r'^reblock/recent_index/$', 'reblock.views.recent_index'),
+
     
     # Login / logout.
     (r'^login/$', login, {'template_name': 'registration/login.html'}),

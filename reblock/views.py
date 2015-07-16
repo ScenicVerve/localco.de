@@ -708,14 +708,13 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
 """
 redirect to a page showing the recent reblocks created by the same user
 """
-#@login_required
 def recent(request):
     
     ##########should be slotified user
     if request.method == 'POST': # someone is editing site configuration
         pass
     else:            
-        start = StartSign2.objects.order_by('-date_edited')[:4]
+        start = StartSign2.objects.order_by('-date_edited')[:3]
         
         lstjson = []
         lstprjname = []
@@ -757,7 +756,70 @@ def recent(request):
             'reblock/recent.html',
             RequestContext(request, c),
             )
-#
+
+"""
+redirect to a page showing the recent reblocks created by the same user
+"""
+def recent_index(request):
+
+    GET = request.GET
+
+    loadnum = 1;
+    loadstart = int(GET['index'])
+    loadend = loadstart+loadnum
+    print "load start :"+str(loadstart)
+    print "load end :"+str(loadend)
+    ##########should be slotified user
+    if request.method == 'POST': # someone is editing site configuration
+        pass
+    else:            
+        start = StartSign2.objects.order_by('-date_edited')[loadstart:loadend]
+        
+        lstjson = []
+        lstprjname = []
+        lstlocation = []
+        lstdes = []
+        
+        for i,n in enumerate(start):
+            if len(n.bloocknum2_set.all())>0:
+                datt = n.datasave5_set.all().order_by('-date_edited')[0]
+                num = n.bloocknum2_set.all().order_by('-date_edited')[0]
+                number = num.number
+
+                lstprjname.append(str(datt.prjname))
+                lstlocation.append(str(datt.location))
+                lstdes.append(datt.description)
+                
+                ori_layer = n.definebarriers2_set.all().order_by('-date_edited') 
+                ori_proj = project_meter2degree(layer = ori_layer,num = number)
+
+                #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
+                #~ road_proj = project_meter2degree(layer = road_layers,num = number)
+                #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
+                #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
+                lstjson.append(simplejson.loads(ori_proj))
+            
+        lstjson = simplejson.dumps(lstjson)
+        lstprjname = simplejson.dumps(lstprjname)
+        lstlocation = simplejson.dumps(lstlocation)
+        lstdes = simplejson.dumps(lstdes)
+        c = {
+        "lstjson" : lstjson,
+        "lstprjname": lstprjname,
+        "lstlocation": lstlocation,
+        "lstdes": lstdes,       
+        }
+        
+        
+        json = simplejson.dumps(c)
+        print "json loaded"
+        return HttpResponse(json, mimetype='application/json')
+
+
+
+
+
+
 """
 redirect to a page showing the recent reblocks created by the same user
 """
