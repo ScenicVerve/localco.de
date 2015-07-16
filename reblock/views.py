@@ -433,6 +433,8 @@ will return geojson of related project
 """
 @login_required
 def reload(request):
+    ##########need to save shapefile here##############
+    
     user = request.user
     GET = request.GET
     
@@ -520,6 +522,8 @@ def json_gdal(layer = None, num =1, offset=0):
 
 @login_required
 def check_step(request):
+    ##########need to save shapefile here##############
+    
     user = request.user
     GET = request.GET
     
