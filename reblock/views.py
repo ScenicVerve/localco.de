@@ -565,7 +565,7 @@ def reload_step(request):
 	    
             #reproject the json in decimal degrees in order to display on the background map
             inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
-            road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+            road_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index), topo=False)
             
             dic["ori"] = str(ori_proj)
             dic["rd"] = str(road_proj)
