@@ -2,52 +2,37 @@
 
 
 
-
 {% block content %}
-      <title>Open Reblock</title>
+<title>Open Reblock</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
-
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-
-
-    <center>
+<center>
 <div id = 'update'>
-
 </div>
-
-    
-
 <body>
     <form id = "loadmore" style="clear:both;">
         <input type="button" value="Load More...">
     </form>
-
 </body>
-
 </center>
-
-
 {% endblock %}
      
      
-     
-     
-     {% block scripts %}
-
+{% block scripts %}
       <script type='text/javascript'>
 var currentNum = 3;//current number of loaded map
-var loadnum = 3;
+var loadnum = 3;//the number map loaded each time "loadmore" is pressed
 var totalNum = {{ allnum|safe }};
 var testjson = {{ lstjson|safe }};
 var testprj = {{ lstprjname|safe }};
 var testloc = {{ lstlocation|safe }};
 
-
-        function addmap(index, json){
+function addmap(index, json){
+//the function to add map to canvas
             var map = L.map('map'+index);
             L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
 			maxZoom: 18,
@@ -56,10 +41,7 @@ var testloc = {{ lstlocation|safe }};
 				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
 			id: 'examples.map-20v6611k'
 		}).addTo(map);
-            
-            
-            
-            
+
             var mygeo = L.geoJson(json, {
             weight: 1,
             color: "#2F4F4F",
@@ -70,42 +52,39 @@ var testloc = {{ lstlocation|safe }};
 		});
          map.fitBounds(mygeo.getBounds());
         mygeo.addTo(map);
-         
-         
-            
         }
         
         function mapframe(index){
+//function to make map frame according to map index
             frame = '<a  style = "float:left;margin: 0 0 10px 10px;" id = "'+index+'"><div style="width:300px; height:300px;" id="map'+index+'" class="map" ></div><div id = "prj'+index+'"> </div></a>';
-
             return frame;
-            
-            
         }
 
         
-        if (totalNum>3){
+        if (totalNum>3){//if total project amount is bigger than 3, load the latest 3
             for (var i=0;i<3;i++){
         $("#update").append(mapframe(i));
         addmap((i).toString(), testjson[i]);    
         }
-    }else{
+    }else{//load all of the projects
         for (var i=0;i<totalNum;i++){
         $("#update").append(mapframe(i));
         addmap((i).toString(), testjson[i]);    
         }
     }
 
-        
 $(document).ready(function(){
     $("#loadmore").click(function(){
-        var toload = null;
+//detect loadmore is pressed
+
+        var toload = null;//the number of projects to load in
         if (currentNum<totalNum-3){//if there will be 3 new projects to load
             toload = 3;
          }else{
             toload = totalNum-currentNum;
          }
     
+//query the data base for geojson for the new projects
     $.getJSON("/reblock/recent_index/", {index: (currentNum), loadnum : toload}, function(json){
     
     var listjson = json["lstjson"];
@@ -114,7 +93,6 @@ $(document).ready(function(){
     for (var i=0;i<loadnum;i++){
     $("#update").append(mapframe(currentNum+i));
     addmap((currentNum+i).toString(), jsondata[i]);
-
     }
         currentNum +=loadnum;
 
