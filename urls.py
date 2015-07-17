@@ -11,8 +11,6 @@ interurls = [url(r'^$', 'reblock.views.intermediate'),
 ]
 
 #user sluted url
-
-
 interurls3 = [url(r'^$', 'reblock.views.final_slut'),
 
 ]

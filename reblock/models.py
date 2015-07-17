@@ -191,6 +191,8 @@ class DataFile(Dated):
         except: return None
     
 class UploadEvent(models.Model):
+    '''Will save the upload event everytime a user uploads a file'''
+    '''saved in upload() in views.py'''
     user = models.ForeignKey(User)
     date = models.DateTimeField(auto_now_add=True)
     def __unicode__(self):
@@ -198,14 +200,18 @@ class UploadEvent(models.Model):
 
 
 class StartSign2(Named, Authored, Dated):
+    '''saved in the tasks.py'''
+    '''indicates the starting of making the graph before computation'''
     upload = models.ForeignKey(UploadEvent)
 
 class BloockNUM2(Named, Authored, Dated):
+    '''save the block number of current project'''
     number = models.IntegerField(null=True, blank=True)
     start = models.ForeignKey(StartSign2)
 
 
 class DataSave5(Named, Authored, Dated):
+    '''save the data that is unput by the user (name, location, description, project id)'''
     prjname = models.TextField(null=True, blank=True)
     location = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -213,6 +219,7 @@ class DataSave5(Named, Authored, Dated):
     d_id = models.IntegerField(null=True, blank=True)
 
 class SaveJSON3(Named, Authored, Dated):
+    '''template'''
     topo_json = models.TextField(null=True, blank=True)
     block_index = models.IntegerField(null=True, blank=True)
     srs = models.TextField(null=True, blank=True)
@@ -221,30 +228,30 @@ class SaveJSON3(Named, Authored, Dated):
         abstract=True
 
 class FinishSign3(Named, Authored, Dated):
+    '''saves the finish state of the computation'''
     start = models.ForeignKey(StartSign2)
 
 class StepStart2(Named, Authored, Dated):
+    '''saves the start sate of the computation and the finish state of making the graph'''
     start = models.ForeignKey(StartSign2)
 
-class BlockJSON6(SaveJSON3):
-    start = models.ForeignKey(StartSign2)
-    number = models.ForeignKey(BloockNUM2)
-    def __unicode__(self):
-        return "BlockJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
 class RoadJSON6(SaveJSON3):
+    '''saves the road json'''
     start = models.ForeignKey(StartSign2)
     number = models.ForeignKey(BloockNUM2)
     def __unicode__(self):
         return "RoadJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
 class InteriorJSON6(SaveJSON3):
+    '''saves the interior parcels json'''
     start = models.ForeignKey(StartSign2)
     number = models.ForeignKey(BloockNUM2)
     def __unicode__(self):
         return "InteriorJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
 class DefineBarriers2(SaveJSON3):
+    '''saves the barrier index and saves the original json'''
     barrier_index = models.TextField(null=True, blank=True)
     start = models.ForeignKey(StartSign2)
     number = models.ForeignKey(BloockNUM2)
@@ -253,6 +260,9 @@ class DefineBarriers2(SaveJSON3):
     
     
 class IntermediateJSON7(Named, Authored, Dated):
+    '''saves the intermediate steps'''
+    '''step_index is the index of the step for the current block'''
+    '''block_index is the index of the current block for the current project'''
     step_index = models.IntegerField(null=True, blank=True)
     topo_json = models.TextField(null=True, blank=True)
     road_json = models.TextField(null=True, blank=True)
@@ -263,10 +273,6 @@ class IntermediateJSON7(Named, Authored, Dated):
     def __unicode__(self):
         return "IntermediateJSON: %s, Created by:%s " % (str(self.name), (str(self.author)))
 
-
-class CenterSave(Named, Authored, Dated):
-    lat = models.TextField(null=True, blank=True)
-    lng = models.TextField(null=True, blank=True)
 
 class DataLayer(Named, Authored, Dated, Noted, GeomType,FilePath, Units):
     srs = models.CharField(max_length=50, null=True, blank=True)
@@ -319,5 +325,6 @@ def create_from_shapefile(self, path):
         DataLayer.objects.create(geometry=feature['geometry'], field=feature['field'])
         
 class UserProfile(models.Model):
+    '''defines User as an one to one relationship model'''
     user = models.OneToOneField(User)
     activation_key = models.CharField(max_length=30)

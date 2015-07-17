@@ -43,6 +43,9 @@ default_srs = 24373
 	
 
 def isnumber(s):
+    '''
+    Function to check if the nput is number or not
+    '''
     s = str(s)
     try:
         float(s)
@@ -62,7 +65,6 @@ def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = 
     Out: shapefile : 
     """
     #convert json to OGRGeojson
-
     ori_shp = json_gdal(layer = layer, num = num, offset = offset)
     l= []
     for feat in ori_shp:
@@ -83,8 +85,8 @@ def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = 
     datt = start.datasave5_set.all().order_by('-date_edited')[0]
     #redirect link
     mypath = str(user)+"/"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(prid)+"/"
-
-    path = MEDIA_ROOT+mypath+"source/"
+    print MEDIA_ROOT
+    path = MEDIA_ROOT+"/uploads/"+mypath+"source/"
     print path
     try:
         w.save(path+name)
@@ -94,6 +96,11 @@ def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = 
 
 
 def zipSave(name = "Python.zip", start = None, user = None, prid = None):
+    """
+    Function that zips all shapefiles of the related project
+    In: name, start model, username, project id
+    Out: zip file for shapefiles
+    """
     datt = start.datasave5_set.all().order_by('-date_edited')[0]
     #redirect link
     mypath = str(user)+"/"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(prid)+"/"
@@ -105,9 +112,12 @@ def zipSave(name = "Python.zip", start = None, user = None, prid = None):
     return filename
     
 
-
-
 def zipdir(path, ziph):
+    """
+    Function that zips all files in the path
+    In: path
+    Out: zip file
+    """
     # ziph is zipfile handle
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -126,44 +136,46 @@ def json_gdal(layer = None, num =1, offset=0):
         return new_layer
 
 
-"""
-function to reproject gdal layer(in meters) to degree, and output geojson file
-num is the amount of block to keep from the layer
-"""
 def project_meter2degree(layer = None, num = 1, offset = 0, topo=True):
+    """
+    Function to reproject gdal layer(in meters) to degree, and output geojson file
+    num is the amount of block to keep from the layer
+    In: layer : a json layer with a meter or feet projection
+    Out: json : a json reprojected to decimal degrees in order to be displayed on a background map
+    """
     layer_json = []
     for la in layer[offset*num:num+offset*num]:
         if topo:
             myjson = la.topo_json
         else:
             myjson = la.road_json
+	#convert json to gdal object    
         new_layer= DataSource(myjson)[0]
+	#get the srs
         srs = la.srs
+	#check if srs is not numerical
         if not isnumber(srs):
+	    #if not numerical assign default srs
             srs = default_srs
         new_proj =[]
+	#reproject gdal layer
         coord_transform = CoordTransform(SpatialReference(srs), SpatialReference(4326))
         for feat in new_layer:
-            geom = feat.geom
-                
-            geom.transform(coord_transform)
-                
+            geom = feat.geom               
+            geom.transform(coord_transform)               
             new_proj.append(json.loads(geom.json))
         layer_json.extend(new_proj)
+    #save new layer as a json
     layer_json = json.dumps(layer_json)
-    
     return layer_json
 
-def centroid(geom):
-    lst = [Polygon(LinearRing(g.coords)).centroid for g in geom]
-    lstx = [l.coords[0] for l in lst]
-    lsty = [l.coords[1] for l in lst]
-    return (sum(lstx) / float(len(lstx)),sum(lsty) / float(len(lsty)))
-    
-"""
-flatten all the geometry in the geometry collection
-"""
+
 def flattenAll(geoCo):
+    """
+    Function to flatten all the geometry in the geometry collection and returns a list of linestring objects
+    In: geoCo : geometry collection
+    Out: lst : a flattened list of linestring objects 
+    """	
     lst = []
     for geo in geoCo:
         if not len(geo.boundary)>1:
@@ -173,6 +185,11 @@ def flattenAll(geoCo):
     return lst
 
 def checkGeometryType(gdal_layer, srs=None):
+    """
+    Function to check the type of the input geometry and returns a list of linestring objects
+    In: gdal layer : a datasource layer
+    Out: lst: a list of linestring objects
+    """	
     #datasource layer
     layer = gdal_layer
     # Get the GEOS geometries from the SHP file
@@ -181,14 +198,18 @@ def checkGeometryType(gdal_layer, srs=None):
 
     lst = []
     for geom in geoms:
+	#check if there is an srs
         if srs:
             for geom in geoms:
                 geom.srid = srs
+	#if type is polygon 
         if geom.geom_type == 'Polygon':#return the boundary of the polygon as a linestring
             lst.append(geom.boundary)
+	#if type is a LinearRing
         elif geom.geom_type == 'LinearRing' or geom.geom_type == 'LineString':#return the linestring as a closed one
             lst.append(geom.close_rings)
-        elif len(geom)>1:#this is a geometry collection, return the flattened list
+	#if it is a geometry collection call flattenAll() function and return a flattened list
+        elif len(geom)>1:
             lst.extend(flattenAll(geom))			
         else:#not supported geometry type, raise exception
             raise IOError(geom.geom_type+"is the wrong type of geometry to process")
@@ -211,7 +232,12 @@ plots all blocks in the same figure.
 """
 
 def run_once(original,name=None, user = None, block_index = 0, srs = None, barriers=False):
+    """
+    rewrite run_once function from topology, using linestring list as input
 
+    Given a list of blocks, builds roads to connect all interior parcels and
+    plots all blocks in the same figure.
+    """
     if len(original.interior_parcels) > 0:
         block = original.copy()        
         # define interior parcels in the block based on existing roads
