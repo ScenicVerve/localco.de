@@ -67,20 +67,19 @@ default_srs = 24373
 
 def index(request):
     """A view for browsing the existing webfinches.
-	In:
-	Out: 
     """
     return render_to_response(
             'reblock/index.html',
             {'reblock':DataLayer.objects.all()},
             )
 
+
 @login_required
 def upload(request):
     """
     A view for uploading new data.
     In: Zip file : a zip file that contains all the necessary file formats
-    Out: reblock.model.UploadEvent
+    Out: reblock.model.UploadEvent : Redirects to review page
     """
     user = request.user
     #if the user provides data
@@ -166,8 +165,7 @@ def register(request):
 		#if user data is not valid notify user and allow to register again
 		registered = False
 		return render_to_response(
-		'reblock/registration_failed.html',{'user_form': user_form, 'registered': registered}, context)
-		
+		'reblock/registration_failed.html',{'user_form': user_form, 'registered': registered}, context)		
     else:
         user_form = UserForm()
     
@@ -176,7 +174,7 @@ def register(request):
         {'user_form': user_form, 'registered': registered},
         context)
 
-######
+
 def forgot_password(request):
     """
     A view for forgot password case.
@@ -219,7 +217,6 @@ def forgot_password(request):
     return render(request, 'reblock/forgot_password.html', {'new': NewPassword})
 
 
-
 def set_new_password(request):
     """
     A view when new password is set.
@@ -237,18 +234,19 @@ def set_new_password(request):
 @login_required
 def review(request):
     """
-    review function, triggered when file is uploaded
-    will visualize the uploaded shp file by overlay it to the map after projection
+    Review function, triggered when a file is uploaded. It will visualize the uploaded shp file by overlay it to the map after projection
+    In: htlm post : user can input name, location, description and barrier index for the file before the calculation starts.
+    Out: html : Redirets to html compute when the user starts the calculation of the file
     """
     user = request.user
     if request.method == 'POST': # if compute button is pressed, will lead to the computation in celery, and redirect to compute page     
         
-        #get the latest uploadevent and datafile from database
+        #get the latest upload event and datafile from database
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
         
-        #########get the information filled by the user#########
+        #get the input information from the user: name, location, description, barrier index
         if len(str(request.POST.get("name")))>0 :
             name = request.POST.get("name")
         elif len(str(layer_data[0]['name']))>0:
@@ -287,17 +285,15 @@ def review(request):
         
         #run tasks for the computation
         mytask = run_topology.delay(geoms, name = layer.name, user = user,scale_factor = 1, data = datainfo,  indices=b_index)
-        print mytask, 'checking whatsup', type(mytask)
+
         return HttpResponseRedirect('/reblock/compute/')
 
     else:
-	# we are asking them to review data
+	#ask the user to review data
         # get the last upload of this user
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
-        
-        print upload
         file_path = layer_data[0]['file_location']
         ds = DataSource( file_path )
         layer = ds[0]
@@ -324,7 +320,6 @@ def review(request):
             reviewdic.append(json.loads(geom.json))
 
         reviewjson = json.dumps(reviewdic)
-        
         formset = LayerReviewFormSet( initial=layer_data )
 
         c = {
@@ -339,20 +334,17 @@ def review(request):
                 )
 
 
-"""
-compute function, trigger after pressing compute button in preview
-will show to computation process and result
-"""
-
 @login_required
 def compute(request):
-    
+    """
+    Compute function, triggered after pressing "Start Calculation" button in review
+    will show to computation process and result
+    In: html post : Button "Start Calculation": user input for the calculation to start
+    Out: html redirect: Provides a unique url based on project name, location, and project id 
+    """
     user = request.user
-    
     if request.method == 'POST': # the user is checking a specific project or step
         startlst = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
-
-
         try:
             link = int(request.POST.get("stepindex"))
         except:
@@ -379,20 +371,18 @@ def compute(request):
         return HttpResponseRedirect('/reblock/compute/'+str(user)+"_"+str("newproject")+"_"+str("newlocation")+"_"+str(pr_id)+"/")
 
 
-"""
-reload function, called to reload map in steps.html
-will return geojson of related project
-"""
 @login_required
 def reload(request):
-    ##########need to save shapefile here##############
-    
+    """
+    Reload function is called to reload map in steps.html. Returns geojson of the related project.
+    In: proj_id : after user request the file os retrieved from the database based on the project id
+    Out: Geojson : The final geojson from the database.
+    """ 
     user = request.user
     GET = request.GET
     
     #get the requested project id
     pr_id = GET['pr_id']
-    
     print "project:................"+str(pr_id)
     
     #locate the project according to project id
@@ -414,12 +404,13 @@ def reload(request):
     #get interior_parcel geometry for this project
     inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
     inter_proj = project_meter2degree(layer = inter_layers,num = number)
-    print 4444444444444444
+    
+    #save shapefiless
     saveshp(start = start, user = user,prid =pr_id,  layer = ori_layer,num = number, name = "original")
     saveshp(start = start, user = user,prid =pr_id,  layer = road_layers,num = number, name = "road")
     saveshp(start = start, user = user,prid =pr_id,  layer = inter_layers,num = number, name = "interior")
     zippath = zipSave(name = "shp_file.zip", start = start, user = user, prid = pr_id)
-    print 555555555555555
+
     #save the geometries to a dictionary
     dic = {}
     dic["ori"] = str(ori_proj)
@@ -434,44 +425,48 @@ def reload(request):
     else:
         dic["stepnumber"] = 0
     dic["zip"] = zippath
+    
     #return the geojson to html page
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
-"""
-reload function, called to reload map in steps.html
-will return geojson of related project
-"""
+
 @login_required
 def download(request):
+    """
+    Fuction that allows user to download the shapefile
+    In: html post : user request to download the shapefile
+    Out: html : directs to an html page with a button for downloading the shapefile
+    """ 
     user = request.user
     GET = request.GET
+    
     mypath = GET['path']
-    print mypath
     the_file = str(mypath)
     filename = os.path.basename(the_file)
     f = open(mypath, 'r')
-    #myfile = file(f)
+
     response = HttpResponse(f, content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename=' + filename
-
     return response
-
-    
 
 
 @login_required
 def check_step(request):
-    ##########need to save shapefile here##############
+    """
+    Fuction that 
+    In: html post :
+    Out: html : 
+    """ 
     
     user = request.user
     GET = request.GET
     
     #get the requested project id
     pr_id = GET['pr_id']
+    
     #get the requested project step
     step = GET['step']
-    
     print "project:................"+str(pr_id)
     dic = {}
     
@@ -491,9 +486,6 @@ def check_step(request):
     ori_proj = project_meter2degree(layer = ori_layer,num = number)
 
     dic["ori"] = str(ori_proj)
-    
-
-    
     
     #if all step is 
     if int(step)<int(step_index+1):
@@ -517,8 +509,7 @@ def check_step(request):
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
         dic["rd"] = str(road_proj)
         dic["int"] = str(inter_proj)  
-
-    
+   
     if step_index>=0:
         dic["stepnumber"] = int(step_index+1)
     else:
@@ -527,12 +518,14 @@ def check_step(request):
     json = simplejson.dumps(dic)
     return HttpResponse(json, mimetype='application/json')
 
-############
-"""
-reload the last step of the project
-"""
+
 @login_required
 def reload_step(request):
+    """
+    Fuction that 
+    In: html post :
+    Out: html : 
+    """ 
     user = request.user
     GET = request.GET
     pr_id = GET['pr_id']
@@ -564,14 +557,14 @@ def reload_step(request):
         ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
         ori_proj = project_meter2degree(layer = ori_layer,num = number)
 	
-        ##################step data######################
+        #step data
         step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
         step_index = len(step_layers)/number-1
         print step_index
         if step_index>=0:
-            
-            inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
 	    
+            #reproject the json in decimal degrees in order to display on the background map
+            inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
             road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
             
             dic["ori"] = str(ori_proj)
@@ -593,7 +586,7 @@ def reload_step(request):
         print "reload step............finish = "+str(finish)
     except:
         pass
-    
+  
     if step_index>=0:
         dic["stepnumber"] = int(step_index+1)
     else:
@@ -604,14 +597,19 @@ def reload_step(request):
     return HttpResponse(json, mimetype='application/json')
 
 
-
 @login_required
 def final_slut(request, slot_user, project_id, project_name, location):
+    """
+    Fuction that 
+    In: html post :
+    Out: html : 
+    """   
     user = request.user
-    
-    ##########should be slotified user
+    #should be slotified user
     if slugify(str(user))==slot_user:
-        if request.method == 'POST': # someone is editing site configuration
+	
+	#if user is editing site configuration
+        if request.method == 'POST': 
             pass
         else:            
 
@@ -626,8 +624,8 @@ def final_slut(request, slot_user, project_id, project_name, location):
 
 @login_required
 def final_whole(request, slot_user, project_id, project_name, location):
-    user = request.user
     
+    user = request.user
     ##########should be slotified user
     if slugify(str(user))==slot_user:
         if request.method == 'POST': # someone is editing site configuration
@@ -645,7 +643,6 @@ def final_whole(request, slot_user, project_id, project_name, location):
 	    
             inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
             inter_proj = project_meter2degree(layer = inter_layers,num = number)
-	    
 
             c = {
                     'ori_proj': ori_proj,
@@ -661,8 +658,8 @@ def final_whole(request, slot_user, project_id, project_name, location):
 
 @login_required
 def steps_slut(request, step_index, slot_user, project_id, project_name, location):
-    user = request.user
     
+    user = request.user
     ##########should be slotified user
     if slugify(str(user))==slot_user:
         if request.method == 'POST': # someone is editing site configuration
@@ -674,12 +671,9 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
             ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
 	    
-
     ##################step data######################
             step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
             inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
-	    
-	    
             road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
 
             c = {
@@ -725,12 +719,6 @@ def recent(request):
                 
                 ori_layer = n.definebarriers2_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
-		
-
-                #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
-                #~ road_proj = project_meter2degree(layer = road_layers,num = number)
-                #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
-                #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
                 
                 lstjson.append(json.loads(ori_proj))
             
@@ -761,8 +749,6 @@ def recent_index(request):
 
     loadnum = int(GET['loadnum']);
     loadstart = int(GET['index'])
-    
-    
     loadend = loadstart+loadnum
     print "load start :"+str(loadstart)
     print "load end :"+str(loadend)
@@ -778,7 +764,6 @@ def recent_index(request):
         lstlocation = []
         lstdes = []
         
-        
         for i,n in enumerate(start):
             if len(n.bloocknum2_set.all())>0:
                 datt = n.datasave5_set.all().order_by('-date_edited')[0]
@@ -792,10 +777,6 @@ def recent_index(request):
                 ori_layer = n.definebarriers2_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
 
-                #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
-                #~ road_proj = project_meter2degree(layer = road_layers,num = number)
-                #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
-                #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
                 lstjson.append(simplejson.loads(ori_proj))
             
         lstjson = simplejson.dumps(lstjson)
@@ -809,12 +790,9 @@ def recent_index(request):
         "lstdes": lstdes,     
         }
         
-        
         json = simplejson.dumps(c)
         print "json loaded"
         return HttpResponse(json, mimetype='application/json')
-
-
 
 """
 redirect to a page showing the recent reblocks created by the same user
@@ -833,12 +811,12 @@ def profile(request):
         else:
             start = startlst[:3]
 
-
         lstlink = []
         lstjson = []
         lstprjname = []
         lstlocation = []
         lstdes = []
+	
         for i,n in enumerate(start):
             if len(n.bloocknum2_set.all())>0:
                 datt = n.datasave5_set.all().order_by('-date_edited')[0]
@@ -918,10 +896,6 @@ def profile_index(request):
                 ori_layer = n.definebarriers2_set.all().order_by('-date_edited') 
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
 
-                #~ road_layers = n.roadjson4_set.all().order_by('-date_edited') 
-                #~ road_proj = project_meter2degree(layer = road_layers,num = number)
-                #~ inter_layers = n.interiorjson4_set.all().order_by('-date_edited')    
-                #~ inter_proj = project_meter2degree(layer = inter_layers,num = number)
                 lstjson.append(simplejson.loads(ori_proj))
 
         lstjson = simplejson.dumps(lstjson)
