@@ -73,12 +73,12 @@ python manage.py syncdb
 ```
 
 ## Starting
-
-```bash
 Django:
+```bash
 python manage.py runserver 0.0.0.0:8000
-
+```
 Celery:
+```bash
 python manage.py celery -A tasks worker --loglevel=info
 ```
 
