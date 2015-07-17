@@ -66,8 +66,9 @@ default_srs = 24373
 
 
 def index(request):
-    """A view for browsing the existing webfinches.
-    """
+    '''
+    A view for browsing the existing webfinches.
+    '''
     return render_to_response(
             'reblock/index.html',
             {'reblock':DataLayer.objects.all()},
@@ -76,11 +77,11 @@ def index(request):
 
 @login_required
 def upload(request):
-    """
+    '''
     A view for uploading new data.
     In: Zip file : a zip file that contains all the necessary file formats
     Out: reblock.model.UploadEvent : Redirects to review page
-    """
+    '''
     user = request.user
     #if the user provides data
     if request.method == 'POST':
@@ -111,11 +112,11 @@ def upload(request):
 
 
 def register(request):
-    """
+    '''
     A view for user registration.
     In: html post : user provides: username, email, password1, password2(confirm)
     Out:reblock.form.UserForm : A form model that is based in django User built-in form model
-    """
+    '''
     context = RequestContext(request)
     registered = False
     
@@ -164,8 +165,7 @@ def register(request):
 	    else:
 		#if user data is not valid notify user and allow to register again
 		registered = False
-		return render_to_response(
-		'reblock/registration_failed.html',{'user_form': user_form, 'registered': registered}, context)		
+		return render_to_response('reblock/registration_failed.html',{'user_form': user_form, 'registered': registered}, context)		
     else:
         user_form = UserForm()
     
@@ -176,11 +176,11 @@ def register(request):
 
 
 def forgot_password(request):
-    """
+    '''
     A view for forgot password case.
     In: html post : user provides: username in order to set a new password
     Out:reblock.form.NewPassword : A form model that is based in django User built-in form model 
-    """
+    '''
     context = RequestContext(request)
     registered = False
     
@@ -218,11 +218,11 @@ def forgot_password(request):
 
 
 def set_new_password(request):
-    """
+    '''
     A view when new password is set.
-    In: - : -
+    In: html post : user request to set new pasword by providing the username
     Out:redirect page : Redirects to set-new password.html where the user can log in with the new password 
-    """
+    '''
     #redirects to login
     context = RequestContext(request)
     return render_to_response(
@@ -233,11 +233,11 @@ def set_new_password(request):
 
 @login_required
 def review(request):
-    """
-    Review function, triggered when a file is uploaded. It will visualize the uploaded shp file by overlay it to the map after projection
+    '''
+    Function that is triggered when a file is uploaded. It will visualize the uploaded shp file by overlay it to the map after projection
     In: htlm post : user can input name, location, description and barrier index for the file before the calculation starts.
     Out: html : Redirets to html compute when the user starts the calculation of the file
-    """
+    '''
     user = request.user
     if request.method == 'POST': # if compute button is pressed, will lead to the computation in celery, and redirect to compute page     
         
@@ -245,8 +245,9 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
-        
+
         #get the input information from the user: name, location, description, barrier index
+
         if len(str(request.POST.get("name")))>0 :
             name = request.POST.get("name")
         elif len(str(layer_data[0]['name']))>0:
@@ -336,12 +337,12 @@ def review(request):
 
 @login_required
 def compute(request):
-    """
-    Compute function, triggered after pressing "Start Calculation" button in review
+    '''
+    Function that is triggered after pressing "Start Calculation" button in review
     will show to computation process and result
     In: html post : Button "Start Calculation": user input for the calculation to start
     Out: html redirect: Provides a unique url based on project name, location, and project id 
-    """
+    '''
     user = request.user
     if request.method == 'POST': # the user is checking a specific project or step
         startlst = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()
@@ -373,11 +374,11 @@ def compute(request):
 
 @login_required
 def reload(request):
-    """
-    Reload function is called to reload map in steps.html. Returns geojson of the related project.
-    In: proj_id : after user request the file os retrieved from the database based on the project id
+    '''
+    Function to reload map in steps.html. Returns geojson of the related project.
+    In: proj_id : after user request the file is retrieved from the database based on the project id
     Out: Geojson : The final geojson from the database.
-    """ 
+    '''
     user = request.user
     GET = request.GET
     
@@ -433,11 +434,11 @@ def reload(request):
 
 @login_required
 def download(request):
-    """
+    '''
     Fuction that allows user to download the shapefile
     In: html post : user request to download the shapefile
     Out: html : directs to an html page with a button for downloading the shapefile
-    """ 
+    ''' 
     user = request.user
     GET = request.GET
     
@@ -453,11 +454,11 @@ def download(request):
 
 @login_required
 def check_step(request):
-    """
+    '''
     Fuction that 
-    In: proj_id :
-    Out: geojson : intermediate geojsons, pass to html
-    """   
+    In: proj_id :  project id
+    Out: geojson : intermediate geojsons that are passed to html
+    ''' 
     user = request.user
     GET = request.GET
     
@@ -508,7 +509,7 @@ def check_step(request):
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
         dic["rd"] = str(road_proj)
         dic["int"] = str(inter_proj)  
-   
+
     if step_index>=0:
         dic["stepnumber"] = int(step_index+1)
     else:
@@ -520,11 +521,11 @@ def check_step(request):
 
 @login_required
 def reload_step(request):
-    """
-    Fuction that output the last step 
-    In: proj_id :
+    '''
+    Fuction that outputs the last step of the calculation
+    In: proj_id : project id
     Out: steps geojsons : pass the current calculation state
-    """ 
+    ''' 
     user = request.user
     GET = request.GET
     pr_id = GET['pr_id']
@@ -601,11 +602,11 @@ def reload_step(request):
 
 @login_required
 def final_slut(request, slot_user, project_id, project_name, location):
-    """
-    Fuction that gets the info from url from "compute" and pass the project id to steps page
-    In: user, ++++ from url : ++
-    Out: redirect to steps page : 
-    """   
+    '''
+    Function that gets the info from url from "compute" and passes the project id to the steps page
+    In: user, project_name, location, proj_id : information retrieved from the url
+    Out: redirect to steps.html page 
+    '''  
     user = request.user
     #should be slotified user
     if slugify(str(user))==slot_user:
@@ -626,11 +627,11 @@ def final_slut(request, slot_user, project_id, project_name, location):
 
 
 def recent(request):
-    """
-    redirect to a page showing the recent reblocks from the database
-    In: html : 
-    Out: the most recent 3 projects as geojson
-    """
+    '''
+    Function that redirects to a page that shows the recent reblocks from the database
+    In: html home page
+    Out: geojson : The most recent projects as geojsons. Current number is set to 3 in the recent.html page (toload = 3)
+    '''
     #retrieve input from request
     if request.method == 'POST':
         pass
@@ -683,11 +684,11 @@ def recent(request):
 
 
 def recent_index(request):
-    """
-    indicate which project to retrieve from database to load more than 3(+), (3 at a time)
+    '''
+    Function that indicates which project to retrieve from database to load more, (default: 3 at a time)
     In: loadnum, loadstart : loadnum is passed from recent.html
-    Out: geojson for the specific project passed to recent.html
-    """
+    Out: geojson : a geojson for the specific project passed to recent.html
+    '''
     GET = request.GET
     loadnum = int(GET['loadnum']);
     loadstart = int(GET['index'])
@@ -706,6 +707,7 @@ def recent_index(request):
         lstlocation = []
         lstdes = []
         
+	#get geojson from database
         for i,n in enumerate(start):
             if len(n.bloocknum2_set.all())>0:
                 datt = n.datasave5_set.all().order_by('-date_edited')[0]
@@ -720,7 +722,8 @@ def recent_index(request):
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
 
                 lstjson.append(simplejson.loads(ori_proj))
-            
+         
+	#pass as a json to the recent.html    
         lstjson = simplejson.dumps(lstjson)
         lstprjname = simplejson.dumps(lstprjname)
         lstlocation = simplejson.dumps(lstlocation)
@@ -739,12 +742,12 @@ def recent_index(request):
 
 @login_required
 def profile(request):
-    """
-    indicate which project to retrieve from database to load more than 3(+), (3 at a time)
-    In: loadnum, loadstart : loadnum is passed from recent.html
-    Out: geojson for the specific project passed to recent.html
-    """
-    
+    '''
+    Function that redirects to a page that shows the recent reblocks from the database
+    In: html post : user request to view the profile page
+    Out: geojson : The most recent projects as geojsons uploaded by the user. Current number is set to 3 in the profile.html page (toload = 3)
+    '''
+    #retrieve input from request
     user = request.user
     if request.method == 'POST': 
         pass
@@ -764,6 +767,7 @@ def profile(request):
         lstlocation = []
         lstdes = []
 	
+	#get geojson from database
         for i,n in enumerate(start):
             if len(n.bloocknum2_set.all())>0:
                 datt = n.datasave5_set.all().order_by('-date_edited')[0]
@@ -780,7 +784,8 @@ def profile(request):
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
                 
                 lstjson.append(simplejson.loads(ori_proj))
-            
+		
+        #pass as a json to the profile.html    
         lstjson = simplejson.dumps(lstjson)
         lstlink = simplejson.dumps(lstlink)
         lstprjname = simplejson.dumps(lstprjname)
@@ -805,7 +810,11 @@ def profile(request):
 
 @login_required
 def profile_index(request):
-
+    '''
+    Function that indicates which project to retrieve from database to load more in the user profile, (default: 3 at a time)
+    In: user, loadnum, loadstart : user information for current project (name, location etc.), loadnum is passed from profile.html
+    Out: geojson for the specific project passed to profile.html
+    '''
     GET = request.GET
     user = request.user
     loadnum = int(GET['loadnum']);
@@ -827,6 +836,7 @@ def profile_index(request):
         lstdes = []
         lstlink = []
         
+	#get geojson from database
         for i,n in enumerate(start):
             if len(n.bloocknum2_set.all())>0:
                 datt = n.datasave5_set.all().order_by('-date_edited')[0]
@@ -843,7 +853,8 @@ def profile_index(request):
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
 
                 lstjson.append(simplejson.loads(ori_proj))
-
+		
+	#pass as a json to the profile.html    
         lstjson = simplejson.dumps(lstjson)
         lstprjname = simplejson.dumps(lstprjname)
         lstlocation = simplejson.dumps(lstlocation)

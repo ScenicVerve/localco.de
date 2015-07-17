@@ -59,11 +59,11 @@ def isnumber(s):
 	
 
 def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = None, prid = None):
-    """
+    '''
     Function that saves a json layer as a shape file and compresses it in a zip format.
     In: layer : A json layer
     Out: shapefile : 
-    """
+    '''
     #convert json to OGRGeojson
     ori_shp = json_gdal(layer = layer, num = num, offset = offset)
     l= []
@@ -96,40 +96,44 @@ def saveshp(layer = None, num = 1, offset = 0, name = "_", start = None, user = 
 
 
 def zipSave(name = "Python.zip", start = None, user = None, prid = None):
-    """
+    '''
     Function that zips all shapefiles of the related project
     In: name, start model, username, project id
     Out: zip file for shapefiles
-    """
+    '''
     datt = start.datasave5_set.all().order_by('-date_edited')[0]
     #redirect link
+    
     mypath = str(user)+"/"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(prid)+"/"
-    path = MEDIA_ROOT+"/uploads/"+mypath
-    filename = path+str(prid)+"_"+name
-    zipf = zipfile.ZipFile(filename, 'w')
-    zipdir(path+"source/", zipf)
+    path2 = MEDIA_ROOT+"/uploads/"+mypath
+    if not os.path.isdir(path2):
+	os.path.mkdir(path2)
+    filename = path2+str(prid)+"_"+name
+    zipf = zipfile.ZipFile(filename, 'w', compression = zipfile.ZIP_DEFLATED)
+    zipdir(path2+"source/", zipf)
     zipf.close()
     return filename
     
 
-def zipdir(path, ziph):
-    """
+def zipdir(path2, ziph):
+    '''
     Function that zips all files in the path
     In: path
     Out: zip file
-    """
+    '''
     # ziph is zipfile handle
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            ziph.write(os.path.join(root, file))
-
-
+    for root, dirs, files in os.walk(path2):
+        for fily in files:
+	    #write zip file
+	    ziph.write(os.path.join(root, fily), arcname=fily)
+        
+	    
 def json_gdal(layer = None, num =1, offset=0):
-    """
+    '''
     Function to convert a json into a OGRGeojson
     In: A json layer 
     Out: An OGRGeojson : a gdal object from datasource
-    """
+    '''
     for la in layer[offset*num:num+offset*num]:
         myjson = la.topo_json
         new_layer= DataSource(myjson)[0]
@@ -137,12 +141,12 @@ def json_gdal(layer = None, num =1, offset=0):
 
 
 def project_meter2degree(layer = None, num = 1, offset = 0, topo=True):
-    """
+    '''
     Function to reproject gdal layer(in meters) to degree, and output geojson file
     num is the amount of block to keep from the layer
     In: layer : a json layer with a meter or feet projection
     Out: json : a json reprojected to decimal degrees in order to be displayed on a background map
-    """
+    '''
     layer_json = []
     for la in layer[offset*num:num+offset*num]:
         if topo:
@@ -171,11 +175,11 @@ def project_meter2degree(layer = None, num = 1, offset = 0, topo=True):
 
 
 def flattenAll(geoCo):
-    """
+    '''
     Function to flatten all the geometry in the geometry collection and returns a list of linestring objects
     In: geoCo : geometry collection
     Out: lst : a flattened list of linestring objects 
-    """	
+    '''
     lst = []
     for geo in geoCo:
         if not len(geo.boundary)>1:
@@ -185,11 +189,11 @@ def flattenAll(geoCo):
     return lst
 
 def checkGeometryType(gdal_layer, srs=None):
-    """
+    '''
     Function to check the type of the input geometry and returns a list of linestring objects
     In: gdal layer : a datasource layer
     Out: lst: a list of linestring objects
-    """	
+    '''
     #datasource layer
     layer = gdal_layer
     # Get the GEOS geometries from the SHP file
@@ -213,31 +217,25 @@ def checkGeometryType(gdal_layer, srs=None):
             lst.extend(flattenAll(geom))			
         else:#not supported geometry type, raise exception
             raise IOError(geom.geom_type+"is the wrong type of geometry to process")
+    return lst
+    #if len(lst)>0 and len(lst)<=6000:
+    #    return lst
+    #
+    #elif len(lst)>6000:
+    #    raise IOError(str(len(lst))+" too many polygons to process, maximum number of Polygons is 6000")
+    #else:
+    #    raise IOError("Your file is invalid")
 
-    if len(lst)>0 and len(lst)<=6000:
-        return lst
-
-    elif len(lst)>6000:
-        raise IOError(str(len(lst))+" too many polygons to process, maximum number of Polygons is 1,200")
-    else:
-        raise IOError("Your file is invalid")
-
-
-
-"""
-rewrite run_once function from topology, using linestring list as input
-
-Given a list of blocks, builds roads to connect all interior parcels and
-plots all blocks in the same figure.
-"""
 
 def run_once(original,name=None, user = None, block_index = 0, srs = None, barriers=False):
-    """
-    rewrite run_once function from topology, using linestring list as input
+    '''
+    Rewrite run_once function from topology, using linestring list as input
 
     Given a list of blocks, builds roads to connect all interior parcels and
     plots all blocks in the same figure.
-    """
+    In: original : graph
+    Out: roads : all the roads that connect interior parcels
+    '''
     if len(original.interior_parcels) > 0:
         block = original.copy()        
         # define interior parcels in the block based on existing roads
@@ -255,11 +253,11 @@ def run_once(original,name=None, user = None, block_index = 0, srs = None, barri
 
 
 def match_barriers(b_index, original):
-    """
-    Function to match the indices that the user inputs with the equivalent indices of the graph.
+    '''
+    Function that matches the indices that the user inputs with the equivalent indices of the graph.
     In: b_index (string with the user indices) : A string of integers that the user types in review.html
     Out: barrier_edges: a list of edges : a list of edges that are the barriers the user selected
-    """
+    '''
     b_edges = []
     #split the string based on commas to get the integers as a list
     if "," in b_index:
@@ -279,27 +277,27 @@ def match_barriers(b_index, original):
         return barrier_edges
 
 
-"""
-rewrite new_import function from topology
-
-imports the file, plots the original map, and returns
-a list of blocks from the original map.
-"""
 def new_import(lst, name=None,scale = 1, indices=None):
-    original = import_and_setup(lst,scale = scale, threshold=1)#create and clean the graph.
-    print indices
+    '''
+    Rewrite new_import function from topology
+    '''
+    '''
+    Function that imports the file, plots the original map, and returns
+    a list of blocks from the original map.
+    In: lst, indices : linestring objects and edges as linestrings input from the user as barriers
+    Out: blocklist : a list of blocks from the original map
+    '''
+    #create and clean the graph.
+    original = import_and_setup(lst,scale = scale, threshold=1)
+    
+    #if there are indices from the user input
     if not indices == "-":
         barriers = match_barriers(indices, original)
+	#call build_barriers function from topology.my_graph_helpers()
         mgh.build_barriers(barriers)
-
-    #~ if isinstance(indices, list):#if indices:
-        #~ barriers = match_barriers(indices, original)
-        #~ print barriers
-        #~ mgh.build_barriers(barriers)
-
     else:
-        print "NO"
-        # compute without 
+	# compute without 
+	pass
 
     blocklist = original.connected_components()
 
@@ -312,28 +310,26 @@ def new_import(lst, name=None,scale = 1, indices=None):
     return blocklist
     
 
-"""
-rewrite topology's import_and_setup function using linestring as input
-"""
 def import_and_setup(lst,component = None,threshold=1, byblock=True, name="",scale = 1):
-    # check that rezero is an array of len(2)
-    # check that threshold is a float
+    '''
+    Rewrite topology's import_and_setup function using linestring as input
+    In: lst : geometry as a list of linestrings
+    Out: myG : graph from linestrings
+    '''
     print "start creating graph based on input geometry"
-
-    myG = graphFromLineString(lst, name,scale = scale)#create the graph. can't directly show step
-
+    #create the graph. can't directly show step
+    myG = graphFromLineString(lst, name,scale = scale)
     print "start clean up"
-    myG = myG.clean_up_geometry(threshold, byblock=byblock)#clean the graph. can't directly show step
+    #clean the graph. can't directly show step
+    myG = myG.clean_up_geometry(threshold, byblock=byblock)
     print "Finish cleaning up"
     print myG
+    
     if component is None:
         return myG
     else:
         return myG.connected_components()[component]
 
-"""
-rewrite function in mgh
-"""
 
 def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
                     wholepath=False, original_roads=None, plot_original=False,
@@ -341,12 +337,13 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
                     quiet=False, vquiet=False, strict_greedy=False,
                     outsidein=False,name=None, user = None,block_index = 0, srs = None):
 
-    """builds roads using the probablistic greedy alg, until all
-    interior parcels are connected, and returns the total length of
-    road built. """
-
+    '''
+    Builds roads using the probablistic greedy alg, until all
+    interior parcels are connected, and returns the total length of road built.
+    In: original : graph 
+    Out: added_road_lenght : total lenght of roads built
+    '''
     quiet = vquiet
-
     if plot_original:
         original.plot_roads(original_roads, update=False,
                        parcel_labels=False, new_road_color="blue")
@@ -363,7 +360,8 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
     original.define_interior_parcels()
     target_mypath = None
     md = 100
-    while original.interior_parcels:############extract###########
+    
+    while original.interior_parcels:
         #save remaining interior parcel to the database
         gJson = simplejson.dumps(json.loads(mgh.graphFromMyFaces(original.interior_parcels).myedges_geoJSON()))
         roads = simplejson.dumps({"type": "FeatureCollection","features": [e.geoJSON(np.array([0, 0])) for e in original.myedges() if e.road]})
@@ -371,16 +369,16 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
         start = StartSign2.objects.filter(author=user).order_by('-date_edited')[0]
         number = start.bloocknum2_set.all().order_by('-date_edited')[0]
                 
-        ##############delay to test intermediate steps##############
+        #delay to test intermediate steps
         #time.sleep(3)
-        ############################################################
-
+	
+	#save the intermediate steps
         db_json = IntermediateJSON7(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(original.interior_parcels),block_index = block_index, srs = srs, number = number, start = start)
         db_json.save()
 
         result, depth = mgh.form_equivalence_classes(original)
 
-        # flist from result!
+        # flist from result
         flist = []
 
         if md == 3:
@@ -400,7 +398,6 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
 
         if quiet is False:
             pass
-
         #try create minimal paths
 	try:
 	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,barriers, quiet=quiet,shortest_only=shortest_only)
@@ -416,7 +413,6 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
         # choose and build one
         target_ptup, target_mypath = mgh.choose_path(original, all_paths, alpha,
                                                  strict_greedy=strict_greedy)
-
         if wholepath is False:
             added_road_length += target_mypath[0].length
             original.add_road_segment(target_mypath[0])
@@ -429,8 +425,6 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
         original.define_interior_parcels()
         if plot_intermediate:
             original.plot_roads(master, update=False)
-            # plt.savefig("Int_Step"+str(plotnum)+".pdf", format='pdf')
-            # plotnum += 1
 
         remain = len(original.interior_parcels)
         if quiet is False:
@@ -444,10 +438,12 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
     return added_road_length
 
 
-"""
-The function that use topology library to create MyGraph by input lineString
-"""
 def graphFromLineString(lst,name = None,rezero=np.array([0, 0]),scale = 1):
+    '''
+    The function that use topology library to create MyGraph by input lineString
+    In: lst : geometry as a list of linestrings
+    Out: myG : graph from linestrings
+    '''
     nodedict = dict()
     plist = []
     for l in lst:
@@ -476,10 +472,13 @@ def graphFromLineString(lst,name = None,rezero=np.array([0, 0]),scale = 1):
     return myG
        
     
-"""
-The function that check the projection information according to the file uploaded to the database
-"""
 def checkedPrj(srs0):
+    '''
+    Function that checks the projection information according to the file uploaded to the database
+    In: srs : initial srs
+    Out: srs : checked srs
+    '''
+    #check if srs is numerical
     if isnumber(srs0):
         srs = int(srs0)
     elif srs0 != None:
@@ -492,35 +491,16 @@ def checkedPrj(srs0):
     return srs
 
 
-"""
-scaleFactor function, judge and get scale factor of the input geometries
-"""
-def scaleFactor(geoms):
-    if checkedPrj:#contain srs information
-        return 1.0
-    elif checkDistunguish:#fulfil 2 decimal places criteria
-        area = aveArea(geoms)
-        if area<10:
-            return 20.0/area
-        elif area >100:
-            return 80.0/area
-        else:
-            return 1.0
-    else:
-        area = aveArea(geoms)
-        return 50.0/area
-
-"""
-rescale graph from original topology
-"""
 def rescale_mygraph(myG, rezero=np.array([0, 0]), rescale=np.array([1, 1])):
-
-    """returns a new graph (with no interior properties defined), rescaled under
+    '''
+    rescale_mygraph from original topology
+    '''
+    '''
+    Function that returns a new graph (with no interior properties defined), rescaled under
     a linear function newloc = (oldloc-rezero)*rescale  where all of those are
     (x,y) numpy arrays.  Default of rezero = (0,0) and rescale = (1,1) means
     the locations of nodes in the new and old graph are the same.
-    """
-
+    '''
     scaleG = mg.MyGraph()
     for e in myG.myedges():
         n0 = e.nodes[0]
@@ -532,25 +512,55 @@ def rescale_mygraph(myG, rezero=np.array([0, 0]), rescale=np.array([1, 1])):
     return scaleG
 
 
-"""
-check if the geos are distinguishable(defined by threshold)
-"""
-def checkDistunguish(geoms, threshold=0.001):
-    c = abs( geoms[0].coords[0][0] - geoms[0].coords[1][0])
-    return c>threshold
-    
-"""
-calculate the average area of all parcels
-"""
-def aveArea(geoms):
-    lst = [Polygon(LinearRing(g.coords)).area for g in geoms]
-    return sum(lst) / float(len(lst))
-
-"""
-return the unit of the input gdal data source layer
-"""
-def getUnit(gdal_layer):
-    uni = {}
-    uni['UNIT'] = gdal_layer.srs['UNIT']
-    uni['PRJUnit'] = gdal_layer.srs['PROJCS'][3]
-    return gdal_layer.srs
+'''
+These functions are not used in the current version of open reblock
+The scale factor is default to 1 in review.views.py
+'''
+#def scaleFactor(geoms):
+#
+#    '''
+#    Function that checks and gets scale factor of the input geometries
+#    In: geoms : geometry as linestrings
+#    Out:area : rescaled geoms
+#    '''
+#    #contain srs information
+#    if checkedPrj:
+#        return 1.0
+#    #fulfil 2 decimal places criteria
+#    elif checkDistunguish:
+#        area = aveArea(geoms)
+#        if area<10:
+#            return 20.0/area
+#        elif area >100:
+#            return 80.0/area
+#        else:
+#            return 1.0
+#    else:
+#        area = aveArea(geoms)
+#        return 50.0/area
+#
+#
+#def checkDistunguish(geoms, threshold=0.001):
+#    '''
+#    Function that checks if the geos are distinguishable (defined by threshold)s
+#    '''
+#    c = abs( geoms[0].coords[0][0] - geoms[0].coords[1][0])
+#    return c>threshold
+#    
+#    
+#def aveArea(geoms):
+#    '''
+#    Function that calculates the average area af all the parcels
+#    '''
+#    lst = [Polygon(LinearRing(g.coords)).area for g in geoms]
+#    return sum(lst) / float(len(lst))
+#
+#
+#def getUnit(gdal_layer):
+#    '''
+#    Function that returns the units of the input gdal datasource layer
+#    '''
+#    uni = {}
+#    uni['UNIT'] = gdal_layer.srs['UNIT']
+#    uni['PRJUnit'] = gdal_layer.srs['PROJCS'][3]
+#    return gdal_layer.srs
