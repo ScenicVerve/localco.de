@@ -455,10 +455,9 @@ def download(request):
 def check_step(request):
     """
     Fuction that 
-    In: html post :
-    Out: html : 
-    """ 
-    
+    In: proj_id :
+    Out: geojson : intermediate geojsons, pass to html
+    """   
     user = request.user
     GET = request.GET
     
@@ -522,9 +521,9 @@ def check_step(request):
 @login_required
 def reload_step(request):
     """
-    Fuction that 
-    In: html post :
-    Out: html : 
+    Fuction that output the last step 
+    In: proj_id :
+    Out: steps geojsons : pass the current calculation state
     """ 
     user = request.user
     GET = request.GET
@@ -532,6 +531,7 @@ def reload_step(request):
     print "project.........:................"+str(pr_id)
     dic = {}
     
+    #staarting state
     start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(pr_id)]
     print "fix"
     print "reload step............start = "+str(start)
@@ -570,7 +570,8 @@ def reload_step(request):
             dic["ori"] = str(ori_proj)
             dic["rd"] = str(road_proj)
             dic["int"] = str(inter_proj)
-            
+	    
+            #final state
             finish = len(start.finishsign3_set.all())
             if finish:
                 dic["finish"] = 1
@@ -592,6 +593,7 @@ def reload_step(request):
     else:
         dic["stepnumber"] = 0
     
+    #all the geojsons
     json = simplejson.dumps(dic)
 
     return HttpResponse(json, mimetype='application/json')
@@ -600,9 +602,9 @@ def reload_step(request):
 @login_required
 def final_slut(request, slot_user, project_id, project_name, location):
     """
-    Fuction that 
-    In: html post :
-    Out: html : 
+    Fuction that gets the info from url from "compute" and pass the project id to steps page
+    In: user, ++++ from url : ++
+    Out: redirect to steps page : 
     """   
     user = request.user
     #should be slotified user
@@ -622,79 +624,15 @@ def final_slut(request, slot_user, project_id, project_name, location):
                 RequestContext(request, c),
                 )
 
-@login_required
-def final_whole(request, slot_user, project_id, project_name, location):
-    
-    user = request.user
-    ##########should be slotified user
-    if slugify(str(user))==slot_user:
-        if request.method == 'POST': # someone is editing site configuration
-            pass
-        else:
-            start = StartSign2.objects.order_by('-date_edited').reverse()[int(project_id)]
-            num = start.bloocknum2_set.all().order_by('-date_edited')[0]
-            number = num.number
-            ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
-            ori_proj = project_meter2degree(layer = ori_layer,num = number)
-	    
-            
-            road_layers = start.roadjson6_set.all().order_by('-date_edited') 
-            road_proj = project_meter2degree(layer = road_layers,num = number)
-	    
-            inter_layers = start.interiorjson6_set.all().order_by('-date_edited')    
-            inter_proj = project_meter2degree(layer = inter_layers,num = number)
 
-            c = {
-                    'ori_proj': ori_proj,
-                    'road_proj': road_proj,
-                    'inter_proj': inter_proj,
-                    }
-                    
-            return render_to_response(
-                'reblock/steps.html',
-                RequestContext(request, c),
-                )
-
-
-@login_required
-def steps_slut(request, step_index, slot_user, project_id, project_name, location):
-    
-    user = request.user
-    ##########should be slotified user
-    if slugify(str(user))==slot_user:
-        if request.method == 'POST': # someone is editing site configuration
-            pass
-        else:
-            start = StartSign2.objects.filter(author=user).order_by('-date_edited').reverse()[int(project_id)]
-            num = start.bloocknum2_set.all().order_by('-date_edited')[0]
-            number = num.number
-            ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
-            ori_proj = project_meter2degree(layer = ori_layer,num = number)
-	    
-    ##################step data######################
-            step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
-            inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
-            road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
-
-            c = {
-                    'ori_proj': ori_proj,
-                    'road_proj': road_proj,
-                    'inter_proj': inter_proj,
-                    }
-                    
-            return render_to_response(
-                'reblock/steps.html',
-                RequestContext(request, c),
-                )
-
-
-"""
-redirect to a page showing the recent reblocks created by the same user
-"""
 def recent(request):
-    
-    ##########should be slotified user
-    if request.method == 'POST': # someone is editing site configuration
+    """
+    redirect to a page showing the recent reblocks from the database
+    In: html : 
+    Out: the most recent 3 projects as geojson
+    """
+    #retrieve input from request
+    if request.method == 'POST':
         pass
     else:            
         startlst = StartSign2.objects.order_by('-date_edited')
@@ -707,6 +645,8 @@ def recent(request):
         lstprjname = []
         lstlocation = []
         lstdes = []
+	
+	#get geojson from database
         for i,n in enumerate(start):
             if len(n.bloocknum2_set.all())>0:
                 datt = n.datasave5_set.all().order_by('-date_edited')[0]
@@ -721,7 +661,8 @@ def recent(request):
                 ori_proj = project_meter2degree(layer = ori_layer,num = number)
                 
                 lstjson.append(json.loads(ori_proj))
-            
+		
+        #pass as a json to the recent.html
         lstjson = simplejson.dumps(lstjson)
         lstprjname = simplejson.dumps(lstprjname)
         lstlocation = simplejson.dumps(lstlocation)
@@ -740,20 +681,21 @@ def recent(request):
             RequestContext(request, c),
             )
 
-"""
-redirect to a page showing the recent reblocks created by the same user
-"""
+
 def recent_index(request):
-
+    """
+    indicate which project to retrieve from database to load more than 3(+), (3 at a time)
+    In: loadnum, loadstart : loadnum is passed from recent.html
+    Out: geojson for the specific project passed to recent.html
+    """
     GET = request.GET
-
     loadnum = int(GET['loadnum']);
     loadstart = int(GET['index'])
     loadend = loadstart+loadnum
     print "load start :"+str(loadstart)
     print "load end :"+str(loadend)
-    ##########should be slotified user
-    if request.method == 'POST': # someone is editing site configuration
+
+    if request.method == 'POST':
         pass
     else:            
         startlst = StartSign2.objects.order_by('-date_edited')
@@ -794,20 +736,25 @@ def recent_index(request):
         print "json loaded"
         return HttpResponse(json, mimetype='application/json')
 
-"""
-redirect to a page showing the recent reblocks created by the same user
-"""
+
 @login_required
 def profile(request):
+    """
+    indicate which project to retrieve from database to load more than 3(+), (3 at a time)
+    In: loadnum, loadstart : loadnum is passed from recent.html
+    Out: geojson for the specific project passed to recent.html
+    """
+    
     user = request.user
-    ##########should be slotified user
-    if request.method == 'POST': # someone is editing site configuration
+    if request.method == 'POST': 
         pass
     else:
         
         startlst = StartSign2.objects.filter(author=user).order_by('-date_edited')
+	#if the projects' number is less than 3, return all the list
         if len(startlst)<3:
             start = startlst
+	#else return only the first 3    
         else:
             start = startlst[:3]
 
@@ -855,9 +802,7 @@ def profile(request):
             RequestContext(request, c),
             )
 
-"""
-redirect to a page showing the recent reblocks created by the same user
-"""
+
 @login_required
 def profile_index(request):
 
@@ -868,11 +813,12 @@ def profile_index(request):
     loadend = loadstart+loadnum
     print "load start :"+str(loadstart)
     print "load end :"+str(loadend)
-    ##########should be slotified user
-    if request.method == 'POST': # someone is editing site configuration
+
+    if request.method == 'POST': 
         pass
     else:            
         startlst = StartSign2.objects.order_by('-date_edited')
+	#split list based on the 2 required indices (loadstart, loadend)
         start = startlst[loadstart:loadend]
         
         lstjson = []

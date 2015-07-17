@@ -14,14 +14,14 @@ interurls = [url(r'^$', 'reblock.views.intermediate'),
 
 
 interurls3 = [url(r'^$', 'reblock.views.final_slut'),
-             url(r'^(?P<step_index>[0-9]+)/$', 'reblock.views.steps_slut'),
+
 ]
 interurls2 = [url(r'^$', 'reblock.views.compute'),
              url(r'^(?P<slot_user>[-\w\d]+)_(?P<project_name>[-\w\d]+)_(?P<location>[-\w\d]+)_(?P<project_id>[0-9]+)/', include(interurls3)),
 ]
 
 interurls4 = [url(r'^$', 'reblock.views.recent'),
-             url(r'^(?P<slot_user>[-\w\d]+)_(?P<project_name>[-\w\d]+)_(?P<location>[-\w\d]+)_(?P<project_id>[0-9]+)/$', 'reblock.views.final_whole'),
+
 ]
 
 

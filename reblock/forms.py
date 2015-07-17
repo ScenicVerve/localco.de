@@ -91,7 +91,6 @@ class UserForm(forms.ModelForm):
 class NewPassword(forms.ModelForm):
     """User model for setting new password"""
     new_password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
-    #new_password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30)))
     email = forms.CharField(widget=forms.TextInput(attrs=dict(required=False, max_length=100)))
     username = forms.CharField(widget=forms.TextInput(attrs=dict(required=True, max_length=30)))
     class Meta:

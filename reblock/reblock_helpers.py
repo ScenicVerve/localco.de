@@ -370,7 +370,7 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
         number = start.bloocknum2_set.all().order_by('-date_edited')[0]
                 
         ##############delay to test intermediate steps##############
-        time.sleep(3)
+        #time.sleep(3)
         ############################################################
 
         db_json = IntermediateJSON7(name=name, topo_json = gJson, road_json = roads,author = user,step_index = len(original.interior_parcels),block_index = block_index, srs = srs, number = number, start = start)
