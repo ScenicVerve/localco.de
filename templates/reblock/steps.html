@@ -1,61 +1,44 @@
 {% extends 'reblock/review.html' %}
 {% load static %}
 
+
 {% block css %}
         <link rel="stylesheet" href="{% get_static_prefix %}css/home.css" type="text/css"/>
         <link rel="stylesheet" href="{% get_static_prefix %}css/layers.css" type="text/css"/>
           <link rel="stylesheet" href="/resources/demos/style.css">
   <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-
 {% endblock %}
+
 
 {% block subtitle %}
     Build Site Configurations
 {% endblock %}
 
-{% block layernavs %}
-<!--            <li><a href="/reblock"><div class="sitenav">Browse Data</div></a></li>-->
-{% endblock %}
 
 {% block content %}
-
-
   <head>
-	
 	<meta charset="utf-8" />
-
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
 </head>
 
-
 <body>
-        <div id = "update">
+<div id = "update">
 <div id="preload" style="height:500px;width:500px;border:1px solid black;background-color:grey;"> Map is loading...</div>
 </div>
 
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 
-
-
-
-
-
-                  <form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
+<form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ formset.management_form }}
     <input type="submit" value="Check" />
-    <div> Project Index: <input type="text" name="projindex"/>(default = 0)</div>
-        
+    <div> Project Index: <input type="text" name="projindex"/></div>
 
 <div id = "update3">
-    
 </div>
-
-
 <div id = 'bt1'>
 </div>
 <div id = 'bt2'>
@@ -64,49 +47,35 @@
 </div>
 <div id = 'zipbt'>
 </div>
-
-              </form>
-              
+</form>
 {% endblock %}
+
 
 {% block scripts %}
 <script>
 
 
-var loadmap = function(ori,road, inter){
-
-var oriJSONList = ((ori).replace(/&(l|g|quo)t;/g, function(a,b){
+var initjson = function(json){
+//the function to process json file
+return ((json).replace(/&(l|g|quo)t;/g, function(a,b){
                 return {
                     l   : '<',
                     g   : '>',
                     quo : '"'
                 }[b];
             }));
+}
 
+var loadmap = function(ori,road, inter){
+//the function to load map according to the input json file
+var oriJSONList = initjson(ori);
 var oriData = JSON.parse( oriJSONList );
 
-var roadJSONList = ((road).replace(/&(l|g|quo)t;/g, function(a,b){
-                return {
-                    l   : '<',
-                    g   : '>',
-                    quo : '"'
-                }[b];
-            }));
-
+var roadJSONList = initjson(road);
 var roadData = JSON.parse( roadJSONList );
 
-
-var interJSONList = ((inter).replace(/&(l|g|quo)t;/g, function(a,b){
-                return {
-                    l   : '<',
-                    g   : '>',
-                    quo : '"'
-                }[b];
-            }));
-
+var interJSONList = initjson(inter);
 var interData = JSON.parse( interJSONList );
-
-
 
 var orilayer = L.geoJson(oriData, {
             weight: 1.5,
@@ -115,7 +84,6 @@ var orilayer = L.geoJson(oriData, {
             fillColor: "#B0DE5C",
             fillOpacity: 0.8,
             dashArray: '4',
-
 		});
 
 var interlayer = L.geoJson(interData, {
@@ -124,7 +92,6 @@ var interlayer = L.geoJson(interData, {
             opacity: 0.8,
             fillColor: "#blue",
             fillOpacity: 0.8
-
 		});
 
 var roadlayer = L.geoJson(roadData, {
@@ -133,59 +100,45 @@ var roadlayer = L.geoJson(roadData, {
             opacity: 0.8,
             fillColor: "#B0DE5C",
             fillOpacity: 0.8
-
 		});
-        
+
 marker.push(orilayer);
 marker.push(interlayer);
 marker.push(roadlayer);
-
 
 for(var i=0;i<marker.length;i++) {
     map.addLayer(marker[i]);
     }  
 
-
 map.fitBounds(marker[0].getBounds());
 }
 
-
-var run = 1;
-var marker = new Array();
-var test = 5;
-
+var marker = new Array();//markers to store geojson objects to overlay
 var map = null;
 var setup = 1;
-var inter = 3000;
-var refreshID = null;
+var inter = 3000;//time interval to reload
+var refreshID = null;//setinterval object
 var slider_A = '<form id="reservation"><label for="minbeds">Step Selected</label><select name="minbeds" id="minbeds">'
 var slider_B = '</select></form>'
-
 var refreshID = setInterval(function(){update();},inter);
-console.log("test");
-
-var steps = null;
-
+var steps = null;//the total intermediate steps
 
 var update = function(){
+//reload map
         reloadstep();
         console.log("second");
 }
 
-
-
-
 function reloadall(){
-    $.getJSON("/reblock/reload/", {pr_id: "{{project_id}}"}, function(json){
+//get the final computation result
+$.getJSON("/reblock/reload/", {pr_id: "{{project_id}}"}, function(json){
 for(var i=0;i<marker.length;i++) {
     map.removeLayer(marker[i]);
     }
-    marker = new Array();
-    loadmap(json["ori"],json["rd"], json["int"]);
-    steps = json["stepnumber"]+1;
-    var zippath = json["zip"];
-    console.log(3333333333333333)
-    console.log(zippath);
+marker = new Array();
+loadmap(json["ori"],json["rd"], json["int"]);
+steps = json["stepnumber"]+1;
+var zippath = json["zip"];
 var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
 var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
 var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
@@ -204,20 +157,9 @@ $("#bt1").append(bt1stri);
 $("#bt2").append(bt2stri);
 $("#bt3").append(bt3stri);
 $("#zipbt").append(zipstr);
-
-
-
-
-
-
-
-
     
-    
-            //function for sliders, remove previous, and update option according to steos
+//function for sliders, remove previous, and update option according to steps
         $(function() {
-      console.log("2222222222222333333 "+steps);
-    console.log(44444444444444444444);
     $( "#minbeds" ).remove();
     var slider = slider_A;
     for (var i = 0;i<steps.valueOf();i++){
@@ -237,34 +179,19 @@ $("#zipbt").append(zipstr);
       value: select[ 0 ].selectedIndex + 1,
       slide: function( event, ui ) {
         select[ 0 ].selectedIndex = ui.value - 1;
-        
-        
         checkstep(select[ 0 ].selectedIndex);
-        
-
       }
     });
     $( "#minbeds" ).change(function() {
       slider.slider( "value", this.selectedIndex + 1 );
 
     });
-
-  });
-    
-    
-    
-    
-    
-  });
-  
-  
-  
-  
-  
+  });  
+  });  
 }
 
 function checkstep(step_index){
-    
+    //load the specific step geojson
     $.getJSON("/reblock/check_step/", {pr_id: "{{project_id}}", step: step_index}, function(json){
 for(var i=0;i<marker.length;i++) {
     map.removeLayer(marker[i]);
@@ -273,7 +200,7 @@ for(var i=0;i<marker.length;i++) {
     loadmap(json["ori"],json["rd"], json["int"]);
     steps = json["stepnumber"];
     
-/////////remove previous button
+//remove previous button
 $("#removebt1").remove();
 $("#removebt2").remove();
 $("#removebt3").remove();
@@ -294,14 +221,14 @@ var bt3stri = '<form action='+bt3_link+' id = "removebt3"><input type="submit" v
 $("#bt1").append(bt1stri);
 $("#bt2").append(bt2stri);
 $("#bt3").append(bt3stri);
-
-
-
   });
 }
 
 
 function reloadstep(){
+
+//query the latest intermediate step
+//if the calculation is done, will call the reloadall function
     $.getJSON("/reblock/reload_step/", {pr_id: "{{project_id}}"}, function(json){
     if (json["start"]){
         if (json["step"]){
@@ -338,25 +265,11 @@ function reloadstep(){
         }else{
 $("#preload").remove();
            $("#update").append('<div id="preload" style="height:500px;width:500px;border:1px solid black;background-color:grey;"> Making graph...</div>'); 
-            
-            
         }
-        
-        
-        
-        
-
 }
-
   }
 );
 }
-
-
-
-
-
-
 
 </script>
 {% endblock %}
