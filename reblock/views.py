@@ -165,8 +165,7 @@ def register(request):
 	    else:
 		#if user data is not valid notify user and allow to register again
 		registered = False
-		return render_to_response(
-		'reblock/registration_failed.html',{'user_form': user_form, 'registered': registered}, context)		
+		return render_to_response('reblock/registration_failed.html',{'user_form': user_form, 'registered': registered}, context)		
     else:
         user_form = UserForm()
     
@@ -246,8 +245,9 @@ def review(request):
         upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
         data_files = DataFile.objects.filter(upload=upload)
         layer_data = [ f.get_layer_data() for f in data_files ]
-        
+
         #get the input information from the user: name, location, description, barrier index
+
         if len(str(request.POST.get("name")))>0 :
             name = request.POST.get("name")
         elif len(str(layer_data[0]['name']))>0:
@@ -509,7 +509,7 @@ def check_step(request):
         inter_proj = project_meter2degree(layer = inter_layers,num = number)
         dic["rd"] = str(road_proj)
         dic["int"] = str(inter_proj)  
-   
+
     if step_index>=0:
         dic["stepnumber"] = int(step_index+1)
     else:

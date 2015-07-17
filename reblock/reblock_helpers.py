@@ -398,8 +398,7 @@ def build_all_roads(original, master=None, alpha=2, plot_intermediate=False,
 
         if quiet is False:
             pass
-	
-        #try create minimal paths 
+        #try create minimal paths
 	try:
 	    all_paths = mgh.find_short_paths_all_parcels(original, flist, target_mypath,barriers, quiet=quiet,shortest_only=shortest_only)
 	    
