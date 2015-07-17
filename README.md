@@ -90,3 +90,42 @@ If you see an error like `django.contrib.gis.geos.error.GEOSException: Could not
 
 ## Deploying to the server
 The server is running `RedHat6.08`. RedHat6 is running `Python 2.6.6`. The app and libraries were not installed on a `virtualenv`, so we are running `Python 2.6` instead of `Python 2.7`.
+
+##Appendix
+###reblock.views.py
+###`review` 
+-user customized information
+-preview
+-projection
+-start computation in celery(`run_topology.delay`)
+
+###`compute`
+-triggered after the start of the computation
+-redirect to steps page(templates/reblock/steps.html)
+-pass the project id to html page by url
+
+###`reload`
+-called from the steps.html page to reload the final result of computation to the map
+
+###`reload_step`
+-called from the steps.html page to reload the latest state of the computation to the map
+
+###`recent`
+-called from home page(template/reblock/recent.html)
+-return the latest 3 projects to the html if applicable
+
+###`recent_index`
+-called from home page(template/reblock/recent.html)
+-return the project indicated by index input to html 
+
+###`profile`
+-called from profile page(template/reblock/profile.html)
+-return the latest 3 projects to the html if applicable
+
+###`profile_index`
+-called from profile page(template/reblock/profile.html)
+-return the project indicated by index input to html 
+
+
+
+
