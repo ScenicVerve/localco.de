@@ -104,7 +104,7 @@ def zipSave(name = "Python.zip", start = None, user = None, prid = None):
     datt = start.datasave5_set.all().order_by('-date_edited')[0]
     #redirect link
     mypath = str(user)+"/"+str(datt.prjname)+"_"+str(datt.location)+"_"+str(prid)+"/"
-    path = MEDIA_ROOT+mypath
+    path = MEDIA_ROOT+"/uploads/"+mypath
     filename = path+str(prid)+"_"+name
     zipf = zipfile.ZipFile(filename, 'w')
     zipdir(path+"source/", zipf)
