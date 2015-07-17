@@ -497,7 +497,7 @@ def check_step(request):
         road_proj = project_meter2degree(layer = road_layers,num = number)
         
         inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step))
-        road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step))
+        road_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step), topo=False)
         
         dic["rd"] = str(road_proj)
         dic["int"] = str(inter_proj)
@@ -673,7 +673,7 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
 
             step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
             inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
-            road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
+            road_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index), topo=False)
 
             c = {
                     'ori_proj': ori_proj,

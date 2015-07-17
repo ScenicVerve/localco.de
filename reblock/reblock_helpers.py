@@ -130,12 +130,13 @@ def json_gdal(layer = None, num =1, offset=0):
 function to reproject gdal layer(in meters) to degree, and output geojson file
 num is the amount of block to keep from the layer
 """
-
-def project_meter2degree(layer = None, num = 1, offset = 0):
+def project_meter2degree(layer = None, num = 1, offset = 0, topo=True):
     layer_json = []
     for la in layer[offset*num:num+offset*num]:
-    
-        myjson = la.topo_json
+        if topo:
+            myjson = la.topo_json
+        else:
+            myjson = la.road_json
         new_layer= DataSource(myjson)[0]
         srs = la.srs
         if not isnumber(srs):
@@ -150,31 +151,7 @@ def project_meter2degree(layer = None, num = 1, offset = 0):
             new_proj.append(json.loads(geom.json))
         layer_json.extend(new_proj)
     layer_json = json.dumps(layer_json)
-    return layer_json
-
-"""
-function to reproject gdal layer(in meters) to degree, and output geojson file
-num is the amount of block to keep from the layer
-"""
-def projectRd_meter2degree(layer = None, num = 1, offset = 0):
-    layer_json = []
-    for la in layer[offset*num:num+offset*num]:
     
-        myjson = la.road_json
-        new_layer= DataSource(myjson)[0]
-        srs = la.srs
-        if not isnumber(srs):
-            srs = default_srs
-        new_proj =[]
-        coord_transform = CoordTransform(SpatialReference(srs), SpatialReference(4326))
-        for feat in new_layer:
-            geom = feat.geom
-                
-            geom.transform(coord_transform)
-                
-            new_proj.append(json.loads(geom.json))
-        layer_json.extend(new_proj)
-    layer_json = json.dumps(layer_json)
     return layer_json
 
 def centroid(geom):
@@ -182,7 +159,6 @@ def centroid(geom):
     lstx = [l.coords[0] for l in lst]
     lsty = [l.coords[1] for l in lst]
     return (sum(lstx) / float(len(lstx)),sum(lsty) / float(len(lsty)))
-    
     
 """
 flatten all the geometry in the geometry collection
