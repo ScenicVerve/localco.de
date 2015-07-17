@@ -199,7 +199,7 @@ var bt3_link= '"data:' + rddata + '" download="data.json"'
 var bt3stri = '<form action='+bt3_link+' id = "removebt3"><input type="submit" value="Roads"></form>'
 
 data = {path : zippath}
-var zipstr = '<form id = "removezip" action = "/reblock/download?'+$.param(data)+'" method="POST"><div><input type="submit" value="download"></div><div style="display:none"><input type="hidden" name="csrfmiddlewaretoken" value="QVR4PCN5q2I6NNyQ2MGJlI1Pkr4Bt0O4" /></div></form>'
+var zipstr = "<form id = 'removezip' action = '/reblock/download?"+$.param(data)+"' method='POST'><div><input type='submit' value='download'></div>{% csrf_token %}</form>"
 
 $("#bt1").append(bt1stri);
 $("#bt2").append(bt2stri);
