@@ -52,6 +52,7 @@ pip install networkx pyshp plotly
 ## Configuration
 
 Set `my_path` in `settings.py` to the parent directory of your working copy. Use the `mysettings.py`template, change the MEDIA_ROOT according to the username(reblock)
+change `mysettings.py' database info
 
 
 
