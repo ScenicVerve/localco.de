@@ -10,18 +10,24 @@ Apps that need to be installed for this to work:
 The app currently uses a [PostGIS](https://postgis.net/) database and requires the [geoDjango](https://ocs.djangoproject.com/en/1.8/ref/contrib/gis/install/) libraries. 
 
 ## Installation (Ubuntu 14.04)
-
+username is reblock
 ```bash
-sudo apt-get install python-dev python-virtualenv python-pip postgresql-9.3-postgis-2.1 postgresql-server-dev-9.3 python-numpy python-matplotlib python-scipy
-git clone https://github.com/open-reblock/localco.de localcode
+sudo apt-get install python-dev python-virtualenv python-pip postgresql-9.3-postgis-2.1 postgresql-server-dev-9.3 python-numpy python-scipy
+sudo apt-get install git
+git clone https://github.com/open-reblock/localco.de.git localcode
 cd localcode
 virtualenv --system-site-packages venv
 . venv/bin/activate
+sudo apt-get install aptitude
+sudo aptitude install libblas-dev liblapack-dev
+sudo apt-get install libatlas-base-dev gfortran
+
 pip install -r requirements.txt
+sudo apt-get install rabbitmq-server
+
 git clone https://github.com/bengolder/textbits
 git clone https://github.com/open-reblock/topology
 
-pip install networkx pyshp plotly
 ```
 
 ## Installation (RedHat 6.08)
@@ -45,12 +51,18 @@ pip install networkx pyshp plotly
 
 ## Configuration
 
-Set `my_path` in `settings.py` to the parent directory of your working copy. Create `mysettings.py`.
+Set `my_path` in `settings.py` to the parent directory of your working copy. Use the `mysettings.py`template, change the MEDIA_ROOT according to the username(reblock)
+
+
 
 ```bash
+
 echo PW='postgrespass' > pw.py
-sudo -u postgres createuser -P localcode
-sudo -u postgres createuser -O localcode open_reblock
+sudo -u postgres createuser --superuser $USER
+sudo -u postgres psql
+postgres=# \password $USER
+psql
+create database open_reblock;
 
 # (edit /etc/postgresql/9.3/main/pg_hba.conf to change all connections to trust)
 sudo /etc/init.d/postgresql restart
@@ -63,7 +75,11 @@ python manage.py syncdb
 ## Starting
 
 ```bash
+Django:
 python manage.py runserver 0.0.0.0:8000
+
+Celery:
+python manage.py celery -A tasks worker --loglevel=info
 ```
 
 (N.b. the `0.0.0.0` is to allow connections from hosts other than `localhost`. This is necessary if running in a VM, for example.)
