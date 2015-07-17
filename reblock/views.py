@@ -670,8 +670,7 @@ def steps_slut(request, step_index, slot_user, project_id, project_name, locatio
             number = num.number
             ori_layer = start.definebarriers2_set.all().order_by('-date_edited') 
             ori_proj = project_meter2degree(layer = ori_layer,num = number)
-	    
-    ##################step data######################
+
             step_layers = start.intermediatejson7_set.all().order_by('-date_edited').reverse()   
             inter_proj = project_meter2degree(layer = step_layers,num = number,offset = int(step_index))
             road_proj = projectRd_meter2degree(layer = step_layers,num = number,offset = int(step_index))
