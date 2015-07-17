@@ -7,17 +7,18 @@ from reblock.reblock_helpers import *
 
 import topology.my_graph as mg
 import topology.my_graph_helpers as mgh
-
 from reblock.forms import *
 
 app = Celery('tasks', broker='amqp://guest@localhost//')
 
-
-"""
-rewrite topology, using linestring list as input, save data to the database
-"""
 @app.task
 def run_topology(lst, name=None, user = None, scale_factor=1, data=None, indices=None):
+    '''
+    Rewrite topology, using linestring list as input, save data to the database
+    Celery task: run_topology, calculates and save jsons in the database and notifies user when the calculation is done
+    In: lst : list of linestrings
+    Out: jsons : all parcels, roads, interior parcels
+    '''
     upload = UploadEvent.objects.filter(user=user).order_by('-date')[0]
     start = StartSign2(name=name, upload = upload, author = user)
     start.save()

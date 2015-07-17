@@ -5,7 +5,6 @@ from django.contrib import admin
 from django.contrib.auth.views import login, logout
 admin.autodiscover()
 
-
 interurls = [url(r'^$', 'reblock.views.intermediate'),
              url(r'^(?P<index>[0-9]+)/$', 'reblock.views.steps'),
 ]
@@ -21,7 +20,6 @@ interurls2 = [url(r'^$', 'reblock.views.compute'),
 interurls4 = [url(r'^$', 'reblock.views.recent'),
 
 ]
-
 
 urlpatterns = patterns('',
 
@@ -51,8 +49,6 @@ urlpatterns = patterns('',
     (r'^reblock/recent_index/$', 'reblock.views.recent_index'),
     (r'^reblock/profile_index/$', 'reblock.views.profile_index'),
     (r'^reblock/download', 'reblock.views.download'),
-
-    
 
     # Login / logout.
     (r'^login/$', login, {'template_name': 'registration/login.html'}),
