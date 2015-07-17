@@ -72,3 +72,6 @@ python manage.py runserver 0.0.0.0:8000
 ## Troubleshooting
 
 If you see an error like `django.contrib.gis.geos.error.GEOSException: Could not parse version info string "3.4.2-CAPI-1.8.2 r3921"`, you'll need to manually patch `venv/lib/python2.7/site-packages/django/contrib/gis/geos/libgeos.py` per http://stackoverflow.com/questions/18643998/geodjango-geosexception-error
+
+## Deploying to the server
+The server is running 'RedHat6.08'. RedHat6 is running 'Python 2.6.6'. The app and libraries were not installed on a 'virtualenv', so we are running 'Python 2.6' instead of 'Python 2.7'.
