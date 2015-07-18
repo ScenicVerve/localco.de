@@ -159,7 +159,7 @@ var bt3stri = '<form action='+bt3_link+' id = "removebt3"><input type="submit" v
 
 //prepare download button for zipped file
 data = {path : zippath}
-var zipstr = "<form id = 'removezip' action = '/reblock/download?"+$.param(data)+"' method='POST'><div><input type='submit' value='download'></div>{% csrf_token %}</form>"
+var zipstr = "<form id = 'removezip' action = '/reblock/download?"+$.param(data)+"' method='POST'><div><input type='submit' value='Download shp'></div>{% csrf_token %}</form>"
 
 //add download links to buttons
 $("#bt1").append(bt1stri);
