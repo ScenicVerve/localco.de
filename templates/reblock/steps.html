@@ -120,7 +120,7 @@ var inter = 3000;//time interval to reload
 var refreshID = null;//setinterval object
 var slider_A = '<form id="reservation"><label for="minbeds">Step Selected</label><select name="minbeds" id="minbeds">'
 var slider_B = '</select></form>'
-var refreshID = setInterval(function(){update();},inter);
+var refreshID = setInterval(function(){update();},inter);//reload function
 var steps = null;//the total intermediate steps
 
 var update = function(){
@@ -130,19 +130,26 @@ var update = function(){
 }
 
 function reloadall(){
-//get the final computation result
+//query the final computation result
 $.getJSON("/reblock/reload/", {pr_id: "{{project_id}}"}, function(json){
+//remove previous markers
 for(var i=0;i<marker.length;i++) {
     map.removeLayer(marker[i]);
     }
 marker = new Array();
+//load new geojson
 loadmap(json["ori"],json["rd"], json["int"]);
+//load total steps amount
 steps = json["stepnumber"]+1;
+//load zipped path for shapefiles
 var zippath = json["zip"];
+
+//process geojson for download
 var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
 var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
 var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
 
+//prepare download button for geojsons
 var bt1_link= '"data:' + innerdata + '" download="data.json"'
 var bt1stri = '<form action='+bt1_link+' id = "removebt1"><input type="submit" value="Interial parcels"></form>'
 var bt2_link= '"data:' + oridata + '" download="data.json"'
@@ -150,28 +157,31 @@ var bt2stri = '<form action='+bt2_link+' id = "removebt2"><input type="submit" v
 var bt3_link= '"data:' + rddata + '" download="data.json"'
 var bt3stri = '<form action='+bt3_link+' id = "removebt3"><input type="submit" value="Roads"></form>'
 
+//prepare download button for zipped file
 data = {path : zippath}
 var zipstr = "<form id = 'removezip' action = '/reblock/download?"+$.param(data)+"' method='POST'><div><input type='submit' value='download'></div>{% csrf_token %}</form>"
 
+//add download links to buttons
 $("#bt1").append(bt1stri);
 $("#bt2").append(bt2stri);
 $("#bt3").append(bt3stri);
 $("#zipbt").append(zipstr);
     
 //function for sliders, remove previous, and update option according to steps
+//everytime the slider condition is changed, will remove old marker and add new one according to the step sent to query
         $(function() {
     $( "#minbeds" ).remove();
+    
+    //slider string created, will update slider's option number
     var slider = slider_A;
     for (var i = 0;i<steps.valueOf();i++){
     slider += '<option>' + i + '</option>';
 }
     slider += slider_B;
-    console.log(slider);
-    
     $("#update3").append(slider);
-      
+    
+    
     var select = $( "#minbeds" );
-
     var slider = $( "<div id='slider'></div>" ).insertAfter( select ).slider({
       min: 1,
       max: steps,
@@ -179,6 +189,7 @@ $("#zipbt").append(zipstr);
       value: select[ 0 ].selectedIndex + 1,
       slide: function( event, ui ) {
         select[ 0 ].selectedIndex = ui.value - 1;
+        //update the geojson overlay on the map
         checkstep(select[ 0 ].selectedIndex);
       }
     });
@@ -191,7 +202,7 @@ $("#zipbt").append(zipstr);
 }
 
 function checkstep(step_index){
-    //load the specific step geojson
+    //query the specific step geojson
     $.getJSON("/reblock/check_step/", {pr_id: "{{project_id}}", step: step_index}, function(json){
 for(var i=0;i<marker.length;i++) {
     map.removeLayer(marker[i]);
@@ -206,7 +217,7 @@ $("#removebt2").remove();
 $("#removebt3").remove();
 $("#removezip").remove();
 
-
+//download buttons for geojson
 var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
 var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
 var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
@@ -226,8 +237,7 @@ $("#bt3").append(bt3stri);
 
 
 function reloadstep(){
-
-//query the latest intermediate step
+//query the latest intermediate step geojson
 //if the calculation is done, will call the reloadall function
     $.getJSON("/reblock/reload_step/", {pr_id: "{{project_id}}"}, function(json){
     if (json["start"]){
@@ -248,12 +258,12 @@ function reloadstep(){
         setup = 0;
 }
             
-            if (json["finish"] ){
+            if (json["finish"] ){//calculation is finished, will call reloadall function for the final result
         clearInterval(refreshID);
         reloadall();
         
 
-    }else{
+    }else{//calculation is not done, will call loadmap function for latest calculation status
         for(var i=0;i<marker.length;i++) {
     map.removeLayer(marker[i]);
     }   
