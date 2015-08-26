@@ -1,5 +1,5 @@
 django==1.4
-psycopg2==2.4.5
+psycopg2>=2.6.1
 celery==3.1.8
 django-celery==3.1.16
 markdown2==2.0.1
