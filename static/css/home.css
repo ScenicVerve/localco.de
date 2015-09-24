@@ -28,7 +28,7 @@ a:hover {
   color: #0000ff;
 }
 body {
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 24px;
   color: #000000;
@@ -44,28 +44,54 @@ p {
   padding-left: 24px;
   padding-right: 24px;
 }
-#container {
-  margin: 0 auto;
-  width: 960px;
+p {
+  margin-bottom: 24px;
+}
+#content {
+  width: 75%;
+  margin: 0 12.5%;
 }
 #header {
-  padding-top: 72px;
-  padding-left: 24px;
-  height: 48px;
   width: 100%;
+  margin-top: 100px;
+  background-color: #ef8800;
+  color: #ffffff;
 }
-#pagetitle {
-  font-weight: bold;
-  font-size: 24px;
+#header a:link,
+#header a:visited,
+#header a:hover,
+#header a:focus,
+#header a:active {
+  color: #ffffff;
+}
+#header-content {
+  width: 75%;
+  height: 75px;
+  margin: 0 12.5%;
+}
+#header-content .header-title {
+  display: inline-block;
+  position: relative;
+  top: -0.14em;
+  max-width: 6em;
+  line-height: 0.85em;
+  font-weight: 500;
+  font-size: 50px;
 }
 #nav {
-  height: 48px;
-  width: 100%;
-  border-top: 1px solid #cccccc;
-  border-bottom: 1px solid #cccccc;
+  position: relative;
+  display: inline-block;
+  font-size: 26px;
+  top: 0.6em;
+  font-weight: 200;
+  float: right;
 }
 #nav li {
+  display: inline-block;
   list-style-type: none;
+}
+#nav li:not(:first-child) {
+  border-left: solid 2px #ffffff;
 }
 #nav a {
   text-decoration: none;
@@ -74,9 +100,8 @@ p {
 .sitenav {
   padding-left: 24px;
   padding-right: 24px;
-  padding-top: 12px;
-  padding-bottom: 12px;
-  float: left;
+  padding-top: 10.66666667px;
+  padding-bottom: 10.66666667px;
 }
 .sitenav:hover {
   color: #fcfcfc;
@@ -98,10 +123,3 @@ p {
   margin-left: 12px;
   margin-right: 12px;
 }
-p {
-  padding-left: 24px;
-  padding-right: 24px;
-  margin-bottom: 24px;
-}
-
-
