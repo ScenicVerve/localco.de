@@ -15,73 +15,32 @@
   overflow: auto;
   height: 600px;
 }
-
-.layerlist_column {
-    width: 25%;
-    height: auto;
-    #background-color: #CBCBCB;
-    float: left;
-    line-height: 150%;
-   
-}
-
-.layerlist_row {
-    height: 25px;
-    width: 100%;
-    float: left;
-    margin-bottom: 8px;
-    #background-color: #999;
-   
-}
-
-.sitelist_column {
-    width: 50%;
-    height: auto;
-    #background-color: #CBCBCB;
-    float: left;
-    line-height: 150%;
-   
-}
-
-.sitelist_row {
-    height: 15px;
-    width: 100%;
-    float: left;
-    margin-bottom: 8px;
-    #background-color: #999;
-   
-}
-
+/*
+//  moved button styles to home.less
 button {
-  background-color: #eeeeee;
-  border: 2px solid #aaaaaa;
+  background-color: @lightgray;
+  border: 2px solid @darkishgray;
   border-radius: 5px;
-  /*-moz-box-shadow: -1px -1px 0px #aaa;*/
-
-  /*-webkit-box-shadow: -1px -1px 0px #aaa;*/
-
-  /*box-shadow: -1px -1px 0px #aaa;*/
-
+  // -moz-box-shadow: -1px -1px 0px #aaa;
+  // -webkit-box-shadow: -1px -1px 0px #aaa;
+  // box-shadow: -1px -1px 0px #aaa;
+  
 }
 button:hover {
   background-color: #ddd;
   border: 2px solid #888;
-  /*-moz-box-shadow: 0 0 2px #E80070;*/
-
-  /*-webkit-box-shadow: 0 0 2px #E80070;*/
-
-  /*box-shadow: 0 0 2px #E80070;*/
-
+  // -moz-box-shadow: 0 0 2px #E80070;
+  // -webkit-box-shadow: 0 0 2px #E80070;
+  // box-shadow: 0 0 2px #E80070;
 }
 button:active {
-  /*color: #FF0060;*/
-
-  /*border: 2px solid #FF0060;*/
-
+  // color: #FF0060;
+  // border: 2px solid #FF0060;
   color: #000;
   border: 2px solid #000;
   background-color: #aaa;
 }
+*/
 .layerset {
   background-color: #cccccc;
 }
@@ -98,5 +57,3 @@ button:active {
 .layerset .layerblock .layernotes {
   overflow: auto;
 }
-
-

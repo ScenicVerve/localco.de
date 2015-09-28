@@ -8,14 +8,6 @@ a, a:active, a:visited, {
 	color: @links;
 }
 
-/*hover style*/
-a:hover, .headernav:hover, .navitem:hover {
-	background-color: @text;
-}
-a:hover {
-	color: @hilite;
-}
-
 body {
 	font-family: @sans;
 	font-size: @char;
@@ -31,13 +23,17 @@ p {
 #content {
 	width: 75%;
 	margin: 0 12.5%;
+	padding-top: 100px;
+
+	color: @dark-text;
+	font-weight: 300;
 }
 
 #header {
 	width: 100%;
 	margin-top: 100px;
 
-	background-color: rgb(239,136,0);
+	background-color: @orange;
 	color: rgb(255,255,255);
 
 	a {
@@ -96,8 +92,8 @@ p {
 	.ypad(2.25);
 }
 .sitenav:hover {
-	color: @back;
-	background-color: @text;
+	color: @orange;
+	background-color: @white;
 }
 
 #content {
@@ -113,4 +109,87 @@ p {
 	float: left;
 	width: @col;
 	.guttermargins;
+}
+
+.inline-dialog {
+	h2 {
+		font-size: 32px;
+		font-weight: bold;
+		padding-left: 0;
+		padding-bottom: 32px;
+	}
+
+	.dialog-body {
+		display: block;
+		box-sizing: border-box;
+		max-width: 460px;
+		border-radius: 20px;
+		box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.15);
+		padding: 36px;
+
+		background: @white;
+	}
+
+	label {
+		display: block;
+		font-size: 24px;
+		color: @med-text;
+		padding-bottom: 8px;
+		margin-top: 32px;
+
+		&:first-of-type {
+			margin-top: 0;
+		}
+	}
+
+	input {
+		width: 100%;
+		height: 55px;
+		border-radius: 6px;
+		border: none;
+		background-color: @input-grey;
+	}
+
+	button {
+		width: 48%;
+		height: 40px;
+		margin-top: 32px;
+		&:not(:first-of-type) {
+			margin-left: 3%;
+		}
+	}
+}
+
+.login-form {
+	a {
+		display: block;
+		margin-top: 16px;
+		font-size: 20px;
+		color: @light-text;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+
+}
+
+button {
+	box-sizing: border-box;
+
+	font-size: 24px;
+	font-weight: 300;
+	color: @light-text;
+	background-color: rgb(255, 255, 255);
+
+	border: 2px rgb(216, 216, 216) solid;
+	border-radius: 6px;
+	box-shadow: inset 0px 0px 10px 0px rgba(0,0,0,0.15);
+
+	&.confirm {
+		background-color: rgb(101, 216, 80);
+		border-color: rgb(239, 239, 239);
+		color: @white;
+		box-shadow: none;
+	}
 }
