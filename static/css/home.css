@@ -226,3 +226,14 @@ a.button.confirm {
 #map {
   box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
 }
+#fileuploader ul {
+  margin: 0 0 24px 24px;
+  font-size: 24px;
+}
+.shp_upload input {
+  height: auto;
+  font-size: 18px;
+  padding-left: 0;
+  margin-bottom: 0;
+  background-color: transparent;
+}

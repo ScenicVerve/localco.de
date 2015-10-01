@@ -7,40 +7,33 @@
 {% endblock %}
 
 {% block css %}
-        <link rel="stylesheet" href="{% get_static_prefix %}css/home.css" type="text/css"/>
+	<link rel="stylesheet" href="{% get_static_prefix %}css/home.css" type="text/css"/>
 {% endblock %}
 
-    {% block header %}
-    <a href="/reblock/">
+{% block nav %}
+  <ul>
+    <li><a href="/reblock/upload"><div class="sitenav">Upload Data</div></a></li><!--
+    --><li><a href="/reblock/profile"><div class="sitenav">Profile</div></a></li><!--
+    --><li><a href="/login"><div class="sitenav">Login</div></a></li>
 
-      <div id="pagetitle">
-        Open Reblock
-      </div>
-      </a>
+    <!--
+    <li><a href="/about"><div class="sitenav">About</div></a></li>
+    <li><a href="/tools"><div class="sitenav">Download Tools</div></a></li>
+    <li><a href="/reblock/register"><div class="sitenav">Register</div></a></li>
+    <li><a href="/reblock/forgot_password"><div class="sitenav">Forgot Password</div></a></li>
+    <li><a href="/logout"><div class="sitenav">Logout</div></a></li>
+ 	-->
+  </ul>
+{% endblock %}
 
-    {% endblock %}
-
-    {% block nav %}
-          <ul>
-            <!--<li><a href="/about"><div class="sitenav">About</div></a></li>
-            <li><a href="/tools"><div class="sitenav">Download Tools</div></a></li>-->
-            <li><a href="/reblock/upload"><div class="sitenav">Upload Data</div></a></li>
-            <li><a href="/reblock/profile"><div class="sitenav">Profile</div></a></li>
-            <li><a href="/reblock/register"><div class="sitenav">Register</div></a></li>
-            <li><a href="/login"><div class="sitenav">Login</div></a></li>
-            <li><a href="/reblock/forgot_password"><div class="sitenav">Forgot Password</div></a></li>
-            <li><a href="/logout"><div class="sitenav">Logout</div></a></li>
-          </ul>
-    {% endblock %}
-
-    {% block content %}
-                <div class="col">
-                  {% textbit "about" %}
-              </div>
-                <div class="col">
-                  {% textbit "instructions" %}
-              </div>
-    {% endblock %}
+{% block content %}
+	<div class="col">
+		{% textbit "about" %}
+	</div>
+	<div class="col">
+		{% textbit "instructions" %}
+	</div>
+{% endblock %}
 
 {% block scripts %}
 {% endblock %}

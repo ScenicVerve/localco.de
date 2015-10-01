@@ -2,57 +2,47 @@
 {% load webdesign %}
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Open Reblock{% endblock %}</title>
-        {% block jslibs %}
-        <!--javascript libraries here-->
-        {% endblock %}
-        <link rel="stylesheet" href="{% get_static_prefix %}css/basics.css" type="text/css"/>
-        {% block css %}
-        <!--additional css sheets here-->
-        {% endblock %}
-    </head>
-    <body>
-        <div id="container">
-            {% block body %}
-                <div id="header">
-                {% block header %}
-                    <div id="pagetitle">
-                        Open Reblock
-                    </div>
-                {% endblock %}
-                </div>
-                <div id="nav">
-                {% block nav %}
-                    nav1 <br />
-                    nav2 <br />
-                {% endblock %}
-                </div>
-                
-                
-                <div id="content">
-                    
-                    
-                {% block content %}
-                <p>Hello, and welcome to Open Reblock.</p>
-                {% lorem 3 p %}
-                {% endblock %}
-                
-                
-                </div>
-                
-                
-            {% endblock %}
-        </div>
-            {% block scripts %}
-            <!--scripts can go here-->
-            {% endblock %}
-    </body>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>{% block title %}Open Reblock{% endblock %}</title>
+		{% block jslibs %}
+		<!--javascript libraries here-->
+		{% endblock %}
+		<link rel="stylesheet" href="{% get_static_prefix %}css/basics.css" type="text/css"/>
+		{% block css %}
+		<!--additional css sheets here-->
+		{% endblock %}
+	</head>
+
+	<body>
+		<div id="header">
+			<div id="header-content">
+				<a href="/reblock/" class="header-title">Open Reblock</a>
+
+				<div id="nav">
+					{% block nav %}
+						nav1 <br />
+						nav2 <br />
+					{% endblock %}
+				</div>
+			</div>
+		</div>
+
+		<div id="container">
+			{% block body %}
+				<div id="content">
+					{% block content %}
+						<p>Hello, and welcome to Open Reblock.</p>
+						{% lorem 3 p %}
+					{% endblock %}
+				</div>
+			{% endblock %}
+		</div>
+
+		{% block scripts %}
+		<!--scripts can go here-->
+		{% endblock %}
+	</body>
+
 </html>
-
-
-
-
-
-

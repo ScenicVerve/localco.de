@@ -6,35 +6,45 @@
 {% endblock %}
 
 {% block subtitle %}
-    Upload Data Layers
+	Upload Data Layers
 {% endblock %}
 
 {% block layernavs %}
 {% endblock %}
 
 {% block content %}
-  
-              <form id="fileuploader" action="/reblock/upload/" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ formset.management_form }}
-                <p>Every SHP file must be compressed in a zip file. The zip file should include these files:
-                  <br/>.dbf file
-                  <br/>.shp file
-                  <br/>.shx file
-                  <br/>Make sure your SHP file doesn't include a .shp.xml file.
-                </p>
-                <input type="submit" value="Upload File" />
-                  {% for form in formset %}
-                  <div class="shp_upload">
-                    {{ form.as_p }}
-                  </div>
-                  {% endfor %}
-                </table>
-              </form>
+	
+	<div class="inline-dialog">
+		<h2>Upload Data Layers</h2>
+		<form id="fileuploader" action="/reblock/upload/" method="POST" enctype="multipart/form-data" class="dialog-body">
+			{% csrf_token %}
+			{{ formset.management_form }}
+			<p>
+				Every SHP file must be compressed in a zip file. The zip file should include these files:
+			</p>
+			<ul>
+				<li>.dbf file</li>
+				<li>.shp file</li>
+				<li>.shx file</li>
+			</ul>
+			<p>
+				Make sure your SHP file doesn't include a .shp.xml file.
+			</p>
+
+			{% for form in formset %}
+				<div class="shp_upload">
+					{{ form.as_p }}
+				</div>
+			{% endfor %}
+			<!-- <input type="submit" value="Upload File" /> -->
+			<button type="submit" value="Upload File" class="confirm">Upload File</button>
+		</form>
+	</div>
+
 {% endblock %}
 
 {% block scripts %}
-  <script type="text/javascript" src="{% get_static_prefix %}js/jquery-1.6.2.min.js"></script>
-  <script type="text/javascript" src="{% get_static_prefix %}js/jquery-ui-1.8.16.custom.min.js"></script>
-  <script type="text/javascript" src="{% get_static_prefix %}js/loadPage.js"></script>
+	<script type="text/javascript" src="{% get_static_prefix %}js/jquery-1.6.2.min.js"></script>
+	<script type="text/javascript" src="{% get_static_prefix %}js/jquery-ui-1.8.16.custom.min.js"></script>
+	<script type="text/javascript" src="{% get_static_prefix %}js/loadPage.js"></script>
 {% endblock %}

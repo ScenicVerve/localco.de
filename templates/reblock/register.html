@@ -12,50 +12,30 @@
 
 {% block content %}
 
-		{% if user_form.errors %}
-			<p>Your passwords didn't match. Please try again.</p>
-		{% endif %}
-		
-		<form method="post" action=".">
-		<table>		
-					{% csrf_token %}
+	{% if user_form.errors %}
+		<p>Your passwords didn't match. Please try again.</p>
+	{% endif %}
 
-		<tr>
-				<th>User Information</th>
-		</tr>
-		<tr>
-				<td><label for="id_username">Username:</label></td>
-				<td>{{ user_form.username }}</td>
-		</tr>	
-		<tr>
-				<td><label for="id_email">E-mail:</label></td>
-				<td>{{ user_form.email }}</td>
-				
-		</tr>	
-		<tr>
-				<td><label for="id_password1">Password:</label></td>
-				<td>{{ user_form.password1 }}</td>
-				
-				
-		</tr>	
-		<tr>
-				<td><label for="id_password2">Confirm Password:</label></td>
-				<td>{{ user_form.password2 }}</td>					
-				
-		</tr>	
-		</table> 
-<!--		<input type="hidden" name="next" value="/" />
-		<input type="submit" value="login" />
-		-->
-		
-		</p>
-		{% if next %}
-		  <input type="hidden" name="username" value="{{ register }}" />
-		{% else %}
-		  <button type="submit" name="next" value="/reblock/" />register</button>
-		{% endif %}
-		
+	<div class="inline-dialog">
+		<h2>Password Reset</h2>
+		<form method="post" action="." class="dialog-body">
+			{% csrf_token %}
+			<label for="id_username">Username</label>
+			{{ user_form.username }}
+			<label for="id_email">Email</label>
+			{{ user_form.email }}
+			<label for="id_password1">Password</label>
+			{{ user_form.password1 }}
+			<label for="id_password2">Confirm Password</label>
+			{{ user_form.password2 }}
+
+			{% if next %}
+				<input type="hidden" name="username" value="{{ register }}" />
+			{% else %}
+				<button type="submit" name="next" value="/reblock/">Register</button>
+			{% endif %}
 		</form>
+	</div>
 
 {% endblock %}
 
