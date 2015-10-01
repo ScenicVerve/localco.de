@@ -125,9 +125,11 @@ p {
 }
 
 .inline-dialog {
+	display: inline-block;
+
 	h2 {
 		padding-left: 0;
-		padding-bottom: 32px;
+		margin-bottom: 32px;
 	}
 
 	.dialog-body {
@@ -148,9 +150,8 @@ p {
 		padding-bottom: 8px;
 	}
 
-	input {
+	input, textarea {
 		width: 100%;
-		height: 55px;
 		box-sizing: border-box;
 
 		color: @dark-text;
@@ -167,12 +168,24 @@ p {
 			border: 2px @red solid;
 		}
 	}
+	input {
+		height: 55px;
+	}
+	textarea {
+		resize: none;
+		height: 140px;
+	}
 
 	button,
 	.button {
 		width: 100%;
 		height: 40px;
 		margin-top: 16px;
+	}
+
+	textarea + button,
+	textarea + .button {
+		margin-top: 0;
 	}
 }
 
@@ -225,4 +238,14 @@ a.button {
 	text-align: center;
 	vertical-align: bottom;
 	padding-top: 5px;
+}
+
+.map-container {
+	display: inline-block;
+	margin-left: 36px;
+	vertical-align: top;
+	padding-top: 56px;
+}
+#map {
+	box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.15);
 }
