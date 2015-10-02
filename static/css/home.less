@@ -246,8 +246,9 @@ a.button {
 	vertical-align: top;
 	padding-top: 56px;
 }
-#map {
+.map {
 	box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.15);
+	margin: 0 24px 24px 0;
 }
 
 #fileuploader {
@@ -265,4 +266,46 @@ a.button {
 		margin-bottom: 0;
 		background-color: transparent;
 	}
+}
+
+.project-container {
+	display: inline-block;
+	width: @project-width;
+	margin: 0 30px 0 0;
+}
+
+.project {
+	color: @dark-text;
+	font-weight: 300;
+
+	a {
+		&:link,
+		&:visited,
+		&:hover,
+		&:focus,
+		&:active {
+			color: @dark-text;
+		}
+	}
+
+	h2 {
+		font-weight: 300;
+		margin-bottom: 8px;
+	}
+
+	h3 {
+		font-weight: 300;
+		font-size: 18px;
+		font-style: italic;
+		margin-bottom: 18px;
+	}
+
+	#update & .project-description {
+		font-weight: 300;
+		font-size: 18px;
+		color: @light-text;
+		max-height: 75px;
+		overflow: hidden;
+	}
+
 }

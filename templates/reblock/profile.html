@@ -1,129 +1,129 @@
 {% extends 'home-index.html' %}
 
-{% block content %}
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block css %}
+	{{ block.super }}
 	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-<h1 id="name"></h1>
-<p>
-<p>
-<p>
-<p>
-<p> 
+{% endblock %}
 
-<center>
-<div id = 'update'>
-</div>
-
-<body>
-    <form id = "loadmore" style="clear:both;">
-        <input type="button" value="Load More...">
-    </form>
-</body>
-</center>
+{% block content %}
+	<div>
+		<div id="update"></div>
+		<form id="loadmore" style="clear:both;">
+			<input type="button" value="Load More...">
+		</form>
+	</div>
 {% endblock %}
 
 
 {% block scripts %}
- <script type='text/javascript'>
-var currentNum = 3;//current number of loaded map
-var loadnum = 3;//number of project to load each time
-var totalNum = {{ allnum|safe }};//project amount in total
-var testjson = {{ lstjson|safe }};//geojson of each project
-var testprj = {{ lstprjname|safe }};//project name of each project
-var testloc = {{ lstlocation|safe }};//location of each project
+<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+<script type='text/javascript'>
+	var currentNum = 3;//current number of loaded map
+	var loadnum = 3;//number of project to load each time
+	var totalNum = {{ allnum|safe }};//project amount in total
+	var testjson = {{ lstjson|safe }};//geojson of each project
+	var testprj = {{ lstprjname|safe }};//project name of each project
+	var testloc = {{ lstlocation|safe }};//location of each project
 
-var test = {{ lstlink|safe }};//link to each projects
-var name = "{{ username|safe }}";//username
-var testde = {{ lstdes|safe }};//description for each project
+	var test = {{ lstlink|safe }};//link to each projects
+	var name = "{{ username|safe }}";//username
+	var testde = {{ lstdes|safe }};//description for each project
 
-function addmap(index, json){
-var map = L.map('map'+index);
-            L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+	function addmap(index, json){
+		var map = L.map('map'+index);
+		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
 			maxZoom: 18,
 			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
 				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
 				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
 			id: 'examples.map-20v6611k'
 		}).addTo(map);
-            
-            var mygeo = L.geoJson(json, {
-            weight: 1,
-            color: "#2F4F4F",
-            opacity: 1,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.4
+				
+		var mygeo = L.geoJson(json, {
+				weight: 1,
+				color: "#2F4F4F",
+				opacity: 1,
+				fillColor: "#B0DE5C",
+				fillOpacity: 0.4
+			});
+		map.fitBounds(mygeo.getBounds());
+		mygeo.addTo(map);   
+	}
+			
+	function mapframe(index){
+		frame = '<a id="'+index+'" class="project-container">' +
+					'<div style="width:400px; height:400px;" id="map'+index+'" class="map"></div>' +
+					'<div id="prj'+index+'" class="project">' +
+						'<h2 class="project-title"></h2>' +
+						'<h3 class="project-location"></h3>' +
+						'<p class="project-description"></p>' +
+					'</div>' +
+				'</a>';
+		return frame;
+	}
+			
+	if (totalNum>3){//have enough projects to load
+		for (var i=0;i<3;i++){//just load 3 latest one
+			$("#update").append(mapframe(i));
+			addmap((i).toString(), testjson[i]);	
+			
+			a = document.getElementById(String(i));
+			a.setAttribute("href", test[i]);
+			var prjEl = document.getElementById("prj"+String(i));
+			prjEl.getElementsByTagName("h2")[0].innerHTML = testprj[i];
+			prjEl.getElementsByTagName("h3")[0].innerHTML = testloc[i];
+			prjEl.getElementsByTagName("p")[0].innerHTML = testde[i];
+		}
+	} else {//load all projects
+		for (var i=0;i<totalNum;i++){
+			$("#update").append(mapframe(i));
+			addmap((i).toString(), testjson[i]);   
+			
+			a = document.getElementById(String(i));
+			a.setAttribute("href", test[i]);
+			document.getElementById("prj"+String(i)).innerHTML = testprj[i];
+	 
+		}
+	}
+	document.getElementById("name").innerHTML = name + " 's profile page";
+
+	$(document).ready(function(){
+		$("#loadmore").click(function(){
+			var toload = null;//the number to load after "loadmore" pressed
+			if (currentNum<totalNum-3){//if there will be 3 new projects to load
+				toload = 3;
+			 }else{
+				toload = totalNum-currentNum;
+			 }
+		
+	//query database for more projects
+		$.getJSON("/reblock/profile_index/", {index: (currentNum), loadnum : toload}, function(json){
+		
+		var listjson = json["lstjson"];
+		var links = JSON.parse(json["lstlink"]);
+		var prjnames = JSON.parse(json["lstprjname"]);
+		var locations = json["lstlocation"];
+		var des = json["lstdes"];
+		
+	var jsondata = JSON.parse(listjson);
+		
+		for (var i=0;i<loadnum;i++){
+		$("#update").append(mapframe(currentNum+i));
+		addmap((currentNum+i).toString(), jsondata[i]);
+		
+	a = document.getElementById(String(currentNum+i));
+	a.setAttribute("href", links[i]);
+	document.getElementById("prj"+String(currentNum+i)).innerHTML = prjnames[i];
+
+		}
+			currentNum +=loadnum;
+
+	  });
 
 		});
-         map.fitBounds(mygeo.getBounds());
-        mygeo.addTo(map);   
-        }
-        
-                function mapframe(index){
-            frame = '<a  style = "float:left;margin: 0 0 10px 10px;" id = "'+index+'"><div style="width:300px; height:300px;" id="map'+index+'" class="map" ></div><div id = "prj'+index+'"> </div></a>';
-            return frame;
-        }
-        
-                if (totalNum>3){//have enough projects to load
-            for (var i=0;i<3;i++){//just load 3 latest one
-        $("#update").append(mapframe(i));
-        addmap((i).toString(), testjson[i]);    
-        
-a = document.getElementById(String(i));
-a.setAttribute("href", test[i]);
-document.getElementById("prj"+String(i)).innerHTML = testprj[i];
-}
-    }else{//load all projects
-        for (var i=0;i<totalNum;i++){
-        $("#update").append(mapframe(i));
-        addmap((i).toString(), testjson[i]);   
-        
-a = document.getElementById(String(i));
-a.setAttribute("href", test[i]);
-document.getElementById("prj"+String(i)).innerHTML = testprj[i];
- 
-        }
-    }
-document.getElementById("name").innerHTML = name + " 's profile page";
+	});
 
-$(document).ready(function(){
-    $("#loadmore").click(function(){
-        var toload = null;//the number to load after "loadmore" pressed
-        if (currentNum<totalNum-3){//if there will be 3 new projects to load
-            toload = 3;
-         }else{
-            toload = totalNum-currentNum;
-         }
-    
-//query database for more projects
-    $.getJSON("/reblock/profile_index/", {index: (currentNum), loadnum : toload}, function(json){
-    
-    var listjson = json["lstjson"];
-    var links = JSON.parse(json["lstlink"]);
-    var prjnames = JSON.parse(json["lstprjname"]);
-    var locations = json["lstlocation"];
-    var des = json["lstdes"];
-    
-var jsondata = JSON.parse(listjson);
-    
-    for (var i=0;i<loadnum;i++){
-    $("#update").append(mapframe(currentNum+i));
-    addmap((currentNum+i).toString(), jsondata[i]);
-    
-a = document.getElementById(String(currentNum+i));
-a.setAttribute("href", links[i]);
-document.getElementById("prj"+String(currentNum+i)).innerHTML = prjnames[i];
-
-    }
-        currentNum +=loadnum;
-
-  });
-
-    });
-});
-
-	</script>
+</script>
 
 {% endblock %}
