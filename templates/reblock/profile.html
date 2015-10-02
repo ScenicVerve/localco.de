@@ -27,7 +27,7 @@
 	var testprj = {{ lstprjname|safe }};//project name of each project
 	var testloc = {{ lstlocation|safe }};//location of each project
 
-	var test = {{ lstlink|safe }};//link to each projects
+	var test = ({{ lstlink|safe }} || '#');//link to each projects
 	var name = "{{ username|safe }}";//username
 	var testde = {{ lstdes|safe }};//description for each project
 
