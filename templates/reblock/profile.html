@@ -83,7 +83,10 @@
 			
 			a = document.getElementById(String(i));
 			a.setAttribute("href", test[i]);
-			document.getElementById("prj"+String(i)).innerHTML = testprj[i];
+			var prjEl = document.getElementById("prj"+String(i));
+			prjEl.getElementsByTagName("h2")[0].innerHTML = testprj[i];
+			prjEl.getElementsByTagName("h3")[0].innerHTML = testloc[i];
+			prjEl.getElementsByTagName("p")[0].innerHTML = testde[i];
 	 
 		}
 	}
