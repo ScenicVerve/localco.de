@@ -8,9 +8,9 @@
 {% block content %}
 	<div>
 		<div id="update"></div>
-		<form id="loadmore" style="clear:both;">
-			<input type="button" value="Load More...">
-		</form>
+		<div class="footer">
+			<a class="button alone" href="/reblock/upload/">Load More</a>
+		</div>
 	</div>
 {% endblock %}
 
@@ -71,9 +71,9 @@
 			a = document.getElementById(String(i));
 			a.setAttribute("href", test[i]);
 			var prjEl = document.getElementById("prj"+String(i));
-			prjEl.getElementsByTagName("h2")[0].innerHTML = testprj[i];
-			prjEl.getElementsByTagName("h3")[0].innerHTML = testloc[i];
-			prjEl.getElementsByTagName("p")[0].innerHTML = testde[i];
+			prjEl.getElementsByTagName("h2")[0].innerHTML = "Cape Flats";//testprj[i];
+			prjEl.getElementsByTagName("h3")[0].innerHTML = "Cape Town, South Africa";//testloc[i];
+			prjEl.getElementsByTagName("p")[0].innerHTML = "You little ripper stickybeak how lets throw a top end. You little ripper rotten when shazza got us some fly wire. Grab us a khe sanh when get a dog up ya bail out. It'll be strides to get a dog up ya cockie. She'll be right freckle bloody get a dog up ya swag. Come a corker my trent from punchy boogie board. Grab us a bundy how he's got a massive bog standard. Stands out like a ropeable also as cunning as a wuss. Built like a boogie board to flat out like a offsider. He's got a massive gobsmacked as stands out like greenie.";//testde[i];
 		}
 	} else {//load all projects
 		for (var i=0;i<totalNum;i++){

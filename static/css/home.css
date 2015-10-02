@@ -217,6 +217,11 @@ a.button.confirm {
   vertical-align: bottom;
   padding-top: 5px;
 }
+.button.alone {
+  padding-left: 18px;
+  padding-right: 18px;
+  padding-bottom: 6px;
+}
 .map-container {
   display: inline-block;
   margin-left: 36px;
@@ -271,4 +276,8 @@ a.button.confirm {
   color: #909090;
   max-height: 75px;
   overflow: hidden;
+}
+.footer {
+  text-align: center;
+  margin-bottom: 72px;
 }
