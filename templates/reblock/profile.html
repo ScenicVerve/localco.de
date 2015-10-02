@@ -10,7 +10,7 @@
 		<h2>Your Uploads</h2>
 		<div id="update"></div>
 		<div class="footer">
-			<a class="button alone" href="/reblock/upload/">Load More</a>
+			<button id="loadmore" class="alone">Load More</a>
 		</div>
 	</div>
 {% endblock %}
@@ -93,34 +93,36 @@
 			var toload = null;//the number to load after "loadmore" pressed
 			if (currentNum<totalNum-3){//if there will be 3 new projects to load
 				toload = 3;
-			 }else{
+			 } else {
 				toload = totalNum-currentNum;
 			 }
 		
-	//query database for more projects
-		$.getJSON("/reblock/profile_index/", {index: (currentNum), loadnum : toload}, function(json){
+			//query database for more projects
+			$.getJSON("/reblock/profile_index/", {index: (currentNum), loadnum : toload}, function(json){
 		
-		var listjson = json["lstjson"];
-		var links = JSON.parse(json["lstlink"]);
-		var prjnames = JSON.parse(json["lstprjname"]);
-		var locations = json["lstlocation"];
-		var des = json["lstdes"];
-		
-	var jsondata = JSON.parse(listjson);
-		
-		for (var i=0;i<loadnum;i++){
-		$("#update").append(mapframe(currentNum+i));
-		addmap((currentNum+i).toString(), jsondata[i]);
-		
-	a = document.getElementById(String(currentNum+i));
-	a.setAttribute("href", links[i]);
-	document.getElementById("prj"+String(currentNum+i)).innerHTML = prjnames[i];
+				var listjson = json["lstjson"];
+				var links = JSON.parse(json["lstlink"]);
+				var prjnames = JSON.parse(json["lstprjname"]);
+				var locations = json["lstlocation"];
+				var des = json["lstdes"];
+				
+				var jsondata = JSON.parse(listjson);
+				
+				for (var i=0;i<loadnum;i++){
+					$("#update").append(mapframe(currentNum+i));
+					addmap((currentNum+i).toString(), jsondata[i]);
+				
+					a = document.getElementById(String(currentNum+i));
+					a.setAttribute("href", links[i]);
+					var prjEl = document.getElementById("prj"+String(currentNum+i));
+					prjEl.getElementsByTagName("h2")[0].innerHTML = prjnames[i];
+					prjEl.getElementsByTagName("h3")[0].innerHTML = locations[i];
+					prjEl.getElementsByTagName("p")[0].innerHTML = des[i];
+				}
 
-		}
-			currentNum +=loadnum;
+				currentNum +=loadnum;
 
-	  });
-
+	  		});
 		});
 	});
 
