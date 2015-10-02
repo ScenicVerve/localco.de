@@ -1,19 +1,14 @@
-{% extends "reblock/upload.html" %}
+{% extends 'reblock/index.html' %}
 
+{% block jslibs %}
+{% endblock %}
 
+{% block css %}
+	{{ block.super }}
+	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+{% endblock %}
 
 {% block content %}
-
-{% block scripts %}
-<head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
-</head>
-
-<body>
-
 	<div class="inline-dialog">
 		<h2>Upload Data Layers</h2>
 		<form id="layerreviewer" action="/reblock/review/" method="POST" enctype="multipart/form-data" class="dialog-body">
@@ -35,7 +30,10 @@
 	<div class="map-container">
 		<div style="width:500px; height:500px" id="map" class="map"></div>
 	</div>
+{% endblock %}
 	
+{% block scripts %}
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 	<script type='text/javascript'>
 		var map = L.map('map');
 		map.remove();
@@ -71,11 +69,4 @@
 		map.fitBounds(mygeo.getBounds());
 		mygeo.addTo(map);
 	</script>
-
-</body>
-
-
-
-{% endblock %}
-
 {% endblock %}
