@@ -17,11 +17,15 @@ body {
 
 h2 {
 	font-size: 32px;
-	margin-bottom: 24px;
+	margin-bottom: 32px;
 }
 
 h2 {
 	font-size: 32px;
+
+	&.with-dialog {
+		margin-left: 424px;
+	}
 }
 
 p {
@@ -126,6 +130,11 @@ p {
 
 .inline-dialog {
 	display: inline-block;
+	&.absolute {
+		position: absolute;
+		max-width: 400px;
+		margin-top: -56px;
+	}
 
 	h2 {
 		padding-left: 0;
@@ -255,8 +264,19 @@ a.button {
 }
 .map,
 #preload {
-	box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.15);
+	width: @project-width;
+	height: 400px;
+	display: inline-block;
 	margin: 0 24px 24px 0;
+
+	// hide placeholder until upload is implemented in recent.html
+	// (see comments in recent.html)
+	&.placeholder {
+		display: none;
+	}
+	&.not(.placeholder) {
+		box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.15);
+	}
 }
 #preload {
 	display: table;
@@ -269,6 +289,14 @@ a.button {
 	p {
 		display: table-cell;
 		vertical-align: middle;
+	}
+}
+
+// display placeholder once upload is implemented in recent.html
+// (see comments in recent.html)
+.inline-dialog + #update {
+	.placeholder {
+		display: inline-block;
 	}
 }
 
