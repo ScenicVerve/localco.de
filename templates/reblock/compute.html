@@ -1,248 +1,207 @@
 {% extends 'reblock/review.html' %}
 {% load static %}
 
-{% block css %}
-        <link rel="stylesheet" href="{% get_static_prefix %}css/home.css" type="text/css"/>
-        <link rel="stylesheet" href="{% get_static_prefix %}css/layers.css" type="text/css"/>
-{% endblock %}
-
-{% block subtitle %}
-    Build Site Configurations
-{% endblock %}
-
-{% block layernavs %}
-<!--            <li><a href="/reblock"><div class="sitenav">Browse Data</div></a></li>-->
-{% endblock %}
-
 {% block content %}
 
-  <head>
-	
-	<meta charset="utf-8" />
+	<div id="update">
+		<div id="preload"><p>Loading...</p></div>
+	</div> 
 
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- <div id="container"></div> -->
+	<div class="inline-dialog">
+		<h2>Project Name</h2>
+		<form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data" class="dialog-body">
+			{% csrf_token %}
+			{{ formset.management_form }}
+			<input type="submit" value="Check" />
+			<div> Project Index: <input type="text" name="projindex"/>(default = 0)</div>
+			<div> Intermediate Step Index: <input type="text" name="stepindex"/></div>
+		</form>
+	</div>
 
-	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
-</head>
-
-
-<body>
-
-        <div id = "update">
-<div id="preload" style="height:500px;width:500px;border:1px solid black;background-color:grey;"> Map is loading...</div>
-</div> 
+	{% block scripts %}
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
-<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-
-{% block scripts %}
-
-<script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+	<script>
 
 
-var loadmap = function(ori,road, inter){
+		var loadmap = function(ori,road, inter){
 
-var oriJSONList = ((ori).replace(/&(l|g|quo)t;/g, function(a,b){
-                return {
-                    l   : '<',
-                    g   : '>',
-                    quo : '"'
-                }[b];
-            }));
+			var oriJSONList = ((ori).replace(/&(l|g|quo)t;/g, function(a,b){
+				return {
+					l   : '<',
+					g   : '>',
+					quo : '"'
+				}[b];
+			}));
 
-var oriData = JSON.parse( oriJSONList );
+			var oriData = JSON.parse( oriJSONList );
 
-var roadJSONList = ((road).replace(/&(l|g|quo)t;/g, function(a,b){
-                return {
-                    l   : '<',
-                    g   : '>',
-                    quo : '"'
-                }[b];
-            }));
+			var roadJSONList = ((road).replace(/&(l|g|quo)t;/g, function(a,b){
+				return {
+					l   : '<',
+					g   : '>',
+					quo : '"'
+				}[b];
+			}));
 
-var roadData = JSON.parse( roadJSONList );
+			var roadData = JSON.parse( roadJSONList );
 
 
-var interJSONList = ((inter).replace(/&(l|g|quo)t;/g, function(a,b){
-                return {
-                    l   : '<',
-                    g   : '>',
-                    quo : '"'
-                }[b];
-            }));
+			var interJSONList = ((inter).replace(/&(l|g|quo)t;/g, function(a,b){
+				return {
+					l   : '<',
+					g   : '>',
+					quo : '"'
+				}[b];
+			}));
 
-var interData = JSON.parse( interJSONList );
+			var interData = JSON.parse( interJSONList );
 
 
 
-var orilayer = L.geoJson(oriData, {
-            weight: 1.5,
-            color: "#FFA500",
-            opacity: 0.8,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.8,
-            dashArray: '4',
+			var orilayer = L.geoJson(oriData, {
+				weight: 1.5,
+				color: "#FFA500",
+				opacity: 0.8,
+				fillColor: "#B0DE5C",
+				fillOpacity: 0.8,
+				dashArray: '4',
 
-		});
+			});
 
-var interlayer = L.geoJson(interData, {
-            weight: 2.5,
-            color: "#FFA500",
-            opacity: 0.8,
-            fillColor: "#blue",
-            fillOpacity: 0.8
+			var interlayer = L.geoJson(interData, {
+				weight: 2.5,
+				color: "#FFA500",
+				opacity: 0.8,
+				fillColor: "#blue",
+				fillOpacity: 0.8
 
-		});
+			});
 
-var roadlayer = L.geoJson(roadData, {
-            weight: 2.5,
-            color: "#2F4F4F",
-            opacity: 0.8,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.8
+			var roadlayer = L.geoJson(roadData, {
+				weight: 2.5,
+				color: "#2F4F4F",
+				opacity: 0.8,
+				fillColor: "#B0DE5C",
+				fillOpacity: 0.8
 
-		});
-        
-marker.push(orilayer);
-marker.push(interlayer);
-marker.push(roadlayer);
+			});
 
-
-for(var i=0;i<marker.length;i++) {
-    map.addLayer(marker[i]);
-    }  
+			marker.push(orilayer);
+			marker.push(interlayer);
+			marker.push(roadlayer);
 
 
-map.fitBounds(marker[0].getBounds());
-}
+			for(var i=0;i<marker.length;i++) {
+				map.addLayer(marker[i]);
+			}  
 
 
-var run = 1;
-var marker = new Array();
-var test = 5;
-
-var map = null;
-var setup = 1;
-var inter = 3000;
-var refreshID = null;
-
-var refreshID = setInterval(function(){update();},inter);
+			map.fitBounds(marker[0].getBounds());
+		}
 
 
-///
-var update = function(){
+		var run = 1;
+		var marker = new Array();
+		var test = 5;
 
-    if (run == 0){
-    clearInterval(refreshID);
-}   
-    else{
-        reloadstep();
-        console.log("second");
+		var map = null;
+		var setup = 1;
+		var inter = 3000;
+		var refreshID = null;
 
-    }
-
-}
+		var refreshID = setInterval(function(){update();},inter);
 
 
-function reloadall(){
-    $.getJSON("/reblock/reload/", {refresh: "true"}, function(json){
-for(var i=0;i<marker.length;i++) {
-    map.removeLayer(marker[i]);
-    }
-    marker = new Array();
-    loadmap(json["ori"],json["rd"], json["int"]);
-  });
-}
+		///
+		var update = function(){
 
-function reloadstep(){
-    $.getJSON("/reblock/reload_step/", {refresh: "true"}, function(json){
-    if (json["start"]){
-        if (json["step"]){
-            
-            if (setup){
-            $("#preload").remove();
-            $("#update").append('<div style="width:500px; height:500px" id="map"></div>')
-            map = L.map('map');
-            
-            L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-			maxZoom: 18,
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			id: 'examples.map-20v6611k'
-		}).addTo(map);
-        setup = 0;
-}
-            
-            if (json["finish"] ){
-                    
+			if (run == 0){
+				clearInterval(refreshID);
+			}   
+			else{
+				reloadstep();
+				console.log("second");
 
-                    
-                    
-        run = 0;
-        reloadall();
-    }else{
-        for(var i=0;i<marker.length;i++) {
-    map.removeLayer(marker[i]);
-    }   
-        marker = new Array();
-      loadmap(json["ori"],json["rd"], json["int"]);
+			}
 
-}
-             
-        }else{
-$("#preload").remove();
-           $("#update").append('<div id="preload" style="height:500px;width:500px;border:1px solid black;background-color:grey;"> Making graph...</div>'); 
-            
-            
-        }
-        
-        
-        
-        
+		}
 
-}
 
-  }
-);
-}
+		function reloadall(){
+			$.getJSON("/reblock/reload/", {refresh: "true"}, function(json){
+				for(var i=0;i<marker.length;i++) {
+					map.removeLayer(marker[i]);
+				}
+				marker = new Array();
+				loadmap(json["ori"],json["rd"], json["int"]);
+			});
+		}
+
+		function reloadstep(){
+			$.getJSON("/reblock/reload_step/", {refresh: "true"}, function(json){
+				if (json["start"]){
+					if (json["step"]){
+
+						if (setup){
+							$("#preload").remove();
+							$("#update").append('<div style="width:500px; height:500px" id="map"></div>')
+							map = L.map('map');
+
+							L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+								maxZoom: 18,
+								attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+								'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+								'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+								id: 'examples.map-20v6611k'
+							}).addTo(map);
+							setup = 0;
+						}
+
+						if (json["finish"] ){
 
 
 
 
-<!--layer from geoJson to overlay on top of map
+							run = 0;
+							reloadall();
+						}else{
+							for(var i=0;i<marker.length;i++) {
+								map.removeLayer(marker[i]);
+							}   
+							marker = new Array();
+							loadmap(json["ori"],json["rd"], json["int"]);
+
+						}
+
+					}else{
+						$("#preload").remove();
+						$("#update").append('<div id="preload"><p>Making graph...</p></div>'); 
+
+					}
+
+				}
+
+			});
+		}
+
+		// layer from geoJson to overlay on top of map
 
 
-//~ var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interJSONList).replace(/\\/g, ''));
-//~ $('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
-//~ 
-//~ 
-//~ var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(oriJSONList).replace(/\\/g, ''));
-//~ $('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
-	//~ 
-//~ var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadJSONList).replace(/\\/g, ''));
-//~ $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
+		//~ var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interJSONList).replace(/\\/g, ''));
+		//~ $('<a href="data:' + innerdata + '" download="data.json">  ||Interial Parcels||  </a>').appendTo('#container');
+		//~ 
+		//~ 
+		//~ var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(oriJSONList).replace(/\\/g, ''));
+		//~ $('<a href="data:' + oridata + '" download="data.json">  ||All Parcels||  </a>').appendTo('#container');
+			//~ 
+		//~ var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(roadJSONList).replace(/\\/g, ''));
+		//~ $('<a href="data:' + rddata + '" download="data.json">  ||Roads||  </a>').appendTo('#container');
 
-    </script>
-    
-
-{% endblock %}
-
-
-<div id="container"></div>
-
-                  <form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ formset.management_form }}
-    <input type="submit" value="Check" />
-    <div> Project Index: <input type="text" name="projindex"/>(default = 0)</div>
-    <div> Intermediate Step Index: <input type="text" name="stepindex"/></div>
-    
-        
-
-              </form>
-</form>
+	</script>
 
 
 {% endblock %}
 
-
+{% endblock %}
