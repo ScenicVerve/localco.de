@@ -141,6 +141,9 @@ p {
   padding: 36px;
   background: #ffffff;
 }
+.inline-dialog .dialog-body.fixed-width {
+  width: 460px;
+}
 .inline-dialog label {
   display: block;
   font-size: 24px;
@@ -167,6 +170,12 @@ p {
 .inline-dialog input {
   height: 55px;
 }
+.inline-dialog input.confirm {
+  background-color: #65d850;
+  border-color: #efefef;
+  color: #ffffff;
+  box-shadow: none;
+}
 .inline-dialog textarea {
   resize: none;
   height: 140px;
@@ -181,6 +190,9 @@ p {
 .inline-dialog textarea + button,
 .inline-dialog textarea + .button {
   margin-top: 0;
+}
+.inline-dialog .ui-slider {
+  margin-bottom: 32px;
 }
 .login-form p {
   display: block;
@@ -316,4 +328,12 @@ a.button.confirm {
 .footer {
   text-align: center;
   margin-bottom: 72px;
+}
+#minbeds {
+  display: none;
+}
+#project-description {
+  padding-bottom: 36px;
+  border-bottom: 2px solid #e2e2e2;
+  margin-bottom: 36px;
 }

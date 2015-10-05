@@ -1,289 +1,288 @@
 {% extends 'reblock/review.html' %}
 {% load static %}
 
-
 {% block css %}
-        <link rel="stylesheet" href="{% get_static_prefix %}css/home.css" type="text/css"/>
-        <link rel="stylesheet" href="{% get_static_prefix %}css/layers.css" type="text/css"/>
-          <link rel="stylesheet" href="/resources/demos/style.css">
-  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	{{ block.super }}
+	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+	<link rel="stylesheet" href="/resources/demos/style.css">
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 {% endblock %}
-
-
-{% block subtitle %}
-    Build Site Configurations
-{% endblock %}
-
 
 {% block content %}
-  <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
-</head>
+	<div class="inline-dialog">
+		<h2 id="project-name">Loading...</h2>
+		<form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data" class="dialog-body fixed-width">
+			{% csrf_token %}
+			{{ formset.management_form }}
+			<!--
+			<input type="submit" value="Check" />
+			<div>Project Index: <input type="text" name="projindex"/></div>
+			-->
 
-<body>
-<div id = "update">
-<div id="preload" style="height:500px;width:500px;border:1px solid black;background-color:grey;"> Map is loading...</div>
-</div>
+			<div id="project-description" class="project">
+			</div>
 
-<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
-<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+			<div id = "update3">
+			</div>
+			<div id = 'bt1'>
+			</div>
+			<div id = 'bt2'>
+			</div>
+			<div id = 'bt3'>
+			</div>
+			<div id = 'zipbt'>
+			</div>
+		</form>
+	</div>
 
-<form id="layerconfigure" action="/reblock/compute/" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ formset.management_form }}
-    <input type="submit" value="Check" />
-    <div> Project Index: <input type="text" name="projindex"/></div>
-
-<div id = "update3">
-</div>
-<div id = 'bt1'>
-</div>
-<div id = 'bt2'>
-</div>
-<div id = 'bt3'>
-</div>
-<div id = 'zipbt'>
-</div>
-</form>
+	<div class="map-container">
+		<div id="update">
+			<div id="preload"><p>Loading...</p></div>
+		</div>
+	</div>
 {% endblock %}
 
 
 {% block scripts %}
-<script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+	<script>
+
+		var initjson = function(json){
+			//the function to process json file
+			return ((json).replace(/&(l|g|quo)t;/g, function(a,b){
+				return {
+					l   : '<',
+					g   : '>',
+					quo : '"'
+				}[b];
+			}));
+		}
+
+		var loadmap = function(ori,road, inter){
+			//the function to load map according to the input json file
+			var oriJSONList = initjson(ori);
+			var oriData = JSON.parse( oriJSONList );
+
+			var roadJSONList = initjson(road);
+			var roadData = JSON.parse( roadJSONList );
+
+			var interJSONList = initjson(inter);
+			var interData = JSON.parse( interJSONList );
+
+			var orilayer = L.geoJson(oriData, {
+				weight: 1.5,
+				color: "#FFA500",
+				opacity: 0.8,
+				fillColor: "#B0DE5C",
+				fillOpacity: 0.8,
+				dashArray: '4',
+			});
+
+			var interlayer = L.geoJson(interData, {
+				weight: 2.5,
+				color: "#FFA500",
+				opacity: 0.8,
+				fillColor: "#blue",
+				fillOpacity: 0.8
+			});
+
+			var roadlayer = L.geoJson(roadData, {
+				weight: 2.5,
+				color: "#2F4F4F",
+				opacity: 0.8,
+				fillColor: "#B0DE5C",
+				fillOpacity: 0.8
+			});
+
+			marker.push(orilayer);
+			marker.push(interlayer);
+			marker.push(roadlayer);
+
+			for(var i=0;i<marker.length;i++) {
+				map.addLayer(marker[i]);
+			}  
+
+			map.fitBounds(marker[0].getBounds());
+		}
+
+		var marker = new Array();//markers to store geojson objects to overlay
+		var map = null;
+		var setup = 1;
+		var inter = 3000;//time interval to reload
+		var refreshID = null;//setinterval object
+		var slider_A = '<form id="reservation"><label for="minbeds">Path Width (Meters)</label><select name="minbeds" id="minbeds">'
+		var slider_B = '</select></form>'
+		var refreshID = setInterval(function(){update();},inter);//reload function
+		var steps = null;//the total intermediate steps
+
+		var update = function(){
+			//reload map
+			reloadstep();
+			console.log("second");
+		}
+
+		function reloadall(){
+			//query the final computation result
+			$.getJSON("/reblock/reload/", {pr_id: "{{project_id}}"}, function(json){
+				//remove previous markers
+				for(var i=0;i<marker.length;i++) {
+					map.removeLayer(marker[i]);
+				}
+				marker = new Array();
+				//load new geojson
+				loadmap(json["ori"],json["rd"], json["int"]);
+				//load total steps amount
+				steps = json["stepnumber"]+1;
+				//load zipped path for shapefiles
+				var zippath = json["zip"];
+
+				//process geojson for download
+				var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
+				var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
+				var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
+
+				//prepare download button for geojsons
+				var bt1_link= '"data:' + innerdata + '" download="data.json"'
+				var bt1stri = '<form action='+bt1_link+' id = "removebt1"><input type="submit" value="Interial parcels"></form>'
+				var bt2_link= '"data:' + oridata + '" download="data.json"'
+				var bt2stri = '<form action='+bt2_link+' id = "removebt2"><input type="submit" value="Original parcels"></form>'
+				var bt3_link= '"data:' + rddata + '" download="data.json"'
+				var bt3stri = '<form action='+bt3_link+' id = "removebt3"><input type="submit" value="Roads"></form>'
+
+				//prepare download button for zipped file
+				data = {path : zippath}
+				var zipstr = "<form id = 'removezip' action = '/reblock/download?"+$.param(data)+"' method='POST'><div><input class='confirm' type='submit' value='Download'></div>{% csrf_token %}</form>"
+
+				//add download links to buttons
+				$("#bt1").append(bt1stri);
+				$("#bt2").append(bt2stri);
+				$("#bt3").append(bt3stri);
+				$("#zipbt").append(zipstr);
+
+				// TODO: these values are not currently available.
+				// Send them down to the template from Django.
+				var projectName = "Project Name";
+				var projectLocation = "Project Location";
+				var projectDescription = "Project Description will go here once the server provides the data to the template.";
+				$("#project-name").text(projectName);
+				$("#project-description").append('<h3 class="project-location">' + projectLocation + '</h3><p class="project-description">' + projectDescription + '</p>');
+
+				//function for sliders, remove previous, and update option according to steps
+				//everytime the slider condition is changed, will remove old marker and add new one according to the step sent to query
+				$(function() {
+					$( "#minbeds" ).remove();
+					
+					//slider string created, will update slider's option number
+					var slider = slider_A;
+					for (var i = 0;i<steps.valueOf();i++){
+						slider += '<option>' + i + '</option>';
+					}
+					slider += slider_B;
+					$("#update3").append(slider);
+					
+					
+					var select = $( "#minbeds" );
+					var slider = $( "<div id='slider'></div>" ).insertAfter( select ).slider({
+							min: 1,
+							max: steps,
+							range: "min",
+							value: select[ 0 ].selectedIndex + 1,
+							slide: function( event, ui ) {
+									select[ 0 ].selectedIndex = ui.value - 1;
+								//update the geojson overlay on the map
+								checkstep(select[ 0 ].selectedIndex);
+							}
+						});
+
+					$( "#minbeds" ).change(function() {
+						slider.slider( "value", this.selectedIndex + 1 );
+					});
+				});
+			});
+		}
+
+		function checkstep(step_index){
+			//query the specific step geojson
+			$.getJSON("/reblock/check_step/", {pr_id: "{{project_id}}", step: step_index}, function(json){
+				for(var i=0;i<marker.length;i++) {
+					map.removeLayer(marker[i]);
+				}
+				marker = new Array();
+				loadmap(json["ori"],json["rd"], json["int"]);
+				steps = json["stepnumber"];
+
+				//remove previous button
+				$("#removebt1").remove();
+				$("#removebt2").remove();
+				$("#removebt3").remove();
+				$("#removezip").remove();
+
+				//download buttons for geojson
+				var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
+				var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
+				var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
+
+				var bt1_link= '"data:' + innerdata + '" download="data.json"'
+				var bt1stri = '<form action='+bt1_link+' id = "removebt1"><input type="submit" value="Interial parcels"></form>'
+				var bt2_link= '"data:' + oridata + '" download="data.json"'
+				var bt2stri = '<form action='+bt2_link+' id = "removebt2"><input type="submit" value="Original parcels"></form>'
+				var bt3_link= '"data:' + rddata + '" download="data.json"'
+				var bt3stri = '<form action='+bt3_link+' id = "removebt3"><input type="submit" value="Roads"></form>'
+
+				$("#bt1").append(bt1stri);
+				$("#bt2").append(bt2stri);
+				$("#bt3").append(bt3stri);
+			});
+		}
+
+		function reloadstep(){
+			//query the latest intermediate step geojson
+			//if the calculation is done, will call the reloadall function
+			$.getJSON("/reblock/reload_step/", {pr_id: "{{project_id}}"}, function(json){
+				if (json["start"]){
+
+					if (json["step"]){
+						
+						if (setup){
+							$("#preload").remove();
+							$("#update").append('<div style="width:500px; height:500px" id="map"></div>')
+							map = L.map('map');
+
+							L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+								maxZoom: 18,
+								attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+								'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+								'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+								id: 'examples.map-20v6611k'
+							}).addTo(map);
+							setup = 0;
+						}
+						
+						if (json["finish"] ){//calculation is finished, will call reloadall function for the final result
+							clearInterval(refreshID);
+							reloadall();
 
 
-var initjson = function(json){
-//the function to process json file
-return ((json).replace(/&(l|g|quo)t;/g, function(a,b){
-                return {
-                    l   : '<',
-                    g   : '>',
-                    quo : '"'
-                }[b];
-            }));
-}
+						} else {//calculation is not done, will call loadmap function for latest calculation status
+							for(var i=0;i<marker.length;i++) {
+								map.removeLayer(marker[i]);
+							}   
+							marker = new Array();
+							loadmap(json["ori"],json["rd"], json["int"]);
 
-var loadmap = function(ori,road, inter){
-//the function to load map according to the input json file
-var oriJSONList = initjson(ori);
-var oriData = JSON.parse( oriJSONList );
+						}
 
-var roadJSONList = initjson(road);
-var roadData = JSON.parse( roadJSONList );
+					} else {
+						$("#preload").remove();
+						$("#update").append('<div id="preload"><p>Making graph...</p></div>'); 
+					}
 
-var interJSONList = initjson(inter);
-var interData = JSON.parse( interJSONList );
+				}
+			});
+		}
 
-var orilayer = L.geoJson(oriData, {
-            weight: 1.5,
-            color: "#FFA500",
-            opacity: 0.8,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.8,
-            dashArray: '4',
-		});
+	</script>
 
-var interlayer = L.geoJson(interData, {
-            weight: 2.5,
-            color: "#FFA500",
-            opacity: 0.8,
-            fillColor: "#blue",
-            fillOpacity: 0.8
-		});
-
-var roadlayer = L.geoJson(roadData, {
-            weight: 2.5,
-            color: "#2F4F4F",
-            opacity: 0.8,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.8
-		});
-
-marker.push(orilayer);
-marker.push(interlayer);
-marker.push(roadlayer);
-
-for(var i=0;i<marker.length;i++) {
-    map.addLayer(marker[i]);
-    }  
-
-map.fitBounds(marker[0].getBounds());
-}
-
-var marker = new Array();//markers to store geojson objects to overlay
-var map = null;
-var setup = 1;
-var inter = 3000;//time interval to reload
-var refreshID = null;//setinterval object
-var slider_A = '<form id="reservation"><label for="minbeds">Step Selected</label><select name="minbeds" id="minbeds">'
-var slider_B = '</select></form>'
-var refreshID = setInterval(function(){update();},inter);//reload function
-var steps = null;//the total intermediate steps
-
-var update = function(){
-//reload map
-        reloadstep();
-        console.log("second");
-}
-
-function reloadall(){
-//query the final computation result
-$.getJSON("/reblock/reload/", {pr_id: "{{project_id}}"}, function(json){
-//remove previous markers
-for(var i=0;i<marker.length;i++) {
-    map.removeLayer(marker[i]);
-    }
-marker = new Array();
-//load new geojson
-loadmap(json["ori"],json["rd"], json["int"]);
-//load total steps amount
-steps = json["stepnumber"]+1;
-//load zipped path for shapefiles
-var zippath = json["zip"];
-
-//process geojson for download
-var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
-var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
-var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
-
-//prepare download button for geojsons
-var bt1_link= '"data:' + innerdata + '" download="data.json"'
-var bt1stri = '<form action='+bt1_link+' id = "removebt1"><input type="submit" value="Interial parcels"></form>'
-var bt2_link= '"data:' + oridata + '" download="data.json"'
-var bt2stri = '<form action='+bt2_link+' id = "removebt2"><input type="submit" value="Original parcels"></form>'
-var bt3_link= '"data:' + rddata + '" download="data.json"'
-var bt3stri = '<form action='+bt3_link+' id = "removebt3"><input type="submit" value="Roads"></form>'
-
-//prepare download button for zipped file
-data = {path : zippath}
-var zipstr = "<form id = 'removezip' action = '/reblock/download?"+$.param(data)+"' method='POST'><div><input type='submit' value='Download shp'></div>{% csrf_token %}</form>"
-
-//add download links to buttons
-$("#bt1").append(bt1stri);
-$("#bt2").append(bt2stri);
-$("#bt3").append(bt3stri);
-$("#zipbt").append(zipstr);
-    
-//function for sliders, remove previous, and update option according to steps
-//everytime the slider condition is changed, will remove old marker and add new one according to the step sent to query
-        $(function() {
-    $( "#minbeds" ).remove();
-    
-    //slider string created, will update slider's option number
-    var slider = slider_A;
-    for (var i = 0;i<steps.valueOf();i++){
-    slider += '<option>' + i + '</option>';
-}
-    slider += slider_B;
-    $("#update3").append(slider);
-    
-    
-    var select = $( "#minbeds" );
-    var slider = $( "<div id='slider'></div>" ).insertAfter( select ).slider({
-      min: 1,
-      max: steps,
-      range: "min",
-      value: select[ 0 ].selectedIndex + 1,
-      slide: function( event, ui ) {
-        select[ 0 ].selectedIndex = ui.value - 1;
-        //update the geojson overlay on the map
-        checkstep(select[ 0 ].selectedIndex);
-      }
-    });
-    $( "#minbeds" ).change(function() {
-      slider.slider( "value", this.selectedIndex + 1 );
-
-    });
-  });  
-  });  
-}
-
-function checkstep(step_index){
-    //query the specific step geojson
-    $.getJSON("/reblock/check_step/", {pr_id: "{{project_id}}", step: step_index}, function(json){
-for(var i=0;i<marker.length;i++) {
-    map.removeLayer(marker[i]);
-    }
-    marker = new Array();
-    loadmap(json["ori"],json["rd"], json["int"]);
-    steps = json["stepnumber"];
-    
-//remove previous button
-$("#removebt1").remove();
-$("#removebt2").remove();
-$("#removebt3").remove();
-$("#removezip").remove();
-
-//download buttons for geojson
-var innerdata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["int"]).replace(/\\/g, ''));
-var oridata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["ori"]).replace(/\\/g, ''));
-var rddata = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json["rd"]).replace(/\\/g, ''));
-
-var bt1_link= '"data:' + innerdata + '" download="data.json"'
-var bt1stri = '<form action='+bt1_link+' id = "removebt1"><input type="submit" value="Interial parcels"></form>'
-var bt2_link= '"data:' + oridata + '" download="data.json"'
-var bt2stri = '<form action='+bt2_link+' id = "removebt2"><input type="submit" value="Original parcels"></form>'
-var bt3_link= '"data:' + rddata + '" download="data.json"'
-var bt3stri = '<form action='+bt3_link+' id = "removebt3"><input type="submit" value="Roads"></form>'
-
-$("#bt1").append(bt1stri);
-$("#bt2").append(bt2stri);
-$("#bt3").append(bt3stri);
-  });
-}
-
-
-function reloadstep(){
-//query the latest intermediate step geojson
-//if the calculation is done, will call the reloadall function
-    $.getJSON("/reblock/reload_step/", {pr_id: "{{project_id}}"}, function(json){
-    if (json["start"]){
-        if (json["step"]){
-            
-            if (setup){
-            $("#preload").remove();
-            $("#update").append('<div style="width:500px; height:500px" id="map"></div>')
-            map = L.map('map');
-            
-            L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-			maxZoom: 18,
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			id: 'examples.map-20v6611k'
-		}).addTo(map);
-        setup = 0;
-}
-            
-            if (json["finish"] ){//calculation is finished, will call reloadall function for the final result
-        clearInterval(refreshID);
-        reloadall();
-        
-
-    }else{//calculation is not done, will call loadmap function for latest calculation status
-        for(var i=0;i<marker.length;i++) {
-    map.removeLayer(marker[i]);
-    }   
-        marker = new Array();
-      loadmap(json["ori"],json["rd"], json["int"]);
-
-}
-             
-        }else{
-$("#preload").remove();
-           $("#update").append('<div id="preload" style="height:500px;width:500px;border:1px solid black;background-color:grey;"> Making graph...</div>'); 
-        }
-}
-  }
-);
-}
-
-</script>
 {% endblock %}
-
-
-
-
