@@ -58,7 +58,7 @@ change `mysettings.py' database info
 
 ```bash
 
-echo PW='postgrespass' > pw.py
+echo PW='"postgrespass"' > pw.py
 sudo -u postgres createuser --superuser $USER
 sudo -u postgres psql
 postgres=# \password $USER
