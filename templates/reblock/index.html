@@ -8,7 +8,7 @@
 		{% block css %}
 			<link rel="stylesheet" href="{% get_static_prefix %}css/home.css" type="text/css"/>
 			<link rel="stylesheet" href="{% get_static_prefix %}css/layers.css" type="text/css"/>
-			<link rel="stylesheet" href="{% get_static_prefix %}css/custom-theme/jquery-ui-1.8.16.custom.css" type="text/css"/>
+			<!-- <link rel="stylesheet" href="{% get_static_prefix %}css/custom-theme/jquery-ui-1.8.16.custom.css" type="text/css"/> -->
 		{% endblock %}
 
 		<span id="pagesubtitle">
@@ -19,9 +19,14 @@
 
 {% block nav %}
   <ul>
+    <li><a href="http://openreblock.org"><div class="sitenav">Examples</div></a></li>
     <li><a href="/reblock/upload"><div class="sitenav">Upload Data</div></a></li><!--
-    --><li><a href="/reblock/profile"><div class="sitenav">Profile</div></a></li><!--
-    --><li><a href="/login"><div class="sitenav">Login</div></a></li>
+    --><li><a href="/reblock/profile"><div class="sitenav">Profile</div></a></li>
+       {% if user.is_authenticated %}
+       <li><a href="/logout"><div class="sitenav">Logout</div></a></li>
+       {% else %}
+       <li><a href="/login"><div class="sitenav">Login</div></a></li>
+       {% endif %}
 
     <!--
     <li><a href="/about"><div class="sitenav">About</div></a></li>
