@@ -102,7 +102,7 @@
 
 			for(var i=0;i<marker.length;i++) {
 				map.addLayer(marker[i]);
-			}  
+			}
 
 			map.fitBounds(marker[0].getBounds());
 		}
@@ -173,7 +173,7 @@
 				//everytime the slider condition is changed, will remove old marker and add new one according to the step sent to query
 				$(function() {
 					$( "#minbeds" ).remove();
-					
+
 					//slider string created, will update slider's option number
 					var slider = slider_A;
 					for (var i = 0;i<steps.valueOf();i++){
@@ -181,8 +181,8 @@
 					}
 					slider += slider_B;
 					$("#update3").append(slider);
-					
-					
+
+
 					var select = $( "#minbeds" );
 					var slider = $( "<div id='slider'></div>" ).insertAfter( select ).slider({
 							min: 1,
@@ -244,7 +244,7 @@
 				if (json["start"]){
 
 					if (json["step"]){
-						
+
 						if (setup){
 							$("#preload").remove();
 							$("#update").append('<div style="width:500px; height:500px" id="map"></div>')
@@ -255,11 +255,11 @@
 								attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
 								'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
 								'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-								id: 'examples.map-20v6611k'
+								id: 'joeahand.jc5epc4l'
 							}).addTo(map);
 							setup = 0;
 						}
-						
+
 						if (json["finish"] ){//calculation is finished, will call reloadall function for the final result
 							clearInterval(refreshID);
 							reloadall();
@@ -268,7 +268,7 @@
 						} else {//calculation is not done, will call loadmap function for latest calculation status
 							for(var i=0;i<marker.length;i++) {
 								map.removeLayer(marker[i]);
-							}   
+							}
 							marker = new Array();
 							loadmap(json["ori"],json["rd"], json["int"]);
 
@@ -276,7 +276,7 @@
 
 					} else {
 						$("#preload").remove();
-						$("#update").append('<div id="preload"><p>Making graph...</p></div>'); 
+						$("#update").append('<div id="preload"><p>Making graph...</p></div>');
 					}
 
 				}
