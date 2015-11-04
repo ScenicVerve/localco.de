@@ -149,8 +149,8 @@ def register(request):
 		    user.save()
 		    registered = True
 		    #send email to the user to confirm the registration
-		    message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://openreblock.berkeley.edu/login/'
-		    email = EmailMultiAlternatives('Openreblock - Registration confirmation',message,'openreblock@gmail.com', [user_email])
+		    message = 'Congratulations! You are registered! Please click on the link to log in to your profile.'+' '+'http://beta.openreblock.org/login/'
+		    email = EmailMultiAlternatives('Openreblock - Registration confirmation',message,'openreblocker@gmail.com', [user_email])
 		    email.send()
 		    return render_to_response(
 		    'reblock/registration_complete.html',
@@ -203,8 +203,8 @@ def forgot_password(request):
 	    #save user
 	    user.save()
 	    #email the user with the new password
-	    message = 'Your new password has changed to: '+ new_password1+' '+'Use it to log back in openreblock.berkeley.edu'
-	    email = EmailMultiAlternatives('password change',message ,'openreblock@gmail.com', [user_email])
+	    message = 'Your new password has changed to: '+ new_password1+' '+'Use it to log back in beta.openreblock.org'
+	    email = EmailMultiAlternatives('password change',message ,'openreblocker@gmail.com', [user_email])
 	    email.send()
 	    return HttpResponseRedirect('/set_new_password/') #this redirects correct
 
