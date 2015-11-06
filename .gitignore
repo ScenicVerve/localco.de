@@ -4,6 +4,7 @@
 .DS_Store
 pw.py
 pwe.py
+settings_local.py
 my_settings.py
 topology/
 textbits/
