@@ -7,10 +7,22 @@
 
 {% block content %}
     <div>
-    	<!--
-    	Remove this once upload is implemented,
-		in favor of <h2 class="with-dialog"> below.
-        -->
+    	<div class="">
+    		<p class="intro"><strong>OpenReblock Beta:</strong> Interested in running the OpenReblock algorithm on your own map? Great! Follow these steps to get going:</p>
+    		<ol>
+    			<li><a href="http://openreblock.org">View the examples</a> to see what your map will look like before and after.</li>
+    			<li>Create a shapefile where each parcel in a block is represented by a
+   polygon (try with a small section first).</li>
+    			<li>Upload the shapefile (you will need to create an account first).
+   Depending on the size of your block, the algorithm can take minutes to
+   hours.</li>
+    			<li>View the result in your profile. The tool will show where the
+   mathematically optimal paths are. These paths give access to each parcel
+   while minimizing the total length of new paths.</li>
+    		</ol>
+
+    		<p class="intro"><strong>Note:</strong> The OpenReblock user upload site is in beta. Please <a href="https://github.com/open-reblock/openreblock/issues/new">report an issue</a> on GitHub if you encounter an error. Thanks.</p>
+    	</div>
         <h2>Recent Uploads</h2>
 
         <!--
@@ -99,14 +111,14 @@
 	}
 
 	function mapframe(index){
-		frame = '<a id="'+index+'" class="project-container">' +
+		frame = '<div id="'+index+'" class="project-container">' +
 					'<div id="map'+index+'" class="map"></div>' +
 					'<div id="prj'+index+'" class="project">' +
 						'<h2 class="project-title"></h2>' +
 						'<h3 class="project-location"></h3>' +
 						'<p class="project-description"></p>' +
 					'</div>' +
-				'</a>';
+				'</div>';
 		return frame;
 	}
 
@@ -122,8 +134,8 @@
 			$("#update").append(mapframe(i));
 			addmap((i).toString(), testjson[i]);
 
-			a = document.getElementById(String(i));
-			a.setAttribute("href", test[i]);
+			//a = document.getElementById(String(i));
+			//a.setAttribute("href", test[i]);
 			var prjEl = document.getElementById("prj"+String(i));
 			prjEl.getElementsByTagName("h2")[0].innerHTML = testprj[i];
 			prjEl.getElementsByTagName("h3")[0].innerHTML = testloc[i];
@@ -138,8 +150,8 @@
 			$("#update").append(mapframe(i));
 			addmap((i).toString(), testjson[i]);
 
-			a = document.getElementById(String(i));
-			a.setAttribute("href", test[i]);
+			//a = document.getElementById(String(i));
+			//a.setAttribute("href", test[i]);
 			var prjEl = document.getElementById("prj"+String(i));
 			prjEl.getElementsByTagName("h2")[0].innerHTML = testprj[i];
 			prjEl.getElementsByTagName("h3")[0].innerHTML = testloc[i];
@@ -172,8 +184,8 @@
 					$("#update").append(mapframe(currentNum+i));
 					addmap((currentNum+i).toString(), jsondata[i]);
 
-					a = document.getElementById(String(currentNum+i));
-					a.setAttribute("href", links[i]);
+					//a = document.getElementById(String(currentNum+i));
+					//a.setAttribute("href", links[i]);
 					var prjEl = document.getElementById("prj"+String(currentNum+i));
 					prjEl.getElementsByTagName("h2")[0].innerHTML = prjnames[i];
 					prjEl.getElementsByTagName("h3")[0].innerHTML = locations[i];

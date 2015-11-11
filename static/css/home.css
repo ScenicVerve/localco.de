@@ -40,14 +40,30 @@ p {
 #content {
   width: 75%;
   margin: 0 12.5%;
-  padding-top: 100px;
+  padding-top: 50px;
   color: #484848;
   font-weight: 300;
+}
+#content a {
+  color:#337ab7;
 }
 #content p {
   font-size: 24px;
   padding-left: 0;
   padding-right: 0;
+}
+#content p.intro {
+  font-size:16px;
+  max-width:600px;
+  margin:0 auto;
+}
+#content ol {
+  margin:10px auto;
+  padding-left:50px;
+  max-width:600px;
+}
+#content h2 {
+  margin-top:25px;
 }
 #header {
   width: 100%;
